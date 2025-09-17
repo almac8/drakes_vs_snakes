@@ -14,9 +14,28 @@ fn main() {
   }
 
   is_snake[map_coordinates_to_vector_index(5, 2, map_width)] = true;
+  let snake_neighbors = get_neighbors(5, 2, map_width);
+  for neighbor in snake_neighbors {
+    hints[neighbor] += 1;
+  }
+  
   is_snake[map_coordinates_to_vector_index(3, 3, map_width)] = true;
+  let snake_neighbors = get_neighbors(3, 3, map_width);
+  for neighbor in snake_neighbors {
+    hints[neighbor] += 1;
+  }
+  
   is_snake[map_coordinates_to_vector_index(3, 5, map_width)] = true;
+  let snake_neighbors = get_neighbors(3, 5, map_width);
+  for neighbor in snake_neighbors {
+    hints[neighbor] += 1;
+  }
+  
   is_snake[map_coordinates_to_vector_index(2, 6, map_width)] = true;
+  let snake_neighbors = get_neighbors(2, 6, map_width);
+  for neighbor in snake_neighbors {
+    hints[neighbor] += 1;
+  }
 
   for tile_index in 0..(map_width * map_height) {
     if tile_index == player_location {
@@ -55,4 +74,17 @@ fn main() {
 
 fn map_coordinates_to_vector_index(x: usize, y: usize, map_width: usize) -> usize {
   y * map_width + x
+}
+
+fn get_neighbors(x: usize, y: usize, map_width: usize) -> Vec<usize> {
+  vec![
+    map_coordinates_to_vector_index(x - 1, y - 1, map_width),
+    map_coordinates_to_vector_index(x    , y - 1, map_width),
+    map_coordinates_to_vector_index(x + 1, y - 1, map_width),
+    map_coordinates_to_vector_index(x - 1, y    , map_width),
+    map_coordinates_to_vector_index(x + 1, y    , map_width),
+    map_coordinates_to_vector_index(x - 1, y + 1, map_width),
+    map_coordinates_to_vector_index(x    , y + 1, map_width),
+    map_coordinates_to_vector_index(x + 1, y + 1, map_width)
+  ]
 }
