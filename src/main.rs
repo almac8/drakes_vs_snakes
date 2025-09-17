@@ -2,8 +2,8 @@ fn main() {
   let map_width = 8;
   let map_height = 8;
 
-  let player_location = 9;
-  let goal_location = 53;
+  let player_location = map_coordinates_to_vector_index(1, 1, map_width);
+  let goal_location = map_coordinates_to_vector_index(5, 6, map_width);
 
   let mut is_snake = Vec::new();
   let mut hints = Vec::new();
@@ -13,10 +13,10 @@ fn main() {
     hints.push(0);
   }
 
-  is_snake[21] = true;
-  is_snake[27] = true;
-  is_snake[43] = true;
-  is_snake[50] = true;
+  is_snake[map_coordinates_to_vector_index(5, 2, map_width)] = true;
+  is_snake[map_coordinates_to_vector_index(3, 3, map_width)] = true;
+  is_snake[map_coordinates_to_vector_index(3, 5, map_width)] = true;
+  is_snake[map_coordinates_to_vector_index(2, 6, map_width)] = true;
 
   for tile_index in 0..(map_width * map_height) {
     if tile_index == player_location {
@@ -51,4 +51,8 @@ fn main() {
   println!("");
   println!("");
 
+}
+
+fn map_coordinates_to_vector_index(x: usize, y: usize, map_width: usize) -> usize {
+  y * map_width + x
 }
