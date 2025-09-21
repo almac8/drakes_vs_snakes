@@ -1,13 +1,13 @@
 fn main() {
   let map_width = 8;
   let map_height = 8;
-
-  let mut player_location_x = 2;
-  let mut player_location_y = 2;
+  
+  let mut player_location_x = rand::random_range(0..(map_width - 1));
+  let mut player_location_y = rand::random_range(0..(map_height - 1));
   let mut player_index = player_location_y * map_width + player_location_x;
 
-  let goal_location_x = 4;
-  let goal_location_y = 4;
+  let goal_location_x = rand::random_range(0..(map_width - 1));
+  let goal_location_y = rand::random_range(0..(map_height - 1));
   let goal_index = goal_location_y * map_width + goal_location_x;
 
   let mut is_running = true;
