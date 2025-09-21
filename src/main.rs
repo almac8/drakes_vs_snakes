@@ -2,12 +2,12 @@ fn main() {
   let map_width = 8;
   let map_height = 8;
   
-  let mut player_location_x = rand::random_range(0..(map_width - 1));
-  let mut player_location_y = rand::random_range(0..(map_height - 1));
+  let mut player_location_x = rand::random_range(0..(map_width / 3));
+  let mut player_location_y = rand::random_range(0..(map_height / 3));
   let mut player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
 
-  let goal_location_x = rand::random_range(0..(map_width - 1));
-  let goal_location_y = rand::random_range(0..(map_height - 1));
+  let goal_location_x = rand::random_range((map_width / 3 * 2)..(map_width - 1));
+  let goal_location_y = rand::random_range((map_height / 3 * 2)..(map_height - 1));
   let goal_index = calculate_index_from_coordinates(goal_location_x, goal_location_y, map_width);
 
   let mut is_snake = Vec::new();
@@ -18,40 +18,29 @@ fn main() {
     snake_hints.push(0);
   }
 
-  let snake_location_x = 1;
-  let snake_location_y = 1;
-  is_snake[calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width)] = true;
-  let snake_neighbors = get_direct_neighbors(snake_location_x, snake_location_y, map_width, map_height);
-  for neighbor_index in snake_neighbors {
-    snake_hints[neighbor_index] += 1;
-  }
+  let mut num_snakes_to_place = 16;
+  while num_snakes_to_place > 0 {
+    let snake_location_x = rand::random_range(0..(map_width - 1));
+    let snake_location_y = rand::random_range(0..(map_height - 1));
+    let snake_index = calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width);
 
-  let snake_location_x = 3;
-  let snake_location_y = 3;
-  is_snake[calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width)] = true;
-  let snake_neighbors = get_direct_neighbors(snake_location_x, snake_location_y, map_width, map_height);
-  for neighbor_index in snake_neighbors {
-    snake_hints[neighbor_index] += 1;
-  }
+    if snake_index == player_index { continue; }
+    if snake_index == goal_index { continue; }
+    if is_snake[snake_index] { continue; }
 
-  let snake_location_x = 5;
-  let snake_location_y = 5;
-  is_snake[calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width)] = true;
-  let snake_neighbors = get_direct_neighbors(snake_location_x, snake_location_y, map_width, map_height);
-  for neighbor_index in snake_neighbors {
-    snake_hints[neighbor_index] += 1;
-  }
+    is_snake[calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width)] = true;
+    num_snakes_to_place -= 1;
 
-  let snake_location_x = 6;
-  let snake_location_y = 6;
-  is_snake[calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width)] = true;
-  let snake_neighbors = get_direct_neighbors(snake_location_x, snake_location_y, map_width, map_height);
-  for neighbor_index in snake_neighbors {
-    snake_hints[neighbor_index] += 1;
+    let snake_neighbors = get_direct_neighbors(snake_location_x, snake_location_y, map_width, map_height);
+    for neighbor_index in snake_neighbors {
+      snake_hints[neighbor_index] += 1;
+    }
   }
-
+  
   let mut is_running = true;
   while is_running {
+    println!();
+    println!();
     for index in 0..(map_width * map_height) {
       if index == player_index {
         print!("P");
@@ -59,8 +48,10 @@ fn main() {
         print!("G");
       } else if is_snake[index] {
         print!("S");
-      } else {
+      } else if snake_hints[index] != 0 {
         print!("{}", snake_hints[index]);
+      } else {
+        print!("_");
       }
   
       if index % map_width == map_width - 1 {
@@ -69,6 +60,8 @@ fn main() {
         print!(" ");
       }
     }
+    println!();
+    println!();
   
     let mut input_buffer = String::new();
     std::io::stdin()
