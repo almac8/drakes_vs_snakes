@@ -10,14 +10,24 @@ fn main() {
   let goal_location_y = rand::random_range(0..(map_height - 1));
   let goal_index = goal_location_y * map_width + goal_location_x;
 
-  let mut is_running = true;
+  let mut is_snake = Vec::new();
 
+  for _ in 0..(map_width * map_height) {
+    is_snake.push(false);
+  }
+
+  is_snake[15] = true;
+  is_snake[27] = true;
+
+  let mut is_running = true;
   while is_running {
     for index in 0..(map_width * map_height) {
       if index == player_index {
         print!("P");
       } else if index == goal_index {
         print!("G");
+      } else if is_snake[index] {
+        print!("S");
       } else {
         print!("_");
       }
