@@ -20,4 +20,25 @@ fn main() {
       print!(" ");
     }
   }
+
+  let mut input_buffer = String::new();
+  std::io::stdin()
+    .read_line(&mut input_buffer)
+    .expect("Input Error");
+  
+  let input = match input_buffer.trim().parse() {
+    Ok(num) => num,
+    Err(_) => {
+      println!("Invalid input. Please enter a number.");
+      0
+    }
+  };
+
+  match input {
+    8 => println!("North"),
+    4 => println!("West"),
+    6 => println!("East"),
+    2 => println!("South"),
+    _ => println!("Invalid input"),
+  }
 }
