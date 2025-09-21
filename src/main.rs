@@ -2,8 +2,13 @@ fn main() {
   let map_width = 8;
   let map_height = 8;
 
-  let player_index = 17;
-  let goal_index = 54;
+  let player_location_x = 0;
+  let player_location_y = 0;
+  let player_index = player_location_y * map_width + player_location_x;
+
+  let goal_location_x = 4;
+  let goal_location_y = 4;
+  let goal_index = goal_location_y * map_width + goal_location_x;
 
   let mut is_running = true;
 
