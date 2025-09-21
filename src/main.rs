@@ -4,11 +4,11 @@ fn main() {
   
   let mut player_location_x = rand::random_range(0..(map_width - 1));
   let mut player_location_y = rand::random_range(0..(map_height - 1));
-  let mut player_index = player_location_y * map_width + player_location_x;
+  let mut player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
 
   let goal_location_x = rand::random_range(0..(map_width - 1));
   let goal_location_y = rand::random_range(0..(map_height - 1));
-  let goal_index = goal_location_y * map_width + goal_location_x;
+  let goal_index = calculate_index_from_coordinates(goal_location_x, goal_location_y, map_width);
 
   let mut is_snake = Vec::new();
 
@@ -16,8 +16,10 @@ fn main() {
     is_snake.push(false);
   }
 
-  is_snake[15] = true;
-  is_snake[27] = true;
+  is_snake[calculate_index_from_coordinates(1, 1, map_width)] = true;
+  is_snake[calculate_index_from_coordinates(3, 3, map_width)] = true;
+  is_snake[calculate_index_from_coordinates(5, 5, map_width)] = true;
+  is_snake[calculate_index_from_coordinates(7, 7, map_width)] = true;
 
   let mut is_running = true;
   while is_running {
@@ -58,32 +60,36 @@ fn main() {
       8 => {
         if player_location_y > 0 {
           player_location_y -= 1;
-          player_index = player_location_y * map_width + player_location_x;
+          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
         }
       },
 
       4 => {
         if player_location_x > 0 {
           player_location_x -= 1;
-          player_index = player_location_y * map_width + player_location_x;
+          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
         }
       },
 
       6 => {
         if player_location_x < map_width - 1 {
           player_location_x += 1;
-          player_index = player_location_y * map_width + player_location_x;
+          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
         }
       },
 
       2 => {
         if player_location_y < map_height - 1 {
           player_location_y += 1;
-          player_index = player_location_y * map_width + player_location_x;
+          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
         }
       },
       
       _ => println!("Invalid input"),
     }
   }
+}
+
+fn calculate_index_from_coordinates(x: usize, y: usize, map_width: usize) -> usize {
+  y * map_width + x
 }
