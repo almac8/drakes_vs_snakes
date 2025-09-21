@@ -1,2 +1,2 @@
-# drakes_vs_snakes
+# Drakes VS Snakes
 A game built in Rust
