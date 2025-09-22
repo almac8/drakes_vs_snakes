@@ -1,6 +1,6 @@
 fn main() {
-  let map_width = 8;
-  let map_height = 8;
+  let map_width = 16;
+  let map_height = 16;
   
   let mut player_location_x = rand::random_range(0..(map_width / 3));
   let mut player_location_y = rand::random_range(0..(map_height / 3));
@@ -13,6 +13,7 @@ fn main() {
   let mut is_snake = Vec::new();
   let mut snake_hints = Vec::new();
   let mut is_explored = vec![false; map_width * map_height];
+  let mut marked = vec![false; map_width * map_height];
   is_explored[player_index] = true;
 
   for _ in 0..(map_width * map_height) {
@@ -20,7 +21,8 @@ fn main() {
     snake_hints.push(0);
   }
 
-  let num_snakes = 8;
+  let num_snakes = 32;
+  let mut is_marking = false;
 
   let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
@@ -106,14 +108,24 @@ fn main() {
       is_path[*smallest_distance_index] = true;
       current_index = *smallest_distance_index;
     }
+
+    if is_marking {
+      println!("Is Marking");
+    }
     
     for index in 0..(map_width * map_height) {
       if index == player_index {
         print!("P");
       } else if index == goal_index {
         print!("G");
+      } else if marked[index] {
+        print!("X");
       } else if is_explored[index] {
-        print!("{}", snake_hints[index]);
+        if is_path[index] {
+          print!("*");
+        } else {
+          print!("{}", snake_hints[index]);
+        }
       } else {
         print!("_");
       }
@@ -124,6 +136,8 @@ fn main() {
         print!(" ");
       }
     }
+    println!();
+    println!();
 
     let mut input_buffer = String::new();
     std::io::stdin()
@@ -141,35 +155,73 @@ fn main() {
     match input {
       5555 => is_running = false,
 
+      5 => is_marking = !is_marking,
+
       8 => {
         if player_location_y > 0 {
-          player_location_y -= 1;
-          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
-          is_explored[player_index] = true;
+          let target_index = calculate_index_from_coordinates(player_location_x, player_location_y - 1, map_width);
+
+          if is_marking {
+            marked[target_index] = !marked[target_index];
+            is_marking = false;
+          } else {
+            if !marked[target_index] {
+              player_location_y -= 1;
+              player_index = target_index;
+              is_explored[player_index] = true;
+            }
+          }
         }
       },
 
       4 => {
         if player_location_x > 0 {
-          player_location_x -= 1;
-          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
-          is_explored[player_index] = true;
+          let target_index = calculate_index_from_coordinates(player_location_x - 1, player_location_y, map_width);
+
+          if is_marking {
+            marked[target_index] = !marked[target_index];
+            is_marking = false;
+          } else {
+            if !marked[target_index] {
+              player_location_x -= 1;
+              player_index = target_index;
+              is_explored[player_index] = true;
+            }
+          }
         }
       },
 
       6 => {
         if player_location_x < map_width - 1 {
-          player_location_x += 1;
-          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
-          is_explored[player_index] = true;
+          let target_index = calculate_index_from_coordinates(player_location_x + 1, player_location_y, map_width);
+
+          if is_marking {
+            marked[target_index] = !marked[target_index];
+            is_marking = false;
+          } else {
+            if !marked[target_index] {
+              player_location_x += 1;
+              player_index = target_index;
+              is_explored[player_index] = true;
+            }
+          }
         }
       },
 
       2 => {
         if player_location_y < map_height - 1 {
-          player_location_y += 1;
-          player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
-          is_explored[player_index] = true;
+          let target_index = calculate_index_from_coordinates(player_location_x, player_location_y + 1, map_width);
+
+          if is_marking {
+            marked[target_index] = !marked[target_index];
+            is_marking = false;
+          } else {
+            if !marked[target_index] {
+              player_location_y += 1;
+              player_index = target_index;
+              is_explored[player_index] = true;
+            }
+          }
         }
       },
       
