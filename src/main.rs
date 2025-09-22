@@ -12,6 +12,8 @@ fn main() {
 
   let mut is_snake = Vec::new();
   let mut snake_hints = Vec::new();
+  let mut is_explored = vec![false; map_width * map_height];
+  is_explored[player_index] = true;
 
   for _ in 0..(map_width * map_height) {
     is_snake.push(false);
@@ -106,12 +108,14 @@ fn main() {
     }
     
     for index in 0..(map_width * map_height) {
-      if is_path[index] {
-        print!("*");
-      } else if is_snake[index] {
-        print!("S");
-      } else {
+      if index == player_index {
+        print!("P");
+      } else if index == goal_index {
+        print!("G");
+      } else if is_explored[index] {
         print!("{}", snake_hints[index]);
+      } else {
+        print!("_");
       }
 
       if index % map_width == map_width - 1 {
@@ -141,6 +145,7 @@ fn main() {
         if player_location_y > 0 {
           player_location_y -= 1;
           player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
+          is_explored[player_index] = true;
         }
       },
 
@@ -148,6 +153,7 @@ fn main() {
         if player_location_x > 0 {
           player_location_x -= 1;
           player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
+          is_explored[player_index] = true;
         }
       },
 
@@ -155,6 +161,7 @@ fn main() {
         if player_location_x < map_width - 1 {
           player_location_x += 1;
           player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
+          is_explored[player_index] = true;
         }
       },
 
@@ -162,6 +169,7 @@ fn main() {
         if player_location_y < map_height - 1 {
           player_location_y += 1;
           player_index = calculate_index_from_coordinates(player_location_x, player_location_y, map_width);
+          is_explored[player_index] = true;
         }
       },
       
