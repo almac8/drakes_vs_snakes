@@ -18,7 +18,7 @@ fn main() {
     snake_hints.push(0);
   }
 
-  let mut num_snakes_to_place = 16;
+  let mut num_snakes_to_place = 4;
   while num_snakes_to_place > 0 {
     let snake_location_x = rand::random_range(0..(map_width - 1));
     let snake_location_y = rand::random_range(0..(map_height - 1));
@@ -39,30 +39,8 @@ fn main() {
   
   let mut is_running = true;
   while is_running {
-    println!();
-    println!();
-    for index in 0..(map_width * map_height) {
-      if index == player_index {
-        print!("P");
-      } else if index == goal_index {
-        print!("G");
-      } else if is_snake[index] {
-        print!("S");
-      } else if snake_hints[index] != 0 {
-        print!("{}", snake_hints[index]);
-      } else {
-        print!("_");
-      }
-  
-      if index % map_width == map_width - 1 {
-        println!();
-      } else {
-        print!(" ");
-      }
-    }
-    println!();
-    println!();
-  
+    print_hints(map_width, map_height, player_index, goal_index, &is_snake, &snake_hints);
+
     let mut input_buffer = String::new();
     std::io::stdin()
       .read_line(&mut input_buffer)
@@ -136,4 +114,31 @@ fn get_direct_neighbors(location_x: usize, location_y: usize, map_width: usize, 
   }
   
   neighbors
+}
+
+fn print_hints(map_width: usize, map_height: usize, player_index: usize, goal_index: usize, is_snake: &Vec<bool>, snake_hints: &Vec<usize>) {
+  println!();
+  println!();
+  for index in 0..(map_width * map_height) {
+    if index == player_index {
+      print!("P");
+    } else if index == goal_index {
+      print!("G");
+    } else if is_snake[index] {
+      print!("S");
+    } else if snake_hints[index] != 0 {
+      //  print!("{}", snake_hints[index]);
+      print!("_");
+    } else {
+      print!("_");
+    }
+  
+    if index % map_width == map_width - 1 {
+      println!();
+    } else {
+      print!(" ");
+    }
+  }
+  println!();
+  println!();
 }
