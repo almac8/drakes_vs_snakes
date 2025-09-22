@@ -1,6 +1,6 @@
 fn main() {
-  let map_width = 8;
-  let map_height = 8;
+  let map_width = 32;
+  let map_height = 32;
   
   let mut player_location_x = rand::random_range(0..(map_width / 3));
   let mut player_location_y = rand::random_range(0..(map_height / 3));
@@ -18,7 +18,9 @@ fn main() {
     snake_hints.push(0);
   }
 
-  let mut num_snakes_to_place = 4;
+  let num_snakes = 300;
+
+  let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
     let snake_location_x = rand::random_range(0..(map_width - 1));
     let snake_location_y = rand::random_range(0..(map_height - 1));
@@ -39,7 +41,85 @@ fn main() {
   
   let mut is_running = true;
   while is_running {
-    print_hints(map_width, map_height, player_index, goal_index, &is_snake, &snake_hints);
+    let mut distance_from_start = vec![std::usize::MAX; map_width * map_height];
+    distance_from_start[player_index] = 0;
+
+    let mut distance_from_start_calculation_completed = vec![false; map_width * map_height];
+    for (index, value) in is_snake.iter().enumerate() {
+      if *value {
+        distance_from_start_calculation_completed[index] = true;
+      }
+    }
+
+    for step_index in 0..(map_width * map_height - num_snakes) {
+      if step_index == goal_index { break; }
+
+      let mut smallest_distance_index = std::usize::MAX;
+      let mut smallest_distance_value = std::usize::MAX;
+      for (index, distance) in distance_from_start.iter().enumerate() {
+        if distance_from_start_calculation_completed[index] { continue; }
+
+        if *distance < smallest_distance_value {
+          smallest_distance_index = index;
+          smallest_distance_value = *distance;
+        }
+      }
+
+      let neighbors = get_direct_neighbors(
+        smallest_distance_index % map_width,
+        smallest_distance_index / map_width,
+        map_width,
+        map_height
+      );
+
+      for neighbor_index in neighbors {
+        if distance_from_start[neighbor_index] > smallest_distance_value + 1 {
+          distance_from_start[neighbor_index] = smallest_distance_value + 1;
+        }
+      }
+
+      distance_from_start_calculation_completed[smallest_distance_index] = true;
+    }
+
+    for (snake_index, snake_value) in is_snake.iter().enumerate() {
+      if *snake_value {
+        distance_from_start[snake_index] = std::usize::MAX;
+      }
+    }
+    
+    let mut is_path = vec![false; map_width * map_height];
+    is_path[goal_index] = true;
+    is_path[player_index] = true;
+
+    let mut current_index = goal_index;
+    while current_index != player_index {
+      let neighbors = get_direct_neighbors(
+        current_index % map_width,
+        current_index / map_width,
+        map_width,
+        map_height
+      );
+
+      let smallest_distance_index = neighbors.iter().min_by_key(|&&index| distance_from_start[index]).unwrap();
+      is_path[*smallest_distance_index] = true;
+      current_index = *smallest_distance_index;
+    }
+    
+    for index in 0..(map_width * map_height) {
+      if is_path[index] {
+        print!("*")
+      } else if is_snake[index] {
+        print!("S")
+      } else {
+        print!("_")
+      }
+
+      if index % map_width == map_width - 1 {
+        println!();
+      } else {
+        print!(" ");
+      }
+    }
 
     let mut input_buffer = String::new();
     std::io::stdin()
@@ -124,31 +204,4 @@ fn get_direct_neighbors(location_x: usize, location_y: usize, map_width: usize, 
   }
   
   neighbors
-}
-
-fn print_hints(map_width: usize, map_height: usize, player_index: usize, goal_index: usize, is_snake: &Vec<bool>, snake_hints: &Vec<usize>) {
-  println!();
-  println!();
-  for index in 0..(map_width * map_height) {
-    if index == player_index {
-      print!("P");
-    } else if index == goal_index {
-      print!("G");
-    } else if is_snake[index] {
-      print!("S");
-    } else if snake_hints[index] != 0 {
-      //  print!("{}", snake_hints[index]);
-      print!("_");
-    } else {
-      print!("_");
-    }
-  
-    if index % map_width == map_width - 1 {
-      println!();
-    } else {
-      print!(" ");
-    }
-  }
-  println!();
-  println!();
 }
