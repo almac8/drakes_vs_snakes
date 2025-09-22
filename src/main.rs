@@ -87,6 +87,16 @@ fn main() {
       
       _ => println!("Invalid input"),
     }
+
+    if player_index == goal_index {
+      println!("You win!");
+      is_running = false;
+    }
+    
+    if is_snake[player_index] {
+      println!("You lose!");
+      is_running = false;
+    }
   }
 }
 
