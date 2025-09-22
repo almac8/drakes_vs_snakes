@@ -1,6 +1,6 @@
 fn main() {
-  let map_width = 32;
-  let map_height = 32;
+  let map_width = 8;
+  let map_height = 8;
   
   let mut player_location_x = rand::random_range(0..(map_width / 3));
   let mut player_location_y = rand::random_range(0..(map_height / 3));
@@ -18,7 +18,7 @@ fn main() {
     snake_hints.push(0);
   }
 
-  let num_snakes = 300;
+  let num_snakes = 8;
 
   let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
@@ -33,7 +33,7 @@ fn main() {
     is_snake[calculate_index_from_coordinates(snake_location_x, snake_location_y, map_width)] = true;
     num_snakes_to_place -= 1;
 
-    let snake_neighbors = get_direct_neighbors(snake_location_x, snake_location_y, map_width, map_height);
+    let snake_neighbors = get_all_neighbors(snake_location_x, snake_location_y, map_width, map_height);
     for neighbor_index in snake_neighbors {
       snake_hints[neighbor_index] += 1;
     }
@@ -107,11 +107,11 @@ fn main() {
     
     for index in 0..(map_width * map_height) {
       if is_path[index] {
-        print!("*")
+        print!("*");
       } else if is_snake[index] {
-        print!("S")
+        print!("S");
       } else {
-        print!("_")
+        print!("{}", snake_hints[index]);
       }
 
       if index % map_width == map_width - 1 {
@@ -201,6 +201,44 @@ fn get_direct_neighbors(location_x: usize, location_y: usize, map_width: usize, 
 
   if location_y < map_height - 1 {
     neighbors.push(calculate_index_from_coordinates(location_x, location_y + 1, map_width));
+  }
+  
+  neighbors
+}
+
+fn get_all_neighbors(location_x: usize, location_y: usize, map_width: usize, map_height: usize) -> Vec<usize> {
+  let mut neighbors = Vec::new();
+
+  if location_x > 0 && location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y - 1, map_width));
+  }
+  
+  if location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x, location_y - 1, map_width));
+  }
+
+  if location_x < map_width - 1 && location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y - 1, map_width));
+  }
+
+  if location_x > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y, map_width));
+  }
+
+  if location_x < map_width - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y, map_width));
+  }
+
+  if location_x > 0 && location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y + 1, map_width));
+  }
+
+  if location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x, location_y + 1, map_width));
+  }
+
+  if location_x < map_width - 1 && location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y + 1, map_width));
   }
   
   neighbors
