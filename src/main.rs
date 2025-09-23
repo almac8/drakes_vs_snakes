@@ -146,70 +146,9 @@ fn gameloop() {
 
   let mut is_running = true;
   while is_running {
-    let mut distance_from_start = vec![std::usize::MAX; map_width * map_height];
-    distance_from_start[player_index] = 0;
-
-    let mut distance_from_start_calculation_completed = vec![false; map_width * map_height];
-    for (index, value) in is_snake.iter().enumerate() {
-      if *value {
-        distance_from_start_calculation_completed[index] = true;
-      }
-    }
-
-    for step_index in 0..(map_width * map_height - num_snakes) {
-      if step_index == goal_index { break; }
-
-      let mut smallest_distance_index = std::usize::MAX;
-      let mut smallest_distance_value = std::usize::MAX;
-      for (index, distance) in distance_from_start.iter().enumerate() {
-        if distance_from_start_calculation_completed[index] { continue; }
-
-        if *distance < smallest_distance_value {
-          smallest_distance_index = index;
-          smallest_distance_value = *distance;
-        }
-      }
-
-      let neighbors = get_direct_neighbors(
-        smallest_distance_index % map_width,
-        smallest_distance_index / map_width,
-        map_width,
-        map_height
-      );
-
-      for neighbor_index in neighbors {
-        if distance_from_start[neighbor_index] > smallest_distance_value + 1 {
-          distance_from_start[neighbor_index] = smallest_distance_value + 1;
-        }
-      }
-
-      distance_from_start_calculation_completed[smallest_distance_index] = true;
-    }
-
-    for (snake_index, snake_value) in is_snake.iter().enumerate() {
-      if *snake_value {
-        distance_from_start[snake_index] = std::usize::MAX;
-      }
-    }
+    let distance_from_start = calculate_distances_from_start(map_width, map_height, player_index, goal_index, &is_snake);
+    let is_path = find_path(map_width, map_height, player_index, goal_index, distance_from_start);
     
-    let mut is_path = vec![false; map_width * map_height];
-    is_path[goal_index] = true;
-    is_path[player_index] = true;
-
-    let mut current_index = goal_index;
-    while current_index != player_index {
-      let neighbors = get_direct_neighbors(
-        current_index % map_width,
-        current_index / map_width,
-        map_width,
-        map_height
-      );
-
-      let smallest_distance_index = neighbors.iter().min_by_key(|&&index| distance_from_start[index]).unwrap();
-      is_path[*smallest_distance_index] = true;
-      current_index = *smallest_distance_index;
-    }
-
     print_map(
       is_marking,
       current_score,
@@ -376,4 +315,83 @@ fn print_map(is_marking: bool, current_score: usize, max_score: usize, map_width
   }
   println!();
   println!();
+}
+
+fn find_path(map_width: usize, map_height: usize, start_index: usize, goal_index: usize, distance_from_start: Vec<usize>) -> Vec<bool> {
+  let mut is_path = vec![false; map_width * map_height];
+  is_path[start_index] = true;
+  is_path[goal_index] = true;
+  
+  let mut current_index = goal_index;
+  while current_index != start_index {
+    let neighbors = get_direct_neighbors(
+      current_index % map_width,
+      current_index / map_width,
+      map_width,
+      map_height
+    );
+
+    let smallest_distance_index = neighbors.iter().min_by_key(|&&index| distance_from_start[index]).unwrap();
+    is_path[*smallest_distance_index] = true;
+    current_index = *smallest_distance_index;
+  }
+  
+  is_path
+}
+
+fn calculate_distances_from_start(map_width: usize, map_height: usize, start_index: usize, goal_index: usize, is_snake: &Vec<bool>) -> Vec<usize> {
+  let mut distance_from_start = vec![std::usize::MAX; map_width * map_height];
+  let mut distance_from_start_calculation_completed = vec![false; map_width * map_height];
+  
+  distance_from_start[start_index] = 0;
+  for (index, value) in is_snake.iter().enumerate() {
+    if *value {
+      distance_from_start_calculation_completed[index] = true;
+    }
+  }
+
+  let mut num_snakes = 0;
+  for snake in is_snake {
+    if *snake {
+      num_snakes += 1;
+    }
+  }
+  
+  for step_index in 0..(map_width * map_height - num_snakes) {
+    if step_index == goal_index { break; }
+    
+    let mut smallest_distance_index = std::usize::MAX;
+    let mut smallest_distance_value = std::usize::MAX;
+    for (index, distance) in distance_from_start.iter().enumerate() {
+      if distance_from_start_calculation_completed[index] { continue; }
+
+      if *distance < smallest_distance_value {
+        smallest_distance_index = index;
+        smallest_distance_value = *distance;
+      }
+    }
+    
+    let neighbors = get_direct_neighbors(
+      smallest_distance_index % map_width,
+      smallest_distance_index / map_width,
+      map_width,
+      map_height
+    );
+
+    for neighbor_index in neighbors {
+      if distance_from_start[neighbor_index] > smallest_distance_value + 1 {
+        distance_from_start[neighbor_index] = smallest_distance_value + 1;
+      }
+    }
+
+    distance_from_start_calculation_completed[smallest_distance_index] = true;
+  }
+
+  for (snake_index, snake_value) in is_snake.iter().enumerate() {
+    if *snake_value {
+      distance_from_start[snake_index] = std::usize::MAX;
+    }
+  }
+
+  distance_from_start
 }
