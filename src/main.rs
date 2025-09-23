@@ -1,4 +1,4 @@
-fn main() -> Result<(), String> {
+fn main() {
   let current_scene = Scenes::MainMenu;
   let mut is_running = true;
 
@@ -15,8 +15,8 @@ fn main() -> Result<(), String> {
         println!("4) Exit");
         println!();
         
-        match get_numeric_input()? {
-          1 => gameloop()?,
+        match get_numeric_input() {
+          1 => gameloop(),
           2 => println!("LOAD GAME"),
           3 => println!("HIGH SCORES"),
           4 => is_running = false,
@@ -25,8 +25,6 @@ fn main() -> Result<(), String> {
       }
     }
   }
-
-  Ok(())
 }
 
 fn calculate_index_from_coordinates(x: usize, y: usize, map_width: usize) -> usize {
@@ -93,7 +91,7 @@ fn get_all_neighbors(location_x: usize, location_y: usize, map_width: usize, map
   neighbors
 }
 
-fn gameloop() -> Result<(), String> {
+fn gameloop() {
   let map_width = 4;
   let map_height = 4;
   
@@ -244,7 +242,7 @@ fn gameloop() -> Result<(), String> {
     println!();
     println!();
     
-    match get_numeric_input()? {
+    match get_numeric_input() {
       5555 => is_running = false,
 
       5 => is_marking = !is_marking,
@@ -346,23 +344,21 @@ fn gameloop() -> Result<(), String> {
       is_running = false;
     }
   }
-
-  Ok(())
 }
 
 enum Scenes {
   MainMenu
 }
 
-fn get_numeric_input() -> Result<usize, String> {
+fn get_numeric_input() -> usize {
   let mut input_buffer = String::new();
 
   std::io::stdin()
     .read_line(&mut input_buffer)
-    .map_err(| error | error.to_string())?;
+    .expect("Input Error");
 
   match input_buffer.trim().parse() {
-    Ok(number) => Ok(number),
-    Err(error) => Err(error.to_string())
+    Ok(number) => number,
+    Err(_) => 0
   }
 }
