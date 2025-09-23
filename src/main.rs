@@ -90,6 +90,7 @@ fn get_all_neighbors(location: &Location, map_width: usize, map_height: usize) -
 fn gameloop() {
   let map_width = 16;
   let map_height = 16;
+  let num_snakes = 2;
 
   let mut player_location = Location::new(
     rand::random_range(0..(map_width / 3)),
@@ -102,37 +103,14 @@ fn gameloop() {
     rand::random_range((map_height / 3 * 2)..(map_height - 1)),
     map_width
   );
-
-  let mut is_snake = vec![false; map_width * map_height];
-  let mut snake_hints = vec![0; map_width * map_height];
-  let mut is_explored = vec![false; map_width * map_height];
-  let mut marked = vec![false; map_width * map_height];
-  is_explored[player_location.array_index] = true;
   
-  let num_snakes = 2;
   let mut is_marking = false;
+  let is_snake = generate_snakes(map_width, map_height, num_snakes, &player_location, &goal_location);
+  let snake_hints = generate_hints(map_width, map_height, &is_snake);
   let mut score = Score::new(map_width, map_height, &is_snake, &player_location, &goal_location, &snake_hints);
-
-  let mut num_snakes_to_place = num_snakes;
-  while num_snakes_to_place > 0 {
-    let snake_location = Location::new(
-      rand::random_range(0..(map_width - 1)),
-      rand::random_range(0..(map_height - 1)),
-      map_width
-    );
-
-    if snake_location.array_index == player_location.array_index { continue; }
-    if snake_location.array_index == goal_location.array_index { continue; }
-    if is_snake[snake_location.array_index] { continue; }
-
-    is_snake[snake_location.array_index] = true;
-    num_snakes_to_place -= 1;
-
-    let snake_neighbors = get_all_neighbors(&snake_location, map_width, map_height);
-    for neighbor in snake_neighbors {
-      snake_hints[neighbor.array_index] += 1;
-    }
-  }
+  let mut marked = vec![false; map_width * map_height];
+  let mut is_explored = vec![false; map_width * map_height];
+  is_explored[player_location.array_index] = true;
   
   let mut is_running = true;
   while is_running {
@@ -502,4 +480,48 @@ impl Score {
       maximum
     }
   }
+}
+
+fn generate_snakes(map_width: usize, map_height: usize, num_snakes: usize, player: &Location, goal: &Location) -> Vec<bool> {
+  let mut is_snake = vec![false; map_width * map_height];
+
+  let mut num_snakes_to_place = num_snakes;
+
+  while num_snakes_to_place > 0 {
+    let snake_location = Location::new(
+      rand::random_range(0..(map_width - 1)),
+      rand::random_range(0..(map_height - 1)),
+      map_width
+    );
+
+    if snake_location.array_index == player.array_index { continue; }
+    if snake_location.array_index == goal.array_index { continue; }
+    if is_snake[snake_location.array_index] { continue; }
+
+    is_snake[snake_location.array_index] = true;
+    num_snakes_to_place -= 1;
+  }
+
+  is_snake
+}
+
+fn generate_hints(map_width: usize, map_height: usize, snakes: &Vec<bool>) -> Vec<usize> {
+  let mut snake_hints = vec![0; map_width * map_height];
+
+  for (index, value) in snakes.iter().enumerate() {
+    if *value {
+      let snake_location = Location::new(
+        index % map_width,
+        index / map_width,
+        map_width
+      );
+
+      let neighbors = get_all_neighbors(&snake_location, map_width, map_height);
+      for neighbor in neighbors {
+        snake_hints[neighbor.array_index] += 1;
+      }
+    }
+  }
+
+  snake_hints
 }
