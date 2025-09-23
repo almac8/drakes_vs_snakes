@@ -111,8 +111,7 @@ fn gameloop() {
   
   let num_snakes = 2;
   let mut is_marking = false;
-  let mut current_score = 0;
-  let mut max_score = 0;
+  let mut score = Score::new(map_width, map_height, &is_snake, &player_location, &goal_location, &snake_hints);
 
   let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
@@ -134,13 +133,7 @@ fn gameloop() {
       snake_hints[neighbor.array_index] += 1;
     }
   }
-
-  for index in 0..(map_width * map_height) {
-    if !is_snake[index] && index != player_location.array_index && index != goal_location.array_index {
-      max_score += snake_hints[index];
-    }
-  }
-
+  
   let mut is_running = true;
   while is_running {
     let distance_from_start = calculate_distances_from_start(map_width, map_height, &player_location, &goal_location, &is_snake);
@@ -148,8 +141,7 @@ fn gameloop() {
     
     print_map(
       is_marking,
-      current_score,
-      max_score,
+      &score,
       map_width,
       map_height,
       &player_location,
@@ -160,7 +152,7 @@ fn gameloop() {
       &snake_hints
     );
 
-    handle_play_input(&mut is_running, &mut is_marking, &mut player_location, map_width, map_height, &mut marked, &mut is_explored, &mut current_score, &snake_hints);
+    handle_play_input(&mut is_running, &mut is_marking, &mut player_location, map_width, map_height, &mut marked, &mut is_explored, &mut score, &snake_hints);
     validate_map(&player_location, &goal_location, &mut is_running, &is_snake);
   }
 }
@@ -182,12 +174,12 @@ fn get_numeric_input() -> usize {
   }
 }
 
-fn print_map(is_marking: bool, current_score: usize, max_score: usize, map_width: usize, map_height: usize, player: &Location, goal: &Location, marked: &Vec<bool>, is_explored: &Vec<bool>, is_path: &Vec<bool>, snake_hints: &Vec<usize>) {
+fn print_map(is_marking: bool, score: &Score, map_width: usize, map_height: usize, player: &Location, goal: &Location, marked: &Vec<bool>, is_explored: &Vec<bool>, is_path: &Vec<bool>, snake_hints: &Vec<usize>) {
   if is_marking {
     println!("Is Marking");
   }
   
-  println!("Score: {}/{}", current_score, max_score);
+  println!("Score: {}/{}", score.current, score.maximum);
   for index in 0..(map_width * map_height) {
     if index == player.array_index {
       print!("P");
@@ -357,7 +349,7 @@ fn validate_map(player: &Location, goal: &Location, is_running: &mut bool, is_sn
   }
 }
 
-fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut Location, map_width: usize, map_height: usize, marked: &mut Vec<bool>, is_explored: &mut Vec<bool>, current_score: &mut usize, snake_hints: &Vec<usize>) {
+fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut Location, map_width: usize, map_height: usize, marked: &mut Vec<bool>, is_explored: &mut Vec<bool>, score: &mut Score, snake_hints: &Vec<usize>) {
   match get_numeric_input() {
     5555 => *is_running = false,
     
@@ -381,7 +373,7 @@ fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut 
           map_height,
           &marked,
           is_explored,
-          current_score,
+          &mut score.current,
           &snake_hints
         );
       }
@@ -405,7 +397,7 @@ fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut 
           map_height,
           &marked,
           is_explored,
-          current_score,
+          &mut score.current,
           &snake_hints
         );
       }
@@ -429,7 +421,7 @@ fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut 
           map_height,
           &marked,
           is_explored,
-          current_score,
+          &mut score.current,
           &snake_hints
         );
       }
@@ -453,7 +445,7 @@ fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut 
           map_height,
           &marked,
           is_explored,
-          current_score,
+          &mut score.current,
           &snake_hints
         );
       }
@@ -487,5 +479,27 @@ impl Location {
     }
 
     self.array_index = self.coordinate_y * map_width + self.coordinate_x;
+  }
+}
+
+struct Score {
+  current: usize,
+  maximum: usize
+}
+
+impl Score {
+  fn new(map_width: usize, map_height: usize, is_snake: &Vec<bool>, player: &Location, goal: &Location, snake_hints: &Vec<usize>) -> Self {
+    let mut maximum = 0;
+    
+    for index in 0..(map_width * map_height) {
+      if !is_snake[index] && index != player.array_index && index != goal.array_index {
+        maximum += snake_hints[index];
+      }
+    }
+
+    Self {
+      current: 0,
+      maximum
+    }
   }
 }
