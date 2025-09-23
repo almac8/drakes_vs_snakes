@@ -94,8 +94,8 @@ fn get_all_neighbors(location_x: usize, location_y: usize, map_width: usize, map
 }
 
 fn gameloop() -> Result<(), String> {
-  let map_width = 16;
-  let map_height = 16;
+  let map_width = 4;
+  let map_height = 4;
   
   let mut player_location_x = rand::random_range(0..(map_width / 3));
   let mut player_location_y = rand::random_range(0..(map_height / 3));
@@ -116,8 +116,10 @@ fn gameloop() -> Result<(), String> {
     snake_hints.push(0);
   }
 
-  let num_snakes = 32;
+  let num_snakes = 2;
   let mut is_marking = false;
+  let mut current_score = 0;
+  let mut max_score = 0;
 
   let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
@@ -135,6 +137,12 @@ fn gameloop() -> Result<(), String> {
     let snake_neighbors = get_all_neighbors(snake_location_x, snake_location_y, map_width, map_height);
     for neighbor_index in snake_neighbors {
       snake_hints[neighbor_index] += 1;
+    }
+  }
+
+  for index in 0..(map_width * map_height) {
+    if !is_snake[index] && index != player_index && index != goal_index{
+      max_score += snake_hints[index];
     }
   }
 
@@ -208,6 +216,8 @@ fn gameloop() -> Result<(), String> {
       println!("Is Marking");
     }
     
+    println!("Score: {}/{}", current_score, max_score);
+    
     for index in 0..(map_width * map_height) {
       if index == player_index {
         print!("P");
@@ -250,7 +260,11 @@ fn gameloop() -> Result<(), String> {
             if !marked[target_index] {
               player_location_y -= 1;
               player_index = target_index;
-              is_explored[player_index] = true;
+
+              if !is_explored[player_index] {
+                is_explored[player_index] = true;
+                current_score += snake_hints[player_index];
+              }
             }
           }
         }
@@ -267,7 +281,11 @@ fn gameloop() -> Result<(), String> {
             if !marked[target_index] {
               player_location_x -= 1;
               player_index = target_index;
-              is_explored[player_index] = true;
+              
+              if !is_explored[player_index] {
+                is_explored[player_index] = true;
+                current_score += snake_hints[player_index];
+              }
             }
           }
         }
@@ -284,7 +302,11 @@ fn gameloop() -> Result<(), String> {
             if !marked[target_index] {
               player_location_x += 1;
               player_index = target_index;
-              is_explored[player_index] = true;
+              
+              if !is_explored[player_index] {
+                is_explored[player_index] = true;
+                current_score += snake_hints[player_index];
+              }
             }
           }
         }
@@ -301,7 +323,11 @@ fn gameloop() -> Result<(), String> {
             if !marked[target_index] {
               player_location_y += 1;
               player_index = target_index;
-              is_explored[player_index] = true;
+              
+              if !is_explored[player_index] {
+                is_explored[player_index] = true;
+                current_score += snake_hints[player_index];
+              }
             }
           }
         }
