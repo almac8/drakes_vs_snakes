@@ -112,11 +112,11 @@ fn gameloop() {
   let mut is_explored = vec![false; map_width * map_height];
   is_explored[player_location.array_index] = true;
   
+  let distance_from_start = calculate_distances_from_start(map_width, map_height, &player_location, &goal_location, &is_snake);
+  let is_path = find_path(map_width, map_height, &player_location, &goal_location, distance_from_start);
+  
   let mut is_running = true;
   while is_running {
-    let distance_from_start = calculate_distances_from_start(map_width, map_height, &player_location, &goal_location, &is_snake);
-    let is_path = find_path(map_width, map_height, &player_location, &goal_location, distance_from_start);
-    
     print_map(
       is_marking,
       &score,
