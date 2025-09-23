@@ -1,4 +1,98 @@
 fn main() {
+  println!();
+  println!("Drakes VS Snakes");
+  println!();
+
+  println!("1) Start new game");
+  println!("2) Load game");
+  println!("3) High scores");
+  println!("4) Exit");
+  println!();
+
+  let mut input_buffer = String::new();
+  std::io::stdin()
+    .read_line(&mut input_buffer)
+    .expect("Input Error");
+
+  let input = match input_buffer.trim().parse() {
+    Ok(num) => num,
+    Err(_) => 0
+  };
+
+  match input {
+    1 => gameloop(),
+    2 => println!("LOAD GAME"),
+    3 => println!("HIGH SCORES"),
+    4 => println!("EXIT"),
+    _ => {}
+  }
+}
+
+fn calculate_index_from_coordinates(x: usize, y: usize, map_width: usize) -> usize {
+  y * map_width + x
+}
+
+fn get_direct_neighbors(location_x: usize, location_y: usize, map_width: usize, map_height: usize) -> Vec<usize> {
+  let mut neighbors = Vec::new();
+
+  if location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x, location_y - 1, map_width));
+  }
+
+  if location_x > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y, map_width));
+  }
+
+  if location_x < map_width - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y, map_width));
+  }
+
+  if location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x, location_y + 1, map_width));
+  }
+  
+  neighbors
+}
+
+fn get_all_neighbors(location_x: usize, location_y: usize, map_width: usize, map_height: usize) -> Vec<usize> {
+  let mut neighbors = Vec::new();
+
+  if location_x > 0 && location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y - 1, map_width));
+  }
+  
+  if location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x, location_y - 1, map_width));
+  }
+
+  if location_x < map_width - 1 && location_y > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y - 1, map_width));
+  }
+
+  if location_x > 0 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y, map_width));
+  }
+
+  if location_x < map_width - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y, map_width));
+  }
+
+  if location_x > 0 && location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y + 1, map_width));
+  }
+
+  if location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x, location_y + 1, map_width));
+  }
+
+  if location_x < map_width - 1 && location_y < map_height - 1 {
+    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y + 1, map_width));
+  }
+  
+  neighbors
+}
+
+fn gameloop() {
   let map_width = 16;
   let map_height = 16;
   
@@ -42,7 +136,7 @@ fn main() {
       snake_hints[neighbor_index] += 1;
     }
   }
-  
+
   let mut is_running = true;
   while is_running {
     let mut distance_from_start = vec![std::usize::MAX; map_width * map_height];
@@ -238,68 +332,4 @@ fn main() {
       is_running = false;
     }
   }
-}
-
-fn calculate_index_from_coordinates(x: usize, y: usize, map_width: usize) -> usize {
-  y * map_width + x
-}
-
-fn get_direct_neighbors(location_x: usize, location_y: usize, map_width: usize, map_height: usize) -> Vec<usize> {
-  let mut neighbors = Vec::new();
-
-  if location_y > 0 {
-    neighbors.push(calculate_index_from_coordinates(location_x, location_y - 1, map_width));
-  }
-
-  if location_x > 0 {
-    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y, map_width));
-  }
-
-  if location_x < map_width - 1 {
-    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y, map_width));
-  }
-
-  if location_y < map_height - 1 {
-    neighbors.push(calculate_index_from_coordinates(location_x, location_y + 1, map_width));
-  }
-  
-  neighbors
-}
-
-fn get_all_neighbors(location_x: usize, location_y: usize, map_width: usize, map_height: usize) -> Vec<usize> {
-  let mut neighbors = Vec::new();
-
-  if location_x > 0 && location_y > 0 {
-    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y - 1, map_width));
-  }
-  
-  if location_y > 0 {
-    neighbors.push(calculate_index_from_coordinates(location_x, location_y - 1, map_width));
-  }
-
-  if location_x < map_width - 1 && location_y > 0 {
-    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y - 1, map_width));
-  }
-
-  if location_x > 0 {
-    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y, map_width));
-  }
-
-  if location_x < map_width - 1 {
-    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y, map_width));
-  }
-
-  if location_x > 0 && location_y < map_height - 1 {
-    neighbors.push(calculate_index_from_coordinates(location_x - 1, location_y + 1, map_width));
-  }
-
-  if location_y < map_height - 1 {
-    neighbors.push(calculate_index_from_coordinates(location_x, location_y + 1, map_width));
-  }
-
-  if location_x < map_width - 1 && location_y < map_height - 1 {
-    neighbors.push(calculate_index_from_coordinates(location_x + 1, location_y + 1, map_width));
-  }
-  
-  neighbors
 }
