@@ -210,37 +210,19 @@ fn gameloop() {
       current_index = *smallest_distance_index;
     }
 
-    if is_marking {
-      println!("Is Marking");
-    }
-    
-    println!("Score: {}/{}", current_score, max_score);
-    
-    for index in 0..(map_width * map_height) {
-      if index == player_index {
-        print!("P");
-      } else if index == goal_index {
-        print!("G");
-      } else if marked[index] {
-        print!("X");
-      } else if is_explored[index] {
-        if is_path[index] {
-          print!("*");
-        } else {
-          print!("{}", snake_hints[index]);
-        }
-      } else {
-        print!("_");
-      }
-
-      if index % map_width == map_width - 1 {
-        println!();
-      } else {
-        print!(" ");
-      }
-    }
-    println!();
-    println!();
+    print_map(
+      is_marking,
+      current_score,
+      max_score,
+      map_width,
+      map_height,
+      player_index,
+      goal_index,
+      &marked,
+      &is_explored,
+      &is_path,
+      &snake_hints
+    );
     
     match get_numeric_input() {
       5555 => is_running = false,
@@ -361,4 +343,37 @@ fn get_numeric_input() -> usize {
     Ok(number) => number,
     Err(_) => 0
   }
+}
+
+fn print_map(is_marking: bool, current_score: usize, max_score: usize, map_width: usize, map_height: usize, player_index: usize, goal_index: usize, marked: &Vec<bool>, is_explored: &Vec<bool>, is_path: &Vec<bool>, snake_hints: &Vec<usize>) {
+  if is_marking {
+    println!("Is Marking");
+  }
+  
+  println!("Score: {}/{}", current_score, max_score);
+  for index in 0..(map_width * map_height) {
+    if index == player_index {
+      print!("P");
+    } else if index == goal_index {
+      print!("G");
+    } else if marked[index] {
+      print!("X");
+    } else if is_explored[index] {
+      if is_path[index] {
+        print!("*");
+      } else {
+        print!("{}", snake_hints[index]);
+      }
+    } else {
+      print!("_");
+    }
+
+    if index % map_width == map_width - 1 {
+      println!();
+    } else {
+      print!(" ");
+    }
+  }
+  println!();
+  println!();
 }
