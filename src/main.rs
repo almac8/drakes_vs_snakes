@@ -162,133 +162,9 @@ fn gameloop() {
       &is_path,
       &snake_hints
     );
-    
-    match get_numeric_input() {
-      5555 => is_running = false,
 
-      5 => is_marking = !is_marking,
-
-      8 => {
-        if is_marking {
-          mark(
-            Direction::North,
-            player_location_x,
-            player_location_y,
-            map_width,
-            map_height,
-            &mut marked,
-            &mut is_marking
-          );
-        } else {
-          move_player(
-            Direction::North,
-            &mut player_location_x,
-            &mut player_location_y,
-            map_width,
-            map_height,
-            &marked,
-            &mut player_index,
-            &mut is_explored,
-            &mut current_score,
-            &snake_hints
-          );
-        }
-      },
-
-      4 => {
-        if is_marking {
-          mark(
-            Direction::West,
-            player_location_x,
-            player_location_y,
-            map_width,
-            map_height,
-            &mut marked,
-            &mut is_marking
-          );
-        } else {
-          move_player(
-            Direction::West,
-            &mut player_location_x,
-            &mut player_location_y,
-            map_width,
-            map_height,
-            &marked,
-            &mut player_index,
-            &mut is_explored,
-            &mut current_score,
-            &snake_hints
-          );
-        }
-      },
-
-      6 => {
-        if is_marking {
-          mark(
-            Direction::East,
-            player_location_x,
-            player_location_y,
-            map_width,
-            map_height,
-            &mut marked,
-            &mut is_marking
-          );
-        } else {
-          move_player(
-            Direction::East,
-            &mut player_location_x,
-            &mut player_location_y,
-            map_width,
-            map_height,
-            &marked,
-            &mut player_index,
-            &mut is_explored,
-            &mut current_score,
-            &snake_hints
-          );
-        }
-      },
-
-      2 => {
-        if is_marking {
-          mark(
-            Direction::South,
-            player_location_x,
-            player_location_y,
-            map_width,
-            map_height,
-            &mut marked,
-            &mut is_marking
-          );
-        } else {
-          move_player(
-            Direction::South,
-            &mut player_location_x,
-            &mut player_location_y,
-            map_width,
-            map_height,
-            &marked,
-            &mut player_index,
-            &mut is_explored,
-            &mut current_score,
-            &snake_hints
-          );
-        }
-      },
-
-      
-      _ => println!("Invalid input"),
-    }
-
-    if player_index == goal_index {
-      println!("You win!");
-      is_running = false;
-    }
-    
-    if is_snake[player_index] {
-      println!("You lose!");
-      is_running = false;
-    }
+    handle_play_input(&mut is_running, &mut is_marking, &mut player_location_x, &mut player_location_y, map_width, map_height, &mut marked, &mut player_index, &mut is_explored, &mut current_score, &snake_hints);
+    validate_map(player_index, goal_index, &mut is_running, &is_snake);
   }
 }
 
@@ -477,4 +353,134 @@ enum Direction {
   West,
   East,
   South
+}
+
+fn validate_map(player_index: usize, goal_index: usize, is_running: &mut bool, is_snake: &Vec<bool>) {
+  if player_index == goal_index {
+    println!("You win!");
+    *is_running = false;
+  }
+  
+  if is_snake[player_index] {
+    println!("You lose!");
+    *is_running = false;
+  }
+}
+
+fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player_location_x: &mut usize, player_location_y: &mut usize, map_width: usize, map_height: usize, marked: &mut Vec<bool>, player_index: &mut usize, is_explored: &mut Vec<bool>, current_score: &mut usize, snake_hints: &Vec<usize>) {
+  match get_numeric_input() {
+    5555 => *is_running = false,
+    
+    5 => *is_marking = !*is_marking,
+
+    8 => {
+      if *is_marking {
+        mark(
+          Direction::North,
+          *player_location_x,
+          *player_location_y,
+          map_width,
+          map_height,
+          marked,
+          is_marking
+        );
+      } else {
+        move_player(
+          Direction::North,
+          player_location_x,
+          player_location_y,
+          map_width,
+          map_height,
+          &marked,
+          player_index,
+          is_explored,
+          current_score,
+          &snake_hints
+        );
+      }
+    },
+
+    4 => {
+      if *is_marking {
+        mark(
+          Direction::West,
+          *player_location_x,
+          *player_location_y,
+          map_width,
+          map_height,
+          marked,
+          is_marking
+        );
+      } else {
+        move_player(
+          Direction::West,
+          player_location_x,
+          player_location_y,
+          map_width,
+          map_height,
+          &marked,
+          player_index,
+          is_explored,
+          current_score,
+          &snake_hints
+        );
+      }
+    },
+
+    6 => {
+      if *is_marking {
+        mark(
+          Direction::East,
+          *player_location_x,
+          *player_location_y,
+          map_width,
+          map_height,
+          marked,
+          is_marking
+        );
+      } else {
+        move_player(
+          Direction::East,
+          player_location_x,
+          player_location_y,
+          map_width,
+          map_height,
+          &marked,
+          player_index,
+          is_explored,
+          current_score,
+          &snake_hints
+        );
+      }
+    },
+
+    2 => {
+      if *is_marking {
+        mark(
+          Direction::South,
+          *player_location_x,
+          *player_location_y,
+          map_width,
+          map_height,
+          marked,
+          is_marking
+        );
+      } else {
+        move_player(
+          Direction::South,
+          player_location_x,
+          player_location_y,
+          map_width,
+          map_height,
+          &marked,
+          player_index,
+          is_explored,
+          current_score,
+          &snake_hints
+        );
+      }
+    },
+
+      _ => println!("Invalid input"),
+    }
 }
