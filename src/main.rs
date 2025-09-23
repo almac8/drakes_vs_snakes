@@ -92,8 +92,8 @@ fn get_all_neighbors(location_x: usize, location_y: usize, map_width: usize, map
 }
 
 fn gameloop() {
-  let map_width = 4;
-  let map_height = 4;
+  let map_width = 16;
+  let map_height = 16;
   
   let mut player_location_x = rand::random_range(0..(map_width / 3));
   let mut player_location_y = rand::random_range(0..(map_height / 3));
@@ -169,88 +169,113 @@ fn gameloop() {
       5 => is_marking = !is_marking,
 
       8 => {
-        if player_location_y > 0 {
-          let target_index = calculate_index_from_coordinates(player_location_x, player_location_y - 1, map_width);
-
-          if is_marking {
-            marked[target_index] = !marked[target_index];
-            is_marking = false;
-          } else {
-            if !marked[target_index] {
-              player_location_y -= 1;
-              player_index = target_index;
-
-              if !is_explored[player_index] {
-                is_explored[player_index] = true;
-                current_score += snake_hints[player_index];
-              }
-            }
-          }
+        if is_marking {
+          mark(
+            Direction::North,
+            player_location_x,
+            player_location_y,
+            map_width,
+            map_height,
+            &mut marked,
+            &mut is_marking
+          );
+        } else {
+          move_player(
+            Direction::North,
+            &mut player_location_x,
+            &mut player_location_y,
+            map_width,
+            map_height,
+            &marked,
+            &mut player_index,
+            &mut is_explored,
+            &mut current_score,
+            &snake_hints
+          );
         }
       },
 
       4 => {
-        if player_location_x > 0 {
-          let target_index = calculate_index_from_coordinates(player_location_x - 1, player_location_y, map_width);
-
-          if is_marking {
-            marked[target_index] = !marked[target_index];
-            is_marking = false;
-          } else {
-            if !marked[target_index] {
-              player_location_x -= 1;
-              player_index = target_index;
-              
-              if !is_explored[player_index] {
-                is_explored[player_index] = true;
-                current_score += snake_hints[player_index];
-              }
-            }
-          }
+        if is_marking {
+          mark(
+            Direction::West,
+            player_location_x,
+            player_location_y,
+            map_width,
+            map_height,
+            &mut marked,
+            &mut is_marking
+          );
+        } else {
+          move_player(
+            Direction::West,
+            &mut player_location_x,
+            &mut player_location_y,
+            map_width,
+            map_height,
+            &marked,
+            &mut player_index,
+            &mut is_explored,
+            &mut current_score,
+            &snake_hints
+          );
         }
       },
 
       6 => {
-        if player_location_x < map_width - 1 {
-          let target_index = calculate_index_from_coordinates(player_location_x + 1, player_location_y, map_width);
-
-          if is_marking {
-            marked[target_index] = !marked[target_index];
-            is_marking = false;
-          } else {
-            if !marked[target_index] {
-              player_location_x += 1;
-              player_index = target_index;
-              
-              if !is_explored[player_index] {
-                is_explored[player_index] = true;
-                current_score += snake_hints[player_index];
-              }
-            }
-          }
+        if is_marking {
+          mark(
+            Direction::East,
+            player_location_x,
+            player_location_y,
+            map_width,
+            map_height,
+            &mut marked,
+            &mut is_marking
+          );
+        } else {
+          move_player(
+            Direction::East,
+            &mut player_location_x,
+            &mut player_location_y,
+            map_width,
+            map_height,
+            &marked,
+            &mut player_index,
+            &mut is_explored,
+            &mut current_score,
+            &snake_hints
+          );
         }
       },
 
       2 => {
-        if player_location_y < map_height - 1 {
-          let target_index = calculate_index_from_coordinates(player_location_x, player_location_y + 1, map_width);
-
-          if is_marking {
-            marked[target_index] = !marked[target_index];
-            is_marking = false;
-          } else {
-            if !marked[target_index] {
-              player_location_y += 1;
-              player_index = target_index;
-              
-              if !is_explored[player_index] {
-                is_explored[player_index] = true;
-                current_score += snake_hints[player_index];
-              }
-            }
-          }
+        if is_marking {
+          mark(
+            Direction::South,
+            player_location_x,
+            player_location_y,
+            map_width,
+            map_height,
+            &mut marked,
+            &mut is_marking
+          );
+        } else {
+          move_player(
+            Direction::South,
+            &mut player_location_x,
+            &mut player_location_y,
+            map_width,
+            map_height,
+            &marked,
+            &mut player_index,
+            &mut is_explored,
+            &mut current_score,
+            &snake_hints
+          );
         }
       },
+
       
       _ => println!("Invalid input"),
     }
@@ -394,4 +419,62 @@ fn calculate_distances_from_start(map_width: usize, map_height: usize, start_ind
   }
 
   distance_from_start
+}
+
+fn move_player(direction: Direction, player_location_x: &mut usize, player_location_y: &mut usize, map_width: usize, map_height: usize, marked: &Vec<bool>, player_index: &mut usize, is_explored: &mut Vec<bool>, current_score: &mut usize, snake_hints: &Vec<usize>) {
+  match direction {
+    Direction::North => if *player_location_y == 0 { return; },
+    Direction::West => if *player_location_x == 0 { return; },
+    Direction::East => if *player_location_x == map_width - 1 { return; },
+    Direction::South => if *player_location_y == map_height - 1 { return; }
+  }
+  
+  let target_index = match direction {
+    Direction::North => calculate_index_from_coordinates(*player_location_x, *player_location_y - 1, map_width),
+    Direction::West => calculate_index_from_coordinates(*player_location_x - 1, *player_location_y, map_width),
+    Direction::East => calculate_index_from_coordinates(*player_location_x + 1, *player_location_y, map_width),
+    Direction::South => calculate_index_from_coordinates(*player_location_x, *player_location_y + 1, map_width)
+  };
+  
+  if !marked[target_index] {
+    match direction {
+      Direction::North => *player_location_y -= 1,
+      Direction::West => *player_location_x -= 1,
+      Direction::East => *player_location_x += 1,
+      Direction::South => *player_location_y += 1,
+    }
+    
+    *player_index = target_index;
+      
+    if !is_explored[*player_index] {
+      is_explored[*player_index] = true;
+      *current_score += snake_hints[*player_index];
+    }
+  }
+}
+
+fn mark(direction: Direction, player_location_x: usize, player_location_y: usize, map_width: usize, map_height: usize, marked: &mut Vec<bool>, is_marking: &mut bool) {
+  match direction {
+    Direction::North => if player_location_y == 0 { return; },
+    Direction::West => if player_location_x == 0 { return; },
+    Direction::East => if player_location_x == map_width - 1 { return; },
+    Direction::South => if player_location_y == map_height - 1 { return; }
+  }
+  
+  let target_index = match direction {
+    Direction::North => calculate_index_from_coordinates(player_location_x, player_location_y - 1, map_width),
+    Direction::West => calculate_index_from_coordinates(player_location_x - 1, player_location_y, map_width),
+    Direction::East => calculate_index_from_coordinates(player_location_x + 1, player_location_y, map_width),
+    Direction::South => calculate_index_from_coordinates(player_location_x, player_location_y + 1, map_width)
+  };
+
+  marked[target_index] = !marked[target_index];
+  *is_marking = false;
+}
+
+enum Direction {
+  North,
+  West,
+  East,
+  South
 }
