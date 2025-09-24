@@ -33,10 +33,12 @@ fn main() {
         println!();
         println!("Map width?");
         let map_width = get_numeric_input();
-
+        
+        println!();
         println!("Map Height?");
         let map_height = get_numeric_input();
-
+        
+        println!();
         println!("Number of snakes?");
         let num_snakes = get_numeric_input();
 
@@ -48,6 +50,20 @@ fn main() {
         print_map(&map, is_marking);
         handle_play_input(&mut map, &mut current_scene, &mut is_marking);
         validate_map(&map, &mut is_running);
+      },
+
+      Scenes::Pause => {
+        println!("Paused");
+        println!("1) Resume");
+        println!("2) Save Game");
+        println!("3) Main Menu");
+
+        match get_numeric_input() {
+          1 => current_scene = Scenes::Playfield,
+          2 => println!("Save Game"),
+          3 => current_scene = Scenes::MainMenu,
+          _ => {}
+        }
       }
     }
   }
@@ -116,7 +132,8 @@ fn get_all_neighbors(location: &Location, map_size: &MapSize) -> Vec<Location> {
 enum Scenes {
   MainMenu,
   NewGame,
-  Playfield
+  Playfield,
+  Pause
 }
 
 fn get_numeric_input() -> usize {
@@ -307,7 +324,7 @@ fn validate_map(map: &Map, is_running: &mut bool) {
 
 fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut bool) {
   match get_numeric_input() {
-    5555 => *current_scene = Scenes::MainMenu,
+    5555 => *current_scene = Scenes::Pause,
     
     5 => *is_marking = !*is_marking,
 
