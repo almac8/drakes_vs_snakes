@@ -1,6 +1,8 @@
 fn main() {
-  let current_scene = Scenes::MainMenu;
+  let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
+  let mut is_marking = false;
+  let mut map = Map::generate(MapSize::new(4, 4), 2);
 
   while is_running {
     match current_scene {
@@ -16,12 +18,36 @@ fn main() {
         println!();
         
         match get_numeric_input() {
-          1 => gameloop(),
+          1 => current_scene = Scenes::NewGame,
           2 => println!("LOAD GAME"),
           3 => println!("HIGH SCORES"),
           4 => is_running = false,
           _ => {}
         }
+      },
+
+      Scenes::NewGame => {
+        println!();
+        println!();
+        println!("Game Setup");
+        println!();
+        println!("Map width?");
+        let map_width = get_numeric_input();
+
+        println!("Map Height?");
+        let map_height = get_numeric_input();
+
+        println!("Number of snakes?");
+        let num_snakes = get_numeric_input();
+
+        map = Map::generate(MapSize::new(map_width, map_height), num_snakes);
+        current_scene = Scenes::Playfield;
+      },
+
+      Scenes::Playfield => {
+        print_map(&map, is_marking);
+        handle_play_input(&mut map, &mut current_scene, &mut is_marking);
+        validate_map(&map, &mut is_running);
       }
     }
   }
@@ -87,21 +113,10 @@ fn get_all_neighbors(location: &Location, map_size: &MapSize) -> Vec<Location> {
   neighbors
 }
 
-fn gameloop() {
-  let mut map = Map::generate(MapSize::new(4, 4), 2);
-  
-  let mut is_running = true;
-  let mut is_marking = false;
-  while is_running {
-    print_map(&map, is_marking);
-
-    handle_play_input(&mut map, &mut is_running, &mut is_marking);
-    validate_map(&map, &mut is_running);
-  }
-}
-
 enum Scenes {
-  MainMenu
+  MainMenu,
+  NewGame,
+  Playfield
 }
 
 fn get_numeric_input() -> usize {
@@ -290,9 +305,9 @@ fn validate_map(map: &Map, is_running: &mut bool) {
   }
 }
 
-fn handle_play_input(map: &mut Map, is_running: &mut bool, is_marking: &mut bool) {
+fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut bool) {
   match get_numeric_input() {
-    5555 => *is_running = false,
+    5555 => *current_scene = Scenes::MainMenu,
     
     5 => *is_marking = !*is_marking,
 
