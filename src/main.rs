@@ -88,48 +88,15 @@ fn get_all_neighbors(location: &Location, map_size: &MapSize) -> Vec<Location> {
 }
 
 fn gameloop() {
-  let map_size = MapSize::new(16, 16);
-  let num_snakes = 2;
-
-  let mut player_location = Location::new(
-    rand::random_range(0..(map_size.width / 3)),
-    rand::random_range(0..(map_size.height / 3)),
-    &map_size
-  );
-
-  let goal_location = Location::new(
-    rand::random_range((map_size.width / 3 * 2)..(map_size.width - 1)),
-    rand::random_range((map_size.height / 3 * 2)..(map_size.height - 1)),
-    &map_size
-  );
-  
-  let mut is_marking = false;
-  let is_snake = generate_snakes(&map_size, num_snakes, &player_location, &goal_location);
-  let snake_hints = generate_hints(&map_size, &is_snake);
-  let mut score = Score::new(&map_size, &is_snake, &player_location, &goal_location, &snake_hints);
-  let mut marked = vec![false; map_size.array_length];
-  let mut is_explored = vec![false; map_size.array_length];
-  is_explored[player_location.array_index] = true;
-  
-  let distance_from_start = calculate_distances_from_start(&map_size, &player_location, &goal_location, &is_snake);
-  let is_path = find_path(&map_size, &player_location, &goal_location, distance_from_start);
+  let mut map = Map::generate(MapSize::new(4, 4), 2);
   
   let mut is_running = true;
+  let mut is_marking = false;
   while is_running {
-    print_map(
-      is_marking,
-      &score,
-      &map_size,
-      &player_location,
-      &goal_location,
-      &marked,
-      &is_explored,
-      &is_path,
-      &snake_hints
-    );
+    print_map(&map, is_marking);
 
-    handle_play_input(&mut is_running, &mut is_marking, &mut player_location, &map_size, &mut marked, &mut is_explored, &mut score, &snake_hints);
-    validate_map(&player_location, &goal_location, &mut is_running, &is_snake);
+    handle_play_input(&mut map, &mut is_running, &mut is_marking);
+    validate_map(&map, &mut is_running);
   }
 }
 
@@ -150,30 +117,30 @@ fn get_numeric_input() -> usize {
   }
 }
 
-fn print_map(is_marking: bool, score: &Score, map_size: &MapSize, player: &Location, goal: &Location, marked: &Vec<bool>, is_explored: &Vec<bool>, is_path: &Vec<bool>, snake_hints: &Vec<usize>) {
+fn print_map(map: &Map, is_marking: bool) {
   if is_marking {
     println!("Is Marking");
   }
   
-  println!("Score: {}/{}", score.current, score.maximum);
-  for index in 0..map_size.array_length {
-    if index == player.array_index {
+  println!("Score: {}/{}", map.score.current, map.score.maximum);
+  for index in 0..map.size.array_length {
+    if index == map.player_location.array_index {
       print!("P");
-    } else if index == goal.array_index {
+    } else if index == map.goal_location.array_index {
       print!("G");
-    } else if marked[index] {
+    } else if map.is_marked[index] {
       print!("X");
-    } else if is_explored[index] {
-      if is_path[index] {
+    } else if map.is_explored[index] {
+      if map.is_path[index] {
         print!("*");
       } else {
-        print!("{}", snake_hints[index]);
+        print!("{}", map.hint[index]);
       }
     } else {
       print!("_");
     }
 
-    if index % map_size.width == map_size.width - 1 {
+    if index % map.size.width == map.size.width - 1 {
       println!();
     } else {
       print!(" ");
@@ -260,47 +227,47 @@ fn calculate_distances_from_start(map_size: &MapSize, start: &Location, goal: &L
   distance_from_start
 }
 
-fn move_player(direction: Direction, player: &mut Location, map_size: &MapSize, marked: &Vec<bool>, is_explored: &mut Vec<bool>, current_score: &mut usize, snake_hints: &Vec<usize>) {
+fn move_player(map: &mut Map, direction: Direction) {
   match direction {
-    Direction::North => if player.coordinate_y == 0 { return; },
-    Direction::West => if player.coordinate_x == 0 { return; },
-    Direction::East => if player.coordinate_x == map_size.width - 1 { return; },
-    Direction::South => if player.coordinate_y == map_size.height - 1 { return; }
+    Direction::North => if map.player_location.coordinate_y == 0 { return; },
+    Direction::West => if map.player_location.coordinate_x == 0 { return; },
+    Direction::East => if map.player_location.coordinate_x == map.size.width - 1 { return; },
+    Direction::South => if map.player_location.coordinate_y == map.size.height - 1 { return; }
   }
   
   let target = match direction {
-    Direction::North => Location::new(player.coordinate_x, player.coordinate_y - 1, map_size),
-    Direction::West => Location::new(player.coordinate_x - 1, player.coordinate_y, map_size),
-    Direction::East => Location::new(player.coordinate_x + 1, player.coordinate_y, map_size),
-    Direction::South => Location::new(player.coordinate_x, player.coordinate_y + 1, map_size)
+    Direction::North => Location::new(map.player_location.coordinate_x, map.player_location.coordinate_y - 1, &map.size),
+    Direction::West => Location::new(map.player_location.coordinate_x - 1, map.player_location.coordinate_y, &map.size),
+    Direction::East => Location::new(map.player_location.coordinate_x + 1, map.player_location.coordinate_y, &map.size),
+    Direction::South => Location::new(map.player_location.coordinate_x, map.player_location.coordinate_y + 1, &map.size)
   };
   
-  if !marked[target.array_index] {
-    player.step(direction, map_size);
+  if !map.is_marked[target.array_index] {
+    map.player_location.step(direction, &map.size);
       
-    if !is_explored[player.array_index] {
-      is_explored[player.array_index] = true;
-      *current_score += snake_hints[player.array_index];
+    if !map.is_explored[map.player_location.array_index] {
+      map.is_explored[map.player_location.array_index] = true;
+      map.score.current += map.hint[map.player_location.array_index];
     }
   }
 }
 
-fn mark(direction: Direction, player: &Location, map_size: &MapSize, marked: &mut Vec<bool>, is_marking: &mut bool) {
+fn mark(map: &mut Map, direction: Direction, is_marking: &mut bool) {
   match direction {
-    Direction::North => if player.coordinate_y == 0 { return; },
-    Direction::West => if player.coordinate_x == 0 { return; },
-    Direction::East => if player.coordinate_x == map_size.width - 1 { return; },
-    Direction::South => if player.coordinate_y == map_size.height - 1 { return; }
+    Direction::North => if map.player_location.coordinate_y == 0 { return; },
+    Direction::West => if map.player_location.coordinate_x == 0 { return; },
+    Direction::East => if map.player_location.coordinate_x == map.size.width - 1 { return; },
+    Direction::South => if map.player_location.coordinate_y == map.size.height - 1 { return; }
   }
   
   let target = match direction {
-    Direction::North => Location::new(player.coordinate_x, player.coordinate_y - 1, map_size),
-    Direction::West => Location::new(player.coordinate_x - 1, player.coordinate_y, map_size),
-    Direction::East => Location::new(player.coordinate_x + 1, player.coordinate_y, map_size),
-    Direction::South => Location::new(player.coordinate_x, player.coordinate_y + 1, map_size)
+    Direction::North => Location::new(map.player_location.coordinate_x, map.player_location.coordinate_y - 1, &map.size),
+    Direction::West => Location::new(map.player_location.coordinate_x - 1, map.player_location.coordinate_y, &map.size),
+    Direction::East => Location::new(map.player_location.coordinate_x + 1, map.player_location.coordinate_y, &map.size),
+    Direction::South => Location::new(map.player_location.coordinate_x, map.player_location.coordinate_y + 1, &map.size)
   };
 
-  marked[target.array_index] = !marked[target.array_index];
+  map.is_marked[target.array_index] = !map.is_marked[target.array_index];
   *is_marking = false;
 }
 
@@ -311,19 +278,19 @@ enum Direction {
   South
 }
 
-fn validate_map(player: &Location, goal: &Location, is_running: &mut bool, is_snake: &Vec<bool>) {
-  if player.array_index == goal.array_index {
+fn validate_map(map: &Map, is_running: &mut bool) {
+  if map.player_location.array_index == map.goal_location.array_index {
     println!("You win!");
     *is_running = false;
   }
   
-  if is_snake[player.array_index] {
+  if map.is_snake[map.player_location.array_index] {
     println!("You lose!");
     *is_running = false;
   }
 }
 
-fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut Location, map_size: &MapSize, marked: &mut Vec<bool>, is_explored: &mut Vec<bool>, score: &mut Score, snake_hints: &Vec<usize>) {
+fn handle_play_input(map: &mut Map, is_running: &mut bool, is_marking: &mut bool) {
   match get_numeric_input() {
     5555 => *is_running = false,
     
@@ -331,89 +298,33 @@ fn handle_play_input(is_running: &mut bool, is_marking: &mut bool, player: &mut 
 
     8 => {
       if *is_marking {
-        mark(
-          Direction::North,
-          player,
-          map_size,
-          marked,
-          is_marking
-        );
+        mark(map, Direction::North, is_marking);
       } else {
-        move_player(
-          Direction::North,
-          player,
-          map_size,
-          &marked,
-          is_explored,
-          &mut score.current,
-          &snake_hints
-        );
+        move_player(map, Direction::North);
       }
     },
 
     4 => {
       if *is_marking {
-        mark(
-          Direction::West,
-          player,
-          map_size,
-          marked,
-          is_marking
-        );
+        mark(map, Direction::West, is_marking);
       } else {
-        move_player(
-          Direction::West,
-          player,
-          map_size,
-          &marked,
-          is_explored,
-          &mut score.current,
-          &snake_hints
-        );
+        move_player(map, Direction::West);
       }
     },
 
     6 => {
       if *is_marking {
-        mark(
-          Direction::East,
-          player,
-          map_size,
-          marked,
-          is_marking
-        );
+        mark(map, Direction::East, is_marking);
       } else {
-        move_player(
-          Direction::East,
-          player,
-          map_size,
-          &marked,
-          is_explored,
-          &mut score.current,
-          &snake_hints
-        );
+        move_player(map, Direction::East);
       }
     },
 
     2 => {
       if *is_marking {
-        mark(
-          Direction::South,
-          player,
-          map_size,
-          marked,
-          is_marking
-        );
+        mark(map, Direction::South, is_marking);
       } else {
-        move_player(
-          Direction::South,
-          player,
-          map_size,
-          &marked,
-          is_explored,
-          &mut score.current,
-          &snake_hints
-        );
+        move_player(map, Direction::South);
       }
     },
 
@@ -526,6 +437,58 @@ impl MapSize {
       width,
       height,
       array_length: width * height
+    }
+  }
+}
+
+struct Map {
+  size: MapSize,
+  player_location: Location,
+  goal_location: Location,
+  score: Score,
+  hint: Vec<usize>,
+  is_snake: Vec<bool>,
+  is_marked: Vec<bool>,
+  is_explored: Vec<bool>,
+  is_path: Vec<bool>
+}
+
+impl Map {
+  fn generate(size: MapSize, num_snakes: usize) -> Self {
+    let player_location = Location::new(
+      rand::random_range(0..(size.width / 3)),
+      rand::random_range(0..(size.height / 3)),
+      &size
+    );
+  
+    let goal_location = Location::new(
+      rand::random_range((size.width / 3 * 2)..(size.width - 1)),
+      rand::random_range((size.height / 3 * 2)..(size.height - 1)),
+      &size
+    );
+
+    let is_snake = generate_snakes(&size, num_snakes, &player_location, &goal_location);
+    let hint = generate_hints(&size, &is_snake);
+
+    let score = Score::new(&size, &is_snake, &player_location, &goal_location, &hint);
+    
+    let is_marked = vec![false; size.array_length];
+    let mut is_explored = vec![false; size.array_length];
+    is_explored[player_location.array_index] = true;
+
+    let distance_from_start = calculate_distances_from_start(&size, &player_location, &goal_location, &is_snake);
+    let is_path = find_path(&size, &player_location, &goal_location, distance_from_start);
+    
+    Self {
+      size,
+      player_location,
+      goal_location,
+      score,
+      hint,
+      is_snake,
+      is_marked,
+      is_explored,
+      is_path
     }
   }
 }
