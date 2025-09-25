@@ -1,3 +1,5 @@
+use std::{path::{Path, PathBuf}, str::FromStr};
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -60,10 +62,85 @@ fn main() {
 
         match get_numeric_input() {
           1 => current_scene = Scenes::Playfield,
-          2 => println!("Save Game"),
+          2 => current_scene = Scenes::SaveGame,
           3 => current_scene = Scenes::MainMenu,
           _ => {}
         }
+      },
+
+      Scenes::SaveGame => {
+        println!("Save Game");
+        println!("File name?");
+
+        let mut path_buffer = PathBuf::new();
+        path_buffer.push("./saves/");
+
+        let mut input_buffer = String::new();
+        std::io::stdin().read_line(&mut input_buffer).unwrap();
+
+        input_buffer = input_buffer.trim().to_string();
+        input_buffer.push_str(".txt");
+
+        path_buffer.push(input_buffer);
+
+        let mut saves_exist = false;
+        let paths = std::fs::read_dir("./").unwrap();
+        for path in paths {
+          let path_string = path.unwrap().path().display().to_string();
+          if path_string == "./saves" {
+            saves_exist = true;
+          }
+        }
+        
+        if !saves_exist {
+          std::fs::create_dir("./saves").unwrap();
+        }
+
+        let mut contents = String::new().to_owned();
+        contents.push_str(&map.size.width.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.size.height.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.player_location.coordinate_x.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.player_location.coordinate_y.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.goal_location.coordinate_x.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.goal_location.coordinate_y.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.score.current.to_string());
+        contents.push_str("\n");
+        contents.push_str(&map.score.maximum.to_string());
+        contents.push_str("\n");
+        
+        for hint in map.hint.iter() {
+          contents.push_str(&hint.to_string());
+          contents.push_str("\n");
+        }
+      
+        for is_snake in map.is_snake.iter() {
+          contents.push_str(&is_snake.to_string());
+          contents.push_str("\n");
+        }
+      
+        for is_marked in map.is_marked.iter() {
+          contents.push_str(&is_marked.to_string());
+          contents.push_str("\n");
+        }
+      
+        for is_explored in map.is_explored.iter() {
+          contents.push_str(&is_explored.to_string());
+          contents.push_str("\n");
+        }
+      
+        for is_path in map.is_path.iter() {
+          contents.push_str(&is_path.to_string());
+          contents.push_str("\n");
+        }
+        
+        std::fs::write(path_buffer.as_path(), contents).unwrap();
+        current_scene = Scenes::Pause;
       }
     }
   }
@@ -133,7 +210,8 @@ enum Scenes {
   MainMenu,
   NewGame,
   Playfield,
-  Pause
+  Pause,
+  SaveGame
 }
 
 fn get_numeric_input() -> usize {
