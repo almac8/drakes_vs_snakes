@@ -49,7 +49,7 @@ fn main() {
       Scenes::Playfield => {
         print_map(&map, is_marking);
         handle_play_input(&mut map, &mut current_scene, &mut is_marking);
-        validate_map(&map, &mut is_running);
+        validate_map(&map, &mut current_scene);
       },
 
       Scenes::Pause => {
@@ -486,15 +486,33 @@ enum Direction {
   South
 }
 
-fn validate_map(map: &Map, is_running: &mut bool) {
+fn validate_map(map: &Map, current_scene: &mut Scenes) {
   if map.player_location.array_index == map.goal_location.array_index {
     println!("You win!");
-    *is_running = false;
+    println!("Enter your name:");
+
+    let mut input_buffer = String::new();
+    std::io::stdin().read_line(&mut input_buffer).unwrap();
+    input_buffer = input_buffer.trim().to_string();
+
+    let mut high_scores_string = match std::fs::read_to_string("high_scores.txt") {
+      Ok(scores) => scores,
+      Err(_) => "".to_string()
+    };
+
+    high_scores_string.push_str(&input_buffer);
+    high_scores_string.push_str(",");
+    high_scores_string.push_str(&map.score.current.to_string());
+    high_scores_string.push_str(",");
+
+    std::fs::write("high_scores.txt", high_scores_string).unwrap();
+
+    *current_scene = Scenes::MainMenu;
   }
   
   if map.is_snake[map.player_location.array_index] {
     println!("You lose!");
-    *is_running = false;
+    *current_scene = Scenes::MainMenu;
   }
 }
 
