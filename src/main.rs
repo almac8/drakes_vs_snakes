@@ -1,4 +1,4 @@
-use std::{path::{Path, PathBuf}, str::FromStr};
+use std::path::PathBuf;
 
 fn main() {
   let mut current_scene = Scenes::MainMenu;
@@ -21,7 +21,7 @@ fn main() {
         
         match get_numeric_input() {
           1 => current_scene = Scenes::NewGame,
-          2 => println!("LOAD GAME"),
+          2 => current_scene = Scenes::LoadGame,
           3 => println!("HIGH SCORES"),
           4 => is_running = false,
           _ => {}
@@ -98,52 +98,151 @@ fn main() {
 
         let mut contents = String::new().to_owned();
         contents.push_str(&map.size.width.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.size.height.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.player_location.coordinate_x.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.player_location.coordinate_y.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.goal_location.coordinate_x.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.goal_location.coordinate_y.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.score.current.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         contents.push_str(&map.score.maximum.to_string());
-        contents.push_str("\n");
+        contents.push_str(",");
         
         for hint in map.hint.iter() {
           contents.push_str(&hint.to_string());
-          contents.push_str("\n");
+          contents.push_str(",");
         }
       
         for is_snake in map.is_snake.iter() {
-          contents.push_str(&is_snake.to_string());
-          contents.push_str("\n");
+          contents.push_str(if *is_snake { "1" } else { "0" });
+          contents.push_str(",");
         }
       
         for is_marked in map.is_marked.iter() {
-          contents.push_str(&is_marked.to_string());
-          contents.push_str("\n");
+          contents.push_str(if *is_marked { "1" } else { "0" });
+          contents.push_str(",");
         }
       
         for is_explored in map.is_explored.iter() {
-          contents.push_str(&is_explored.to_string());
-          contents.push_str("\n");
+          contents.push_str(if *is_explored { "1" } else { "0" });
+          contents.push_str(",");
         }
       
         for is_path in map.is_path.iter() {
-          contents.push_str(&is_path.to_string());
-          contents.push_str("\n");
+          contents.push_str(if *is_path { "1" } else { "0" });
+          contents.push_str(",");
         }
         
         std::fs::write(path_buffer.as_path(), contents).unwrap();
         current_scene = Scenes::Pause;
+      },
+
+      Scenes::LoadGame => {
+        println!("Load Game:");
+        let files = std::fs::read_dir("./saves").unwrap();
+        let mut filenames = Vec::new();
+
+        for file in files {
+          let file = file.unwrap();
+          let file_name = file.file_name().into_string().unwrap();
+          filenames.push(file_name);
+        }
+
+        for (index, filename) in filenames.iter().enumerate() {
+          println!("{}: {}", index + 1, filename);
+        }
+
+        let input = get_numeric_input();
+        if input < filenames.len() + 1 && input > 0 {
+          let mut path_buffer = PathBuf::new();
+          path_buffer.push("./saves/");
+          path_buffer.push(filenames[input - 1].clone());
+          
+          let mut save_string = std::fs::read_to_string(path_buffer).unwrap();
+          let mut save_values = Vec::new();
+
+          let mut is_reading = true;
+          while is_reading {
+            let comma_index = save_string.find(",");
+            match comma_index {
+              Some(comma_index) => {
+                let value = &save_string[..comma_index].to_owned();
+                save_values.push(value.to_string());
+                let save_string_buffer = &save_string[comma_index + 1..].to_owned();
+                save_string = save_string_buffer.to_string();
+              },
+
+              None => is_reading = false
+            }
+          }
+          
+          map.size.width = save_values[0].parse().unwrap();
+          map.size.height = save_values[1].parse().unwrap();
+          let num_map_cells = map.size.width * map.size.height;
+          map.size.array_length = num_map_cells;
+            
+          map.player_location.coordinate_x = save_values[2].parse().unwrap();
+          map.player_location.coordinate_y = save_values[3].parse().unwrap();
+          map.player_location.array_index = map.player_location.coordinate_y * map.size.width + map.player_location.coordinate_x;
+
+          map.goal_location.coordinate_x = save_values[4].parse().unwrap();
+          map.goal_location.coordinate_y = save_values[5].parse().unwrap();
+          map.goal_location.array_index = map.goal_location.coordinate_y * map.size.width + map.goal_location.coordinate_x;
+
+          map.score.current = save_values[6].parse().unwrap();
+          map.score.maximum = save_values[7].parse().unwrap();
+            
+          let hints_offset = 8;
+          map.hint = vec![0; num_map_cells];
+          for hint_index in 0..(num_map_cells) {
+            let hint_offset = hints_offset + hint_index;
+            let new_value = save_values[hint_offset].parse().unwrap();
+            map.hint[hint_index] = new_value;
+          }
+            
+          let is_snakes_offset = hints_offset + num_map_cells;
+          map.is_snake = vec![false; num_map_cells];
+          for is_snake_index in 0..num_map_cells {
+            let is_snake_offset = is_snakes_offset + is_snake_index;
+            let new_value: usize = save_values[is_snake_offset].parse().unwrap();
+            map.is_snake[is_snake_index] = if new_value == 1 { true } else { false };
+          }
+          
+          let is_markeds_offset = is_snakes_offset + num_map_cells;
+          map.is_marked = vec![false; num_map_cells];
+          for is_marked_index in 0..num_map_cells {
+            let is_marked_offset = is_markeds_offset + is_marked_index;
+            let new_value: usize = save_values[is_marked_offset].parse().unwrap();
+            map.is_marked[is_marked_index] = if new_value == 1 { true } else { false };
+          }
+            
+          let is_exploreds_offset = is_markeds_offset + num_map_cells;
+          map.is_explored = vec![false; num_map_cells];
+          for is_explored_index in 0..num_map_cells {
+            let is_explored_offset = is_exploreds_offset + is_explored_index;
+            let new_value: usize = save_values[is_explored_offset].parse().unwrap();
+            map.is_explored[is_explored_index] = if new_value == 1 { true } else { false };
+          }
+            
+          let is_paths_offset = is_exploreds_offset + num_map_cells;
+          map.is_path = vec![false; num_map_cells];
+            for is_path_index in 0..num_map_cells {
+              let is_path_offset = is_paths_offset + is_path_index;
+              let new_value: usize = save_values[is_path_offset].parse().unwrap();
+              map.is_path[is_path_index] = if new_value == 1 { true } else { false };
+            }
+          }
+          
+          current_scene = Scenes::Playfield;
+        }
       }
     }
-  }
 }
 
 fn get_direct_neighbors(location_x: usize, location_y: usize, map_size: &MapSize) -> Vec<Location> {
@@ -211,7 +310,8 @@ enum Scenes {
   NewGame,
   Playfield,
   Pause,
-  SaveGame
+  SaveGame,
+  LoadGame
 }
 
 fn get_numeric_input() -> usize {
