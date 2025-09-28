@@ -7,6 +7,9 @@ use score::Score;
 mod direction;
 use direction::Direction;
 
+mod scenes;
+use scenes::Scenes;
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -336,16 +339,6 @@ fn get_all_neighbors(location: &Location, map_size: &MapSize) -> Vec<Location> {
   }
   
   neighbors
-}
-
-enum Scenes {
-  MainMenu,
-  NewGame,
-  Playfield,
-  Pause,
-  SaveGame,
-  LoadGame,
-  HighScores
 }
 
 fn get_numeric_input() -> usize {
