@@ -20,7 +20,7 @@ fn main() {
         match get_numeric_input() {
           1 => current_scene = Scenes::NewGame,
           2 => current_scene = Scenes::LoadGame,
-          3 => println!("HIGH SCORES"),
+          3 => current_scene = Scenes::HighScores,
           4 => is_running = false,
           _ => {}
         }
@@ -238,6 +238,33 @@ fn main() {
           }
           
           current_scene = Scenes::Playfield;
+        },
+
+        Scenes::HighScores => {
+          println!("High Scores");
+          let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").unwrap();
+          let mut is_parsing = true;
+
+          let mut values = Vec::new();
+
+          while is_parsing {
+            match unparsed_high_scores_string.find(",") {
+              Some(index) => {
+                values.push(unparsed_high_scores_string[0..index].to_string());
+                unparsed_high_scores_string = unparsed_high_scores_string[(index + 1)..].to_string();
+              },
+
+              None => is_parsing = false
+            }
+          }
+
+          let num_listings = values.len() / 2;
+          for index in 0..num_listings {
+            println!("{}: {}", values[index * 2], values[(index * 2) + 1]);
+          }
+
+          get_numeric_input();
+          current_scene = Scenes::MainMenu;
         }
       }
     }
@@ -309,7 +336,8 @@ enum Scenes {
   Playfield,
   Pause,
   SaveGame,
-  LoadGame
+  LoadGame,
+  HighScores
 }
 
 fn get_numeric_input() -> usize {
