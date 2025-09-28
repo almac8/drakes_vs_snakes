@@ -4,6 +4,9 @@ use map_size::MapSize;
 mod score;
 use score::Score;
 
+mod direction;
+use direction::Direction;
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -510,13 +513,6 @@ fn mark(map: &mut Map, direction: Direction, is_marking: &mut bool) {
 
   map.is_marked[target.array_index] = !map.is_marked[target.array_index];
   *is_marking = false;
-}
-
-enum Direction {
-  North,
-  West,
-  East,
-  South
 }
 
 fn validate_map(map: &Map, current_scene: &mut Scenes) {
