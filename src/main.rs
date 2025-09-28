@@ -1,3 +1,6 @@
+mod map_size;
+use map_size::MapSize;
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -42,7 +45,7 @@ fn main() {
         println!("Number of snakes?");
         let num_snakes = get_numeric_input();
 
-        map = generate_map(MapSize::new(map_width, map_height), num_snakes);
+        map = generate_map(MapSize::from(map_width, map_height), num_snakes);
         current_scene = Scenes::Playfield;
       },
 
@@ -95,9 +98,9 @@ fn main() {
         }
 
         let mut contents = String::new().to_owned();
-        contents.push_str(&map.size.width.to_string());
+        contents.push_str(&map.size.width().to_string());
         contents.push_str(",");
-        contents.push_str(&map.size.height.to_string());
+        contents.push_str(&map.size.height().to_string());
         contents.push_str(",");
         contents.push_str(&map.player_location.coordinate_x.to_string());
         contents.push_str(",");
@@ -180,18 +183,17 @@ fn main() {
             }
           }
           
-          map.size.width = save_values[0].parse().unwrap();
-          map.size.height = save_values[1].parse().unwrap();
-          let num_map_cells = map.size.width * map.size.height;
-          map.size.array_length = num_map_cells;
+          map.size.set_width(save_values[0].parse().unwrap());
+          map.size.set_height(save_values[1].parse().unwrap());
+          let num_map_cells = map.size.width() * map.size.height();
             
           map.player_location.coordinate_x = save_values[2].parse().unwrap();
           map.player_location.coordinate_y = save_values[3].parse().unwrap();
-          map.player_location.array_index = map.player_location.coordinate_y * map.size.width + map.player_location.coordinate_x;
+          map.player_location.array_index = map.player_location.coordinate_y * map.size.width() + map.player_location.coordinate_x;
 
           map.goal_location.coordinate_x = save_values[4].parse().unwrap();
           map.goal_location.coordinate_y = save_values[5].parse().unwrap();
-          map.goal_location.array_index = map.goal_location.coordinate_y * map.size.width + map.goal_location.coordinate_x;
+          map.goal_location.array_index = map.goal_location.coordinate_y * map.size.width() + map.goal_location.coordinate_x;
 
           map.score.current = save_values[6].parse().unwrap();
           map.score.maximum = save_values[7].parse().unwrap();
@@ -281,11 +283,11 @@ fn get_direct_neighbors(location_x: usize, location_y: usize, map_size: &MapSize
     neighbors.push(Location::new(location_x - 1, location_y, map_size));
   }
 
-  if location_x < map_size.width - 1 {
+  if location_x < map_size.width() - 1 {
     neighbors.push(Location::new(location_x + 1, location_y, map_size));
   }
 
-  if location_y < map_size.height - 1 {
+  if location_y < map_size.height() - 1 {
     neighbors.push(Location::new(location_x, location_y + 1, map_size));
   }
   
@@ -303,7 +305,7 @@ fn get_all_neighbors(location: &Location, map_size: &MapSize) -> Vec<Location> {
     neighbors.push(Location::new(location.coordinate_x, location.coordinate_y - 1, map_size));
   }
 
-  if location.coordinate_x < map_size.width - 1 && location.coordinate_y > 0 {
+  if location.coordinate_x < map_size.width() - 1 && location.coordinate_y > 0 {
     neighbors.push(Location::new(location.coordinate_x + 1, location.coordinate_y - 1, map_size));
   }
 
@@ -311,19 +313,19 @@ fn get_all_neighbors(location: &Location, map_size: &MapSize) -> Vec<Location> {
     neighbors.push(Location::new(location.coordinate_x - 1, location.coordinate_y, map_size));
   }
 
-  if location.coordinate_x < map_size.width - 1 {
+  if location.coordinate_x < map_size.width() - 1 {
     neighbors.push(Location::new(location.coordinate_x + 1, location.coordinate_y, map_size));
   }
 
-  if location.coordinate_x > 0 && location.coordinate_y < map_size.height - 1 {
+  if location.coordinate_x > 0 && location.coordinate_y < map_size.height() - 1 {
     neighbors.push(Location::new(location.coordinate_x - 1, location.coordinate_y + 1, map_size));
   }
 
-  if location.coordinate_y < map_size.height - 1 {
+  if location.coordinate_y < map_size.height() - 1 {
     neighbors.push(Location::new(location.coordinate_x, location.coordinate_y + 1, map_size));
   }
 
-  if location.coordinate_x < map_size.width - 1 && location.coordinate_y < map_size.height - 1 {
+  if location.coordinate_x < map_size.width() - 1 && location.coordinate_y < map_size.height() - 1 {
     neighbors.push(Location::new(location.coordinate_x + 1, location.coordinate_y + 1, map_size));
   }
   
@@ -359,7 +361,7 @@ fn print_map(map: &Map, is_marking: bool) {
   }
   
   println!("Score: {}/{}", map.score.current, map.score.maximum);
-  for index in 0..map.size.array_length {
+  for index in 0..map.size.array_length() {
     if index == map.player_location.array_index {
       print!("P");
     } else if index == map.goal_location.array_index {
@@ -376,7 +378,7 @@ fn print_map(map: &Map, is_marking: bool) {
       print!("_");
     }
 
-    if index % map.size.width == map.size.width - 1 {
+    if index % map.size.width() == map.size.width() - 1 {
       println!();
     } else {
       print!(" ");
@@ -387,15 +389,15 @@ fn print_map(map: &Map, is_marking: bool) {
 }
 
 fn find_path(map: &Map, distance_from_start: Vec<usize>) -> Vec<bool> {
-  let mut is_path = vec![false; map.size.array_length];
+  let mut is_path = vec![false; map.size.array_length()];
   is_path[map.player_location.array_index] = true;
   is_path[map.goal_location.array_index] = true;
   
   let mut current_index = map.goal_location.array_index;
   while current_index != map.player_location.array_index {
     let neighbors = get_direct_neighbors(
-      current_index % map.size.width,
-      current_index / map.size.width,
+      current_index % map.size.width(),
+      current_index / map.size.width(),
       &map.size
     );
 
@@ -408,8 +410,8 @@ fn find_path(map: &Map, distance_from_start: Vec<usize>) -> Vec<bool> {
 }
 
 fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
-  let mut distance_from_start = vec![std::usize::MAX; map.size.array_length];
-  let mut distance_from_start_calculation_completed = vec![false; map.size.array_length];
+  let mut distance_from_start = vec![std::usize::MAX; map.size.array_length()];
+  let mut distance_from_start_calculation_completed = vec![false; map.size.array_length()];
   
   distance_from_start[map.player_location.array_index] = 0;
   for (index, value) in map.is_snake.iter().enumerate() {
@@ -425,7 +427,7 @@ fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
     }
   }
   
-  for step_index in 0..(map.size.array_length - num_snakes) {
+  for step_index in 0..(map.size.array_length() - num_snakes) {
     if step_index == map.goal_location.array_index { break; }
     
     let mut smallest_distance_index = std::usize::MAX;
@@ -440,8 +442,8 @@ fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
     }
     
     let neighbors = get_direct_neighbors(
-      smallest_distance_index % map.size.width,
-      smallest_distance_index / map.size.width,
+      smallest_distance_index % map.size.width(),
+      smallest_distance_index / map.size.width(),
       &map.size
     );
 
@@ -467,8 +469,8 @@ fn move_player(map: &mut Map, direction: Direction) {
   match direction {
     Direction::North => if map.player_location.coordinate_y == 0 { return; },
     Direction::West => if map.player_location.coordinate_x == 0 { return; },
-    Direction::East => if map.player_location.coordinate_x == map.size.width - 1 { return; },
-    Direction::South => if map.player_location.coordinate_y == map.size.height - 1 { return; }
+    Direction::East => if map.player_location.coordinate_x == map.size.width() - 1 { return; },
+    Direction::South => if map.player_location.coordinate_y == map.size.height() - 1 { return; }
   }
   
   let target = match direction {
@@ -492,8 +494,8 @@ fn mark(map: &mut Map, direction: Direction, is_marking: &mut bool) {
   match direction {
     Direction::North => if map.player_location.coordinate_y == 0 { return; },
     Direction::West => if map.player_location.coordinate_x == 0 { return; },
-    Direction::East => if map.player_location.coordinate_x == map.size.width - 1 { return; },
-    Direction::South => if map.player_location.coordinate_y == map.size.height - 1 { return; }
+    Direction::East => if map.player_location.coordinate_x == map.size.width() - 1 { return; },
+    Direction::South => if map.player_location.coordinate_y == map.size.height() - 1 { return; }
   }
   
   let target = match direction {
@@ -597,7 +599,7 @@ impl Location {
     Self {
       coordinate_x: x,
       coordinate_y: y,
-      array_index: y * map_size.width + x
+      array_index: y * map_size.width() + x
     }
   }
 
@@ -609,7 +611,7 @@ impl Location {
       Direction::South => self.coordinate_y += 1,
     }
 
-    self.array_index = self.coordinate_y * map_size.width + self.coordinate_x;
+    self.array_index = self.coordinate_y * map_size.width() + self.coordinate_x;
   }
 }
 
@@ -628,13 +630,13 @@ impl Score {
 }
 
 fn generate_snakes(map: &Map, num_snakes: usize) -> Vec<bool> {
-  let mut is_snake = vec![false; map.size.array_length];
+  let mut is_snake = vec![false; map.size.array_length()];
 
   let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
     let snake_location = Location::new(
-      rand::random_range(0..(map.size.width - 1)),
-      rand::random_range(0..(map.size.height - 1)),
+      rand::random_range(0..(map.size.width() - 1)),
+      rand::random_range(0..(map.size.height() - 1)),
       &map.size
     );
 
@@ -650,13 +652,13 @@ fn generate_snakes(map: &Map, num_snakes: usize) -> Vec<bool> {
 }
 
 fn generate_hints(map: &Map) -> Vec<usize> {
-  let mut snake_hints = vec![0; map.size.array_length];
+  let mut snake_hints = vec![0; map.size.array_length()];
 
   for (index, value) in map.is_snake.iter().enumerate() {
     if *value {
       let snake_location = Location::new(
-        index % map.size.width,
-        index / map.size.width,
+        index % map.size.width(),
+        index / map.size.width(),
         &map.size
       );
 
@@ -668,22 +670,6 @@ fn generate_hints(map: &Map) -> Vec<usize> {
   }
 
   snake_hints
-}
-
-struct MapSize{
-  width: usize,
-  height: usize,
-  array_length: usize
-}
-
-impl MapSize {
-  fn new(width: usize, height: usize) -> Self {
-    Self {
-      width,
-      height,
-      array_length: width * height
-    }
-  }
 }
 
 struct Map {
@@ -700,7 +686,7 @@ struct Map {
 
 impl Map {
   fn new() -> Self {
-    let size = MapSize::new(0, 0);
+    let size = MapSize::new();
     let player_location = Location::new(0, 0, &size);
     let goal_location = Location::new(0, 0, &size);
     let is_snake = Vec::new();
@@ -730,14 +716,14 @@ fn generate_map(size: MapSize, num_snakes: usize) -> Map {
   map.size = size;
 
   map.player_location = Location::new(
-    rand::random_range(0..(map.size.width / 3)),
-    rand::random_range(0..(map.size.height / 3)),
+    rand::random_range(0..(map.size.width() / 3)),
+    rand::random_range(0..(map.size.height() / 3)),
     &map.size
   );
 
   map.goal_location = Location::new(
-    rand::random_range((map.size.width / 3 * 2)..(map.size.width - 1)),
-    rand::random_range((map.size.height / 3 * 2)..(map.size.height - 1)),
+    rand::random_range((map.size.width() / 3 * 2)..(map.size.width() - 1)),
+    rand::random_range((map.size.height() / 3 * 2)..(map.size.height() - 1)),
     &map.size
   );
   
@@ -745,9 +731,9 @@ fn generate_map(size: MapSize, num_snakes: usize) -> Map {
   map.hint = generate_hints(&map);
   map.score = Score::new();
   map.score.maximum = calculate_max_score(&map);
-  map.is_marked = vec![false; map.size.array_length];
+  map.is_marked = vec![false; map.size.array_length()];
   
-  map.is_explored = vec![false; map.size.array_length];
+  map.is_explored = vec![false; map.size.array_length()];
   map.is_explored[map.player_location.array_index] = true;
   
   let distance_from_start = calculate_distances_from_start(&map);
@@ -759,7 +745,7 @@ fn generate_map(size: MapSize, num_snakes: usize) -> Map {
 fn calculate_max_score(map: &Map) -> usize {
   let mut maximum = 0;
   
-  for index in 0..map.size.array_length {
+  for index in 0..map.size.array_length() {
     if !map.is_snake[index] && index != map.player_location.array_index && index != map.goal_location.array_index {
       maximum += map.hint[index];
     }
