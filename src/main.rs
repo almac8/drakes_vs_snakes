@@ -1,6 +1,9 @@
 mod map_size;
 use map_size::MapSize;
 
+mod score;
+use score::Score;
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -110,9 +113,9 @@ fn main() {
         contents.push_str(",");
         contents.push_str(&map.goal_location.coordinate_y.to_string());
         contents.push_str(",");
-        contents.push_str(&map.score.current.to_string());
+        contents.push_str(&map.score.current().to_string());
         contents.push_str(",");
-        contents.push_str(&map.score.maximum.to_string());
+        contents.push_str(&map.score.maximum().to_string());
         contents.push_str(",");
         
         for hint in map.hint.iter() {
@@ -195,8 +198,8 @@ fn main() {
           map.goal_location.coordinate_y = save_values[5].parse().unwrap();
           map.goal_location.array_index = map.goal_location.coordinate_y * map.size.width() + map.goal_location.coordinate_x;
 
-          map.score.current = save_values[6].parse().unwrap();
-          map.score.maximum = save_values[7].parse().unwrap();
+          *map.score.mut_current() = save_values[6].parse().unwrap();
+          *map.score.mut_maximum() = save_values[7].parse().unwrap();
             
           let hints_offset = 8;
           map.hint = vec![0; num_map_cells];
@@ -360,7 +363,7 @@ fn print_map(map: &Map, is_marking: bool) {
     println!("Is Marking");
   }
   
-  println!("Score: {}/{}", map.score.current, map.score.maximum);
+  println!("Score: {}/{}", map.score.current(), map.score.maximum());
   for index in 0..map.size.array_length() {
     if index == map.player_location.array_index {
       print!("P");
@@ -485,7 +488,7 @@ fn move_player(map: &mut Map, direction: Direction) {
       
     if !map.is_explored[map.player_location.array_index] {
       map.is_explored[map.player_location.array_index] = true;
-      map.score.current += map.hint[map.player_location.array_index];
+      *map.score.mut_current() += map.hint[map.player_location.array_index];
     }
   }
 }
@@ -532,7 +535,7 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
 
     high_scores_string.push_str(&input_buffer);
     high_scores_string.push_str(",");
-    high_scores_string.push_str(&map.score.current.to_string());
+    high_scores_string.push_str(&map.score.current().to_string());
     high_scores_string.push_str(",");
 
     std::fs::write("high_scores.txt", high_scores_string).unwrap();
@@ -612,20 +615,6 @@ impl Location {
     }
 
     self.array_index = self.coordinate_y * map_size.width() + self.coordinate_x;
-  }
-}
-
-struct Score {
-  current: usize,
-  maximum: usize
-}
-
-impl Score {
-  fn new() -> Self {
-    Self {
-      current: 0,
-      maximum: 0
-    }
   }
 }
 
@@ -730,7 +719,7 @@ fn generate_map(size: MapSize, num_snakes: usize) -> Map {
   map.is_snake = generate_snakes(&map, num_snakes);
   map.hint = generate_hints(&map);
   map.score = Score::new();
-  map.score.maximum = calculate_max_score(&map);
+  *map.score.mut_maximum() = calculate_max_score(&map);
   map.is_marked = vec![false; map.size.array_length()];
   
   map.is_explored = vec![false; map.size.array_length()];
