@@ -382,19 +382,31 @@ fn find_path(map: &Map) -> Vec<bool> {
   let mut is_path = vec![false; map.size.array_length()];
   is_path[map.player_location.array_index()] = true;
   is_path[map.goal_location.array_index()] = true;
-
+  
   let distance_from_start = calculate_distances_from_start(&map);
   
   let mut current_index = map.goal_location.array_index();
   while current_index != map.player_location.array_index() {
-    let neighbors = get_direct_neighbors(
-      &map.goal_location,
+    println!("{}", current_index);
+    let current_location = Coordinate::from(
+      current_index % map.size.width(),
+      current_index / map.size.width(),
       &map.size
     );
+  
+    let mut smallest_neighbor_index = std::usize::MAX;
+    let mut smallest_neighbor_value = std::usize::MAX;
+  
+    let neighbors = get_direct_neighbors(&current_location, &map.size);
+    for neighbor_coordinate in neighbors {
+      if distance_from_start[neighbor_coordinate.array_index()] < smallest_neighbor_value {
+        smallest_neighbor_index = neighbor_coordinate.array_index();
+        smallest_neighbor_value = distance_from_start[neighbor_coordinate.array_index()];
+      }
+    }
 
-    let smallest_distance_location = neighbors.iter().min_by_key(| &location | distance_from_start[location.array_index()]).unwrap();
-    is_path[smallest_distance_location.array_index()] = true;
-    current_index = smallest_distance_location.array_index();
+    is_path[current_index] = true;
+    current_index = smallest_neighbor_index;
   }
   
   is_path
