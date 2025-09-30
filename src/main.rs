@@ -15,6 +15,9 @@ use map::{
 mod text_input;
 use text_input::read_text_input;
 
+mod numeric_input;
+use numeric_input::read_numeric_input;
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -34,7 +37,7 @@ fn main() {
         println!("4) Exit");
         println!();
         
-        match get_numeric_input() {
+        match read_numeric_input().unwrap() {
           1 => current_scene = Scenes::NewGame,
           2 => current_scene = Scenes::LoadGame,
           3 => current_scene = Scenes::HighScores,
@@ -49,15 +52,15 @@ fn main() {
         println!("Game Setup");
         println!();
         println!("Map width?");
-        let map_width = get_numeric_input();
+        let map_width = read_numeric_input().unwrap();
         
         println!();
         println!("Map Height?");
-        let map_height = get_numeric_input();
+        let map_height = read_numeric_input().unwrap();
         
         println!();
         println!("Number of snakes?");
-        let num_snakes = get_numeric_input();
+        let num_snakes = read_numeric_input().unwrap();
 
         current_map = generate_map(MapSize::from(map_width, map_height), num_snakes);
         current_scene = Scenes::Playfield;
@@ -75,7 +78,7 @@ fn main() {
         println!("2) Save Game");
         println!("3) Main Menu");
 
-        match get_numeric_input() {
+        match read_numeric_input().unwrap() {
           1 => current_scene = Scenes::Playfield,
           2 => current_scene = Scenes::SaveGame,
           3 => current_scene = Scenes::MainMenu,
@@ -170,7 +173,7 @@ fn main() {
           println!("{}: {}", index + 1, filename);
         }
 
-        let input = get_numeric_input();
+        let input = read_numeric_input().unwrap();
         if input < filenames.len() + 1 && input > 0 {
           let mut path_buffer = std::path::PathBuf::new();
           path_buffer.push("./saves/");
@@ -278,7 +281,7 @@ fn main() {
             println!("{}: {}", values[index * 2], values[(index * 2) + 1]);
           }
 
-          get_numeric_input();
+          read_numeric_input().unwrap();
           current_scene = Scenes::MainMenu;
         }
       }
@@ -343,15 +346,6 @@ fn get_all_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinat
   }
   
   neighbors
-}
-
-fn get_numeric_input() -> usize {
-  let text_input = read_text_input().unwrap();
-
-  match text_input.parse() {
-    Ok(number) => number,
-    Err(_) => 0
-  }
 }
 
 fn print_map(map: &Map, is_marking: bool) {
@@ -543,7 +537,7 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
 }
 
 fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut bool) {
-  match get_numeric_input() {
+  match read_numeric_input().unwrap() {
     5555 => *current_scene = Scenes::Pause,
     
     5 => *is_marking = !*is_marking,
