@@ -50,9 +50,8 @@ impl Coordinate {
 
 #[cfg(test)]
 mod tests {
-  use crate::map_size::MapSize;
-
 use super::Coordinate;
+use crate::MapSize;
 
   #[test]
   fn default_constructor() {

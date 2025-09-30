@@ -1,20 +1,16 @@
-mod map_size;
-use map_size::MapSize;
-
 mod score;
 use score::Score;
-
-mod direction;
-use direction::Direction;
 
 mod scenes;
 use scenes::Scenes;
 
-mod coordinate;
-use coordinate::Coordinate;
-
 mod map;
-use map::Map;
+use map::{
+  Map,
+  MapSize,
+  Coordinate,
+  Direction
+};
 
 fn main() {
   let mut current_scene = Scenes::MainMenu;
