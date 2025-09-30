@@ -5,15 +5,15 @@ use crate::{
 };
 
 pub struct Map {
-  size: MapSize,
-  player_location: Coordinate,
-  goal_location: Coordinate,
-  score: Score,
-  hint: Vec<usize>,
-  is_snake: Vec<bool>,
-  is_marked: Vec<bool>,
-  is_explored: Vec<bool>,
-  is_path: Vec<bool>
+  pub size: MapSize,
+  pub player_location: Coordinate,
+  pub goal_location: Coordinate,
+  pub score: Score,
+  pub hint: Vec<usize>,
+  pub is_snake: Vec<bool>,
+  pub is_marked: Vec<bool>,
+  pub is_explored: Vec<bool>,
+  pub is_path: Vec<bool>
 }
 
 impl Map {
@@ -39,77 +39,5 @@ impl Map {
       is_explored,
       is_path
     }
-  }
-  
-  pub fn size(&self) -> &MapSize {
-    &self.size
-  }
-  
-  pub fn player_location(&self) -> &Coordinate {
-    &self.player_location
-  }
-  
-  pub fn goal_location(&self) -> &Coordinate {
-    &self.goal_location
-  }
-  
-  pub fn score(&self) -> &Score {
-    &self.score
-  }
-  
-  pub fn hint(&self) -> &Vec<usize> {
-    &self.hint
-  }
-
-  pub fn is_snake(&self) -> &Vec<bool> {
-    &self.is_snake
-  }
-
-  pub fn is_marked(&self) -> &Vec<bool> {
-    &self.is_marked
-  }
-
-  pub fn is_explored(&self) -> &Vec<bool> {
-    &self.is_explored
-  }
-
-  pub fn is_path(&self) -> &Vec<bool> {
-    &self.is_path
-  }
-
-  pub fn mut_size(&mut self) -> &mut MapSize {
-    &mut self.size
-  }
-
-  pub fn mut_player_location(&mut self) -> &mut Coordinate {
-    &mut self.player_location
-  }
-
-  pub fn mut_goal_location(&mut self) -> &mut Coordinate {
-    &mut self.goal_location
-  }
-
-  pub fn mut_is_snake(&mut self) -> &mut Vec<bool> {
-    &mut self.is_snake
-  }
-
-  pub fn mut_hint(&mut self) -> &mut Vec<usize> {
-    &mut self.hint
-  }
-  
-  pub fn mut_score(&mut self) -> &mut Score {
-    &mut self.score
-  }
-  
-  pub fn mut_is_marked(&mut self) -> &mut Vec<bool> {
-    &mut self.is_marked
-  }
-
-  pub fn mut_is_explored(&mut self) -> &mut Vec<bool> {
-    &mut self.is_explored
-  }
-  
-  pub fn mut_is_path(&mut self) -> &mut Vec<bool> {
-    &mut self.is_path
   }
 }
