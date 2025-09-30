@@ -67,7 +67,8 @@ fn main() {
       },
 
       Scenes::Playfield => {
-        print_map(&current_map, is_marking);
+        if is_marking { println!("Is Marking"); }
+        print_map(&current_map);
         handle_play_input(&mut current_map, &mut current_scene, &mut is_marking);
         validate_map(&current_map, &mut current_scene);
       },
@@ -288,23 +289,23 @@ fn main() {
     }
 }
 
-fn get_direct_neighbors(location_x: usize, location_y: usize, map_size: &MapSize) -> Vec<Coordinate> {
+fn get_direct_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinate> {
   let mut neighbors = Vec::new();
 
-  if location_y > 0 {
-    neighbors.push(Coordinate::from(location_x, location_y - 1, map_size));
+  if location.y() > 0 {
+    neighbors.push(Coordinate::from(location.x(), location.y() - 1, map_size));
   }
 
-  if location_x > 0 {
-    neighbors.push(Coordinate::from(location_x - 1, location_y, map_size));
+  if location.x() > 0 {
+    neighbors.push(Coordinate::from(location.x() - 1, location.y(), map_size));
   }
 
-  if location_x < map_size.width() - 1 {
-    neighbors.push(Coordinate::from(location_x + 1, location_y, map_size));
+  if location.x() < map_size.width() - 1 {
+    neighbors.push(Coordinate::from(location.x() + 1, location.y(), map_size));
   }
 
-  if location_y < map_size.height() - 1 {
-    neighbors.push(Coordinate::from(location_x, location_y + 1, map_size));
+  if location.y() < map_size.height() - 1 {
+    neighbors.push(Coordinate::from(location.x(), location.y() + 1, map_size));
   }
   
   neighbors
@@ -348,11 +349,7 @@ fn get_all_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinat
   neighbors
 }
 
-fn print_map(map: &Map, is_marking: bool) {
-  if is_marking {
-    println!("Is Marking");
-  }
-  
+fn print_map(map: &Map) {
   println!("Score: {}/{}", map.score.current(), map.score.maximum());
   for index in 0..map.size.array_length() {
     if index == map.player_location.array_index() {
@@ -381,16 +378,17 @@ fn print_map(map: &Map, is_marking: bool) {
   println!();
 }
 
-fn find_path(map: &Map, distance_from_start: Vec<usize>) -> Vec<bool> {
+fn find_path(map: &Map) -> Vec<bool> {
   let mut is_path = vec![false; map.size.array_length()];
   is_path[map.player_location.array_index()] = true;
   is_path[map.goal_location.array_index()] = true;
+
+  let distance_from_start = calculate_distances_from_start(&map);
   
   let mut current_index = map.goal_location.array_index();
   while current_index != map.player_location.array_index() {
     let neighbors = get_direct_neighbors(
-      current_index % map.size.width(),
-      current_index / map.size.width(),
+      &map.goal_location,
       &map.size
     );
 
@@ -433,10 +431,15 @@ fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
         smallest_distance_value = *distance;
       }
     }
-    
-    let neighbors = get_direct_neighbors(
+
+    let smallest_distance_coordinate = Coordinate::from(
       smallest_distance_index % map.size.width(),
       smallest_distance_index / map.size.width(),
+      &map.size
+    );
+    
+    let neighbors = get_direct_neighbors(
+      &smallest_distance_coordinate,
       &map.size
     );
 
@@ -647,9 +650,7 @@ fn generate_map(size: MapSize, num_snakes: usize) -> Map {
   map.is_explored = vec![false; map.size.array_length()];
   let player_index_buffer = map.player_location.array_index();
   map.is_explored[player_index_buffer] = true;
-  
-  let distance_from_start = calculate_distances_from_start(&map);
-  map.is_path = find_path(&map, distance_from_start);
+  map.is_path = find_path(&map);
   
   map
 }
