@@ -23,29 +23,19 @@ fn main() {
   let mut is_running = true;
   let mut is_marking = false;
   let mut current_map = Map::new();
+  let mut message_queue = MessageQueue::new();
 
   while is_running {
-    match current_scene {
-      Scenes::MainMenu => {
-        println!();
-        println!("Drakes VS Snakes");
-        println!();
-      
-        println!("1) Start new game");
-        println!("2) Load game");
-        println!("3) High scores");
-        println!("4) Exit");
-        println!();
-        
-        match read_numeric_input().unwrap() {
-          1 => current_scene = Scenes::NewGame,
-          2 => current_scene = Scenes::LoadGame,
-          3 => current_scene = Scenes::HighScores,
-          4 => is_running = false,
-          _ => {}
-        }
-      },
+    message_queue.swap_buffers();
+    for message in &message_queue.messages {
+      match message {
+        Message::RequestShutdown => is_running = false,
+        Message::RequestScene(new_scene) => current_scene = *new_scene
+      }
+    }
 
+    match current_scene {
+      Scenes::MainMenu => update_main_menu(&mut message_queue),
       Scenes::NewGame => {
         println!();
         println!();
@@ -677,4 +667,58 @@ fn calculate_max_score(map: &Map) -> usize {
   }
   
   maximum
+}
+
+fn update_main_menu(message_queue: &mut MessageQueue) {
+  println!();
+  println!("Drakes VS Snakes");
+  println!();
+      
+  println!("1) Start new game");
+  println!("2) Load game");
+  println!("3) High scores");
+  println!("4) Exit");
+  println!();
+        
+  match read_numeric_input().unwrap() {
+    1 => message_queue.post(Message::RequestScene(Scenes::NewGame)),
+    2 => message_queue.post(Message::RequestScene(Scenes::LoadGame)),
+    3 => message_queue.post(Message::RequestScene(Scenes::HighScores)),
+    4 => message_queue.post(Message::RequestShutdown),
+    _ => {}
+  }
+}
+
+struct MessageQueue {
+  messages: Vec<Message>,
+  messages_buffer: Vec<Message>
+}
+
+impl MessageQueue {
+  fn new() -> Self {
+    Self {
+      messages: Vec::new(),
+      messages_buffer: Vec::new()
+    }
+  }
+
+  fn post(&mut self, message: Message) {
+    self.messages_buffer.push(message);
+  }
+
+  fn swap_buffers(&mut self) {
+    self.messages = Vec::new();
+
+    for message in &self.messages_buffer {
+      self.messages.push(*message);
+    }
+
+    self.messages_buffer = Vec::new();
+  }
+}
+
+#[derive(Clone, Copy)]
+enum Message {
+  RequestShutdown,
+  RequestScene(Scenes)
 }
