@@ -36,25 +36,7 @@ fn main() {
 
     match current_scene {
       Scenes::MainMenu => update_main_menu(&mut message_queue),
-      Scenes::NewGame => {
-        println!();
-        println!();
-        println!("Game Setup");
-        println!();
-        println!("Map width?");
-        let map_width = read_numeric_input().unwrap();
-        
-        println!();
-        println!("Map Height?");
-        let map_height = read_numeric_input().unwrap();
-        
-        println!();
-        println!("Number of snakes?");
-        let num_snakes = read_numeric_input().unwrap();
-
-        current_map = generate_map(MapSize::from(map_width, map_height), num_snakes);
-        current_scene = Scenes::Playfield;
-      },
+      Scenes::NewGame => update_new_game(&mut current_map, &mut message_queue),
 
       Scenes::Playfield => {
         if is_marking { println!("Is Marking"); }
@@ -721,4 +703,24 @@ impl MessageQueue {
 enum Message {
   RequestShutdown,
   RequestScene(Scenes)
+}
+
+fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
+  println!();
+  println!();
+  println!("Game Setup");
+  println!();
+  println!("Map width?");
+  let map_width = read_numeric_input().unwrap();
+        
+  println!();
+  println!("Map Height?");
+  let map_height = read_numeric_input().unwrap();
+        
+  println!();
+  println!("Number of snakes?");
+  let num_snakes = read_numeric_input().unwrap();
+
+  *current_map = generate_map(MapSize::from(map_width, map_height), num_snakes);
+  message_queue.post(Message::RequestScene(Scenes::Playfield));
 }
