@@ -12,6 +12,9 @@ use map::{
   Direction
 };
 
+mod text_input;
+use text_input::read_text_input;
+
 fn main() {
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -87,13 +90,10 @@ fn main() {
         let mut path_buffer = std::path::PathBuf::new();
         path_buffer.push("./saves/");
 
-        let mut input_buffer = String::new();
-        std::io::stdin().read_line(&mut input_buffer).unwrap();
+        let mut text_input = read_text_input().unwrap();
+        text_input.push_str(".txt");
 
-        input_buffer = input_buffer.trim().to_string();
-        input_buffer.push_str(".txt");
-
-        path_buffer.push(input_buffer);
+        path_buffer.push(text_input);
 
         let mut saves_exist = false;
         let paths = std::fs::read_dir("./").unwrap();
@@ -346,13 +346,9 @@ fn get_all_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinat
 }
 
 fn get_numeric_input() -> usize {
-  let mut input_buffer = String::new();
+  let text_input = read_text_input().unwrap();
 
-  std::io::stdin()
-    .read_line(&mut input_buffer)
-    .expect("Input Error");
-
-  match input_buffer.trim().parse() {
+  match text_input.parse() {
     Ok(number) => number,
     Err(_) => 0
   }
@@ -523,16 +519,14 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
     println!("You win!");
     println!("Enter your name:");
 
-    let mut input_buffer = String::new();
-    std::io::stdin().read_line(&mut input_buffer).unwrap();
-    input_buffer = input_buffer.trim().to_string();
+    let text_input = read_text_input().unwrap();
 
     let mut high_scores_string = match std::fs::read_to_string("high_scores.txt") {
       Ok(scores) => scores,
       Err(_) => "".to_string()
     };
 
-    high_scores_string.push_str(&input_buffer);
+    high_scores_string.push_str(&text_input);
     high_scores_string.push_str(",");
     high_scores_string.push_str(&map.score.current().to_string());
     high_scores_string.push_str(",");
