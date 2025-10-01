@@ -54,6 +54,10 @@ fn main() -> Result<(), String> {
   let mut current_map = Map::new();
   let mut message_queue = MessageQueue::new();
   let mut selected_menu_item_index = 0;
+  let mut new_game_step = NewGameStep::Width;
+  let mut new_map_width = 0;
+  let mut new_map_height = 0;
+  let mut new_map_num_snakes = 0;
 
   while is_running {
     for event in event_pump.poll_iter() {
@@ -89,7 +93,10 @@ fn main() -> Result<(), String> {
         print_main_menu(selected_menu_item_index);
       },
 
-      Scenes::NewGame => update_new_game(&mut current_map, &mut message_queue),
+      Scenes::NewGame => {
+        update_new_game(&mut current_map, &mut new_game_step, &mut message_queue, &mut selected_menu_item_index, &mut new_map_width, &mut new_map_height, &mut new_map_num_snakes);
+        print_new_game(&new_game_step, selected_menu_item_index);
+      },
 
       Scenes::Playfield => {
         if is_marking { println!("Is Marking"); }
@@ -705,22 +712,127 @@ fn calculate_max_score(map: &Map) -> usize {
   maximum
 }
 
-fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
+fn update_new_game(current_map: &mut Map, step: &mut NewGameStep, message_queue: &mut MessageQueue, selected_menu_item_index: &mut usize, width: &mut usize, height: &mut usize, num_snakes: &mut usize) {
+  let mut confirmed = false;
+  let mut canceled = false;
+
+  for message in message_queue.messages() {
+    match *message {
+      Message::PlayerInput(input) => match input {
+        Input::Up => if *selected_menu_item_index > 0 { *selected_menu_item_index -= 1 },
+        Input::Down => if *selected_menu_item_index < 3 { *selected_menu_item_index += 1 },
+        Input::Confirm => confirmed = true,
+        Input::Cancel => canceled = true,
+        _ => {}
+      },
+
+      _ => {}
+    }
+  }
+
+  if confirmed {
+    match step {
+      NewGameStep::Width => {
+        *width = match selected_menu_item_index {
+          0 => 8,
+          1 => 16,
+          2 => 32,
+          3 => 64,
+          _ => 0
+        };
+
+        *step = NewGameStep::Height;
+      },
+
+      NewGameStep::Height => {
+        *height = match selected_menu_item_index {
+          0 => 8,
+          1 => 16,
+          2 => 32,
+          3 => 64,
+          _ => 0
+        };
+
+        *step = NewGameStep::NumSnakes;
+      },
+
+      NewGameStep::NumSnakes => {
+        *num_snakes = match selected_menu_item_index {
+          0 => 16,
+          1 => 32,
+          2 => 64,
+          3 => 128,
+          _ => 0
+        };
+        
+        *current_map = generate_map(MapSize::from(*width, *height), *num_snakes);
+        message_queue.post(Message::RequestScene(Scenes::Playfield));
+      },
+    }
+  }
+
+  if canceled {
+    message_queue.post(Message::RequestScene(Scenes::MainMenu));
+  }
+}
+
+fn print_new_game(step: &NewGameStep, selected_menu_item_index: usize) {
   println!();
   println!();
   println!("Game Setup");
   println!();
-  println!("Map width?");
-  let map_width = read_numeric_input().unwrap();
-        
-  println!();
-  println!("Map Height?");
-  let map_height = read_numeric_input().unwrap();
-        
-  println!();
-  println!("Number of snakes?");
-  let num_snakes = read_numeric_input().unwrap();
 
-  *current_map = generate_map(MapSize::from(map_width, map_height), num_snakes);
-  message_queue.post(Message::RequestScene(Scenes::Playfield));
+  match *step {
+    NewGameStep::Width => {
+      println!("Map width?");
+
+      if selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
+      println!("8");
+
+      if selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
+      println!("16");
+
+      if selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
+      println!("32");
+
+      if selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
+      println!("64");
+    },
+
+    NewGameStep::Height => {
+      println!("Map Height?");
+      if selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
+      println!("8");
+
+      if selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
+      println!("16");
+
+      if selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
+      println!("32");
+
+      if selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
+      println!("64");
+    },
+
+    NewGameStep::NumSnakes => {
+      println!("Number of snakes?");
+      if selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
+      println!("16");
+
+      if selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
+      println!("32");
+
+      if selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
+      println!("64");
+
+      if selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
+      println!("128");
+    }
+  }
+}
+
+enum NewGameStep {
+  Width,
+  Height,
+  NumSnakes
 }
