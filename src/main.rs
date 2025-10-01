@@ -50,6 +50,9 @@ use get_neighbors::{
   get_all_neighbors
 };
 
+mod generate_snakes;
+use generate_snakes::generate_snakes;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -586,28 +589,6 @@ fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut
 
     Err(error) => println!("Error: {}", error)
   }
-}
-
-fn generate_snakes(map: &Map, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Vec<bool> {
-  let mut is_snake = vec![false; map.size.array_length()];
-
-  let mut num_snakes_to_place = num_snakes;
-  while num_snakes_to_place > 0 {
-    let snake_location = Coordinate::from(
-      rng.random_range(0..(map.size.width() - 1)),
-      rng.random_range(0..(map.size.height() - 1)),
-      &map.size
-    );
-
-    if snake_location.array_index() == map.player_location.array_index() { continue; }
-    if snake_location.array_index() == map.goal_location.array_index() { continue; }
-    if is_snake[snake_location.array_index()] { continue; }
-
-    is_snake[snake_location.array_index()] = true;
-    num_snakes_to_place -= 1;
-  }
-
-  is_snake
 }
 
 fn generate_hints(map: &Map) -> Vec<usize> {
