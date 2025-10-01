@@ -19,6 +19,9 @@ use text_input::read_text_input;
 mod numeric_input;
 use numeric_input::read_numeric_input;
 
+mod input;
+use input::Input;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -771,16 +774,6 @@ enum Message {
   RequestShutdown,
   RequestScene(Scenes),
   PlayerInput(Input)
-}
-
-#[derive(Clone, Copy)]
-enum Input {
-  Up,
-  Left,
-  Right,
-  Down,
-  Confirm,
-  Cancel
 }
 
 fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
