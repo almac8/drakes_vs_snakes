@@ -43,6 +43,12 @@ use new_game_step::NewGameStep;
 mod new_game_state;
 use new_game_state::NewGameState;
 
+mod get_neighbors;
+use get_neighbors::{
+  get_direct_neighbors,
+  get_all_neighbors
+};
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -326,66 +332,6 @@ fn main() -> Result<(), String> {
       }
     }
     Ok(())
-}
-
-fn get_direct_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinate> {
-  let mut neighbors = Vec::new();
-
-  if location.y() > 0 {
-    neighbors.push(Coordinate::from(location.x(), location.y() - 1, map_size));
-  }
-
-  if location.x() > 0 {
-    neighbors.push(Coordinate::from(location.x() - 1, location.y(), map_size));
-  }
-
-  if location.x() < map_size.width() - 1 {
-    neighbors.push(Coordinate::from(location.x() + 1, location.y(), map_size));
-  }
-
-  if location.y() < map_size.height() - 1 {
-    neighbors.push(Coordinate::from(location.x(), location.y() + 1, map_size));
-  }
-  
-  neighbors
-}
-
-fn get_all_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinate> {
-  let mut neighbors = Vec::new();
-
-  if location.x() > 0 && location.y() > 0 {
-    neighbors.push(Coordinate::from(location.x() - 1, location.y() - 1, map_size));
-  }
-  
-  if location.y() > 0 {
-    neighbors.push(Coordinate::from(location.x(), location.y() - 1, map_size));
-  }
-
-  if location.x() < map_size.width() - 1 && location.y() > 0 {
-    neighbors.push(Coordinate::from(location.x() + 1, location.y() - 1, map_size));
-  }
-
-  if location.x() > 0 {
-    neighbors.push(Coordinate::from(location.x() - 1, location.y(), map_size));
-  }
-
-  if location.x() < map_size.width() - 1 {
-    neighbors.push(Coordinate::from(location.x() + 1, location.y(), map_size));
-  }
-
-  if location.x() > 0 && location.y() < map_size.height() - 1 {
-    neighbors.push(Coordinate::from(location.x() - 1, location.y() + 1, map_size));
-  }
-
-  if location.y() < map_size.height() - 1 {
-    neighbors.push(Coordinate::from(location.x(), location.y() + 1, map_size));
-  }
-
-  if location.x() < map_size.width() - 1 && location.y() < map_size.height() - 1 {
-    neighbors.push(Coordinate::from(location.x() + 1, location.y() + 1, map_size));
-  }
-  
-  neighbors
 }
 
 fn print_map(map: &Map) {
