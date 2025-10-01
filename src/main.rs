@@ -13,12 +13,26 @@ use map::{
 };
 
 mod text_input;
+use sdl2::event::Event;
 use text_input::read_text_input;
 
 mod numeric_input;
 use numeric_input::read_numeric_input;
 
-fn main() {
+fn main() -> Result<(), String> {
+  let sdl_context = sdl2::init()?;
+  let video_subsystem = sdl_context.video()?;
+
+  let window = video_subsystem
+    .window("Drakes VS Snakes", 640, 480)
+    .opengl()
+    .build()
+    .map_err(| error | error.to_string())?;
+
+  let mut event_pump = sdl_context.event_pump()?;
+
+  window.gl_swap_window();
+
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
   let mut is_marking = false;
@@ -26,6 +40,13 @@ fn main() {
   let mut message_queue = MessageQueue::new();
 
   while is_running {
+    for event in event_pump.poll_iter() {
+      match event {
+        Event::Quit { .. } => message_queue.post(Message::RequestShutdown),
+        _ => {}
+      }
+    }
+
     message_queue.swap_buffers();
     for message in &message_queue.messages {
       match message {
@@ -259,6 +280,7 @@ fn main() {
         }
       }
     }
+    Ok(())
 }
 
 fn get_direct_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinate> {
