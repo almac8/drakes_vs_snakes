@@ -1,4 +1,5 @@
 mod score;
+use rand::{Rng, SeedableRng};
 use score::Score;
 
 mod scenes;
@@ -70,6 +71,7 @@ fn main() -> Result<(), String> {
   let mut message_queue = MessageQueue::new();
   let mut main_menu_state = MainMenuState::new();
   let mut new_game_state = NewGameState::new();
+  let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
 
   while is_running {
     for event in event_pump.poll_iter() {
@@ -106,7 +108,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::NewGame => {
-        update_new_game(&mut new_game_state, &mut current_map, &mut message_queue);
+        update_new_game(&mut new_game_state, &mut current_map, &mut message_queue, &mut rng);
         print_new_game(&new_game_state);
       },
 
@@ -578,14 +580,14 @@ fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut
     }
 }
 
-fn generate_snakes(map: &Map, num_snakes: usize) -> Vec<bool> {
+fn generate_snakes(map: &Map, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Vec<bool> {
   let mut is_snake = vec![false; map.size.array_length()];
 
   let mut num_snakes_to_place = num_snakes;
   while num_snakes_to_place > 0 {
     let snake_location = Coordinate::from(
-      rand::random_range(0..(map.size.width() - 1)),
-      rand::random_range(0..(map.size.height() - 1)),
+      rng.random_range(0..(map.size.width() - 1)),
+      rng.random_range(0..(map.size.height() - 1)),
       &map.size
     );
 
@@ -621,24 +623,24 @@ fn generate_hints(map: &Map) -> Vec<usize> {
   snake_hints
 }
 
-fn generate_map(size: MapSize, num_snakes: usize) -> Map {
+fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Map {
   let mut map = Map::new();
 
   map.size = size;
 
   map.player_location = Coordinate::from(
-    rand::random_range(0..(map.size.width() / 3)),
-    rand::random_range(0..(map.size.height() / 3)),
+    rng.random_range(0..(map.size.width() / 3)),
+    rng.random_range(0..(map.size.height() / 3)),
     &map.size
   );
 
   map.goal_location = Coordinate::from(
-    rand::random_range((map.size.width() / 3 * 2)..(map.size.width() - 1)),
-    rand::random_range((map.size.height() / 3 * 2)..(map.size.height() - 1)),
+    rng.random_range((map.size.width() / 3 * 2)..(map.size.width() - 1)),
+    rng.random_range((map.size.height() / 3 * 2)..(map.size.height() - 1)),
     &map.size
   );
   
-  map.is_snake = generate_snakes(&map, num_snakes);
+  map.is_snake = generate_snakes(&map, num_snakes, rng);
   map.hint = generate_hints(&map);
   map.score = Score::new();
   *map.score.mut_maximum() = calculate_max_score(&map);
@@ -664,7 +666,7 @@ fn calculate_max_score(map: &Map) -> usize {
   maximum
 }
 
-fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue) {
+fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue, rng: &mut rand::rngs::StdRng) {
   let mut confirmed = false;
   let mut canceled = false;
 
@@ -717,7 +719,7 @@ fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, mes
           _ => 0
         };
         
-        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height), new_game_state.num_snakes);
+        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height), new_game_state.num_snakes, rng);
         message_queue.post(Message::RequestScene(Scenes::Playfield));
       },
     }
