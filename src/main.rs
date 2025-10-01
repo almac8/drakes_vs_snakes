@@ -22,6 +22,9 @@ use numeric_input::read_numeric_input;
 mod input;
 use input::Input;
 
+mod message;
+use message::Message;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -767,13 +770,6 @@ impl MessageQueue {
 
     self.messages_buffer = Vec::new();
   }
-}
-
-#[derive(Clone, Copy)]
-enum Message {
-  RequestShutdown,
-  RequestScene(Scenes),
-  PlayerInput(Input)
 }
 
 fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
