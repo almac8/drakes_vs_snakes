@@ -34,6 +34,9 @@ use main_menu::{
   print_main_menu
 };
 
+mod main_menu_state;
+use main_menu_state::MainMenuState;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -53,7 +56,7 @@ fn main() -> Result<(), String> {
   let mut is_marking = false;
   let mut current_map = Map::new();
   let mut message_queue = MessageQueue::new();
-  let mut selected_menu_item_index = 0;
+  let mut main_menu_state = MainMenuState::new();
   let mut new_game_step = NewGameStep::Width;
   let mut new_map_width = 0;
   let mut new_map_height = 0;
@@ -89,13 +92,15 @@ fn main() -> Result<(), String> {
 
     match current_scene {
       Scenes::MainMenu => {
-        update_main_menu(&mut message_queue, &mut selected_menu_item_index);
-        print_main_menu(selected_menu_item_index);
+        update_main_menu(&mut message_queue, &mut main_menu_state);
+        print_main_menu(&main_menu_state);
       },
 
       Scenes::NewGame => {
+        /* 
         update_new_game(&mut current_map, &mut new_game_step, &mut message_queue, &mut selected_menu_item_index, &mut new_map_width, &mut new_map_height, &mut new_map_num_snakes);
         print_new_game(&new_game_step, selected_menu_item_index);
+ */
       },
 
       Scenes::Playfield => {
