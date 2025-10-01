@@ -543,45 +543,49 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
 }
 
 fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut bool) {
-  match read_numeric_input().unwrap() {
-    5555 => *current_scene = Scenes::Pause,
-    
-    5 => *is_marking = !*is_marking,
+  match read_numeric_input() {
+    Ok(input) => match input {
+      5555 => *current_scene = Scenes::Pause,
 
-    8 => {
-      if *is_marking {
-        mark(map, Direction::North, is_marking);
-      } else {
-        move_player(map, Direction::North);
-      }
+      5 => *is_marking = !*is_marking,
+      
+      8 => {
+        if *is_marking {
+          mark(map, Direction::North, is_marking);
+        } else {
+          move_player(map, Direction::North);
+        }
+      },
+      
+      4 => {
+        if *is_marking {
+          mark(map, Direction::West, is_marking);
+        } else {
+          move_player(map, Direction::West);
+        }
+      },
+      
+      6 => {
+        if *is_marking {
+          mark(map, Direction::East, is_marking);
+        } else {
+          move_player(map, Direction::East);
+        }
+      },
+      
+      2 => {
+        if *is_marking {
+          mark(map, Direction::South, is_marking);
+        } else {
+          move_player(map, Direction::South);
+        }
+      },
+
+      _ => {}
     },
 
-    4 => {
-      if *is_marking {
-        mark(map, Direction::West, is_marking);
-      } else {
-        move_player(map, Direction::West);
-      }
-    },
-
-    6 => {
-      if *is_marking {
-        mark(map, Direction::East, is_marking);
-      } else {
-        move_player(map, Direction::East);
-      }
-    },
-
-    2 => {
-      if *is_marking {
-        mark(map, Direction::South, is_marking);
-      } else {
-        move_player(map, Direction::South);
-      }
-    },
-
-      _ => println!("Invalid input"),
-    }
+    Err(error) => println!("Error: {}", error)
+  }
 }
 
 fn generate_snakes(map: &Map, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Vec<bool> {
