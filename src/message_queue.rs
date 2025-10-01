@@ -31,3 +31,42 @@ impl MessageQueue {
     &self.messages
   }
 }
+
+#[cfg(test)]
+mod testing {
+  use super::{
+    Message,
+    MessageQueue
+  };
+
+  #[test]
+  fn posting() {
+    let mut message_queue = MessageQueue::new();
+
+    assert_eq!(message_queue.messages.len(), 0);
+    assert_eq!(message_queue.messages_buffer.len(), 0);
+
+    message_queue.post(Message::RequestShutdown);
+
+    assert_eq!(message_queue.messages.len(), 0);
+    assert_eq!(message_queue.messages_buffer.len(), 1);
+  }
+
+  #[test]
+  fn buffer_swapping() {
+    let mut message_queue = MessageQueue::new();
+
+    assert_eq!(message_queue.messages.len(), 0);
+    assert_eq!(message_queue.messages_buffer.len(), 0);
+
+    message_queue.post(Message::RequestShutdown);
+
+    assert_eq!(message_queue.messages.len(), 0);
+    assert_eq!(message_queue.messages_buffer.len(), 1);
+
+    message_queue.swap_buffers();
+
+    assert_eq!(message_queue.messages.len(), 1);
+    assert_eq!(message_queue.messages_buffer.len(), 0);
+  }
+}
