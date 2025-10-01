@@ -3,7 +3,7 @@ use crate::{
   Input
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Message {
   RequestShutdown,
   RequestScene(Scenes),

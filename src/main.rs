@@ -28,6 +28,12 @@ use message::Message;
 mod message_queue;
 use message_queue::MessageQueue;
 
+mod main_menu;
+use main_menu::{
+  update_main_menu,
+  print_main_menu
+};
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -697,54 +703,6 @@ fn calculate_max_score(map: &Map) -> usize {
   }
   
   maximum
-}
-
-fn update_main_menu(message_queue: &mut MessageQueue, selected_menu_item_index: &mut usize) {
-  let mut confirmed = false;
-
-  for message in message_queue.messages() {
-    match *message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if *selected_menu_item_index > 0 { *selected_menu_item_index -= 1 },
-        Input::Down => if *selected_menu_item_index < 3 { *selected_menu_item_index += 1 },
-        Input::Confirm => confirmed = true,
-
-        _ => {}
-      },
-
-      _ => {}
-    }
-  }
-
-  if confirmed {
-    match *selected_menu_item_index {
-      0 => message_queue.post(Message::RequestScene(Scenes::NewGame)),
-      1 => message_queue.post(Message::RequestScene(Scenes::LoadGame)),
-      2 => message_queue.post(Message::RequestScene(Scenes::HighScores)),
-      3 => message_queue.post(Message::RequestShutdown),
-      _ => {}
-    }
-  }
-}
-
-fn print_main_menu(selected_menu_item_index: usize) {
-  println!();
-  println!("Drakes VS Snakes");
-  println!();
-
-  if selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
-  println!("1) Start new game");
-
-  if selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
-  println!("2) Load game");
-  
-  if selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
-  println!("3) High scores");
-  
-  if selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
-  println!("4) Exit");
-
-  println!();
 }
 
 fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
