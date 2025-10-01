@@ -5,6 +5,7 @@ use crate::{
 
 pub fn get_direct_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinate> {
   let mut neighbors = Vec::new();
+  if location.array_index() > map_size.array_length() { return neighbors; }
 
   if location.y() > 0 { neighbors.push(Coordinate::from(location.x(), location.y() - 1, map_size)) }
   if location.x() > 0 { neighbors.push(Coordinate::from(location.x() - 1, location.y(), map_size)) }
@@ -16,6 +17,7 @@ pub fn get_direct_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Co
 
 pub fn get_all_neighbors(location: &Coordinate, map_size: &MapSize) -> Vec<Coordinate> {
   let mut neighbors = Vec::new();
+  if location.array_index() > map_size.array_length() { return neighbors; }
 
   if location.x() > 0 && location.y() > 0 { neighbors.push(Coordinate::from(location.x() - 1, location.y() - 1, map_size)) }
   if location.y() > 0 { neighbors.push(Coordinate::from(location.x(), location.y() - 1, map_size)) }
@@ -74,6 +76,15 @@ mod testing {
   }
 
   #[test]
+  fn target_out_of_range_direct_neighbors() {
+    let map_size = MapSize::from(3, 3);
+    let target_location = Coordinate::from(4, 4, &map_size);
+    let neighbors = get_direct_neighbors(&target_location, &map_size);
+
+    assert_eq!(neighbors.len(), 0);
+  }
+
+  #[test]
   fn center_all_neighbors() {
     let map_size = MapSize::from(3, 3);
     let target_location = Coordinate::from(1, 1, &map_size);
@@ -112,5 +123,14 @@ mod testing {
     assert_eq!(neighbors[0].array_index(), 4);
     assert_eq!(neighbors[1].array_index(), 5);
     assert_eq!(neighbors[2].array_index(), 7);
+  }
+
+  #[test]
+  fn target_out_of_range_all_neighbors() {
+    let map_size = MapSize::from(3, 3);
+    let target_location = Coordinate::from(4, 4, &map_size);
+    let neighbors = get_all_neighbors(&target_location, &map_size);
+
+    assert_eq!(neighbors.len(), 0);
   }
 }
