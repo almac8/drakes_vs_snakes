@@ -13,7 +13,7 @@ use map::{
 };
 
 mod text_input;
-use sdl2::event::Event;
+use sdl2::{event::Event, keyboard::Keycode};
 use text_input::read_text_input;
 
 mod numeric_input;
@@ -38,11 +38,23 @@ fn main() -> Result<(), String> {
   let mut is_marking = false;
   let mut current_map = Map::new();
   let mut message_queue = MessageQueue::new();
+  let mut selected_menu_item_index = 0;
 
   while is_running {
     for event in event_pump.poll_iter() {
       match event {
         Event::Quit { .. } => message_queue.post(Message::RequestShutdown),
+
+        Event::KeyDown { keycode: Some(keycode), repeat, .. } => if !repeat { match keycode {
+          Keycode::W => message_queue.post(Message::PlayerInput(Input::Up)),
+          Keycode::A => message_queue.post(Message::PlayerInput(Input::Left)),
+          Keycode::D => message_queue.post(Message::PlayerInput(Input::Right)),
+          Keycode::S => message_queue.post(Message::PlayerInput(Input::Down)),
+          Keycode::Return => message_queue.post(Message::PlayerInput(Input::Confirm)),
+          Keycode::Escape => message_queue.post(Message::PlayerInput(Input::Cancel)),
+          _ => {}
+        }},
+
         _ => {}
       }
     }
@@ -51,12 +63,17 @@ fn main() -> Result<(), String> {
     for message in &message_queue.messages {
       match message {
         Message::RequestShutdown => is_running = false,
-        Message::RequestScene(new_scene) => current_scene = *new_scene
+        Message::RequestScene(new_scene) => current_scene = *new_scene,
+        Message::PlayerInput( .. ) => {}
       }
     }
 
     match current_scene {
-      Scenes::MainMenu => update_main_menu(&mut message_queue),
+      Scenes::MainMenu => {
+        update_main_menu(&mut message_queue, &mut selected_menu_item_index);
+        print_main_menu(selected_menu_item_index);
+      },
+
       Scenes::NewGame => update_new_game(&mut current_map, &mut message_queue),
 
       Scenes::Playfield => {
@@ -673,24 +690,52 @@ fn calculate_max_score(map: &Map) -> usize {
   maximum
 }
 
-fn update_main_menu(message_queue: &mut MessageQueue) {
+fn update_main_menu(message_queue: &mut MessageQueue, selected_menu_item_index: &mut usize) {
+  let mut confirmed = false;
+
+  for message in &message_queue.messages {
+    match *message {
+      Message::PlayerInput(input) => match input {
+        Input::Up => if *selected_menu_item_index > 0 { *selected_menu_item_index -= 1 },
+        Input::Down => if *selected_menu_item_index < 3 { *selected_menu_item_index += 1 },
+        Input::Confirm => confirmed = true,
+
+        _ => {}
+      },
+
+      _ => {}
+    }
+  }
+
+  if confirmed {
+    match *selected_menu_item_index {
+      0 => message_queue.post(Message::RequestScene(Scenes::NewGame)),
+      1 => message_queue.post(Message::RequestScene(Scenes::LoadGame)),
+      2 => message_queue.post(Message::RequestScene(Scenes::HighScores)),
+      3 => message_queue.post(Message::RequestShutdown),
+      _ => {}
+    }
+  }
+}
+
+fn print_main_menu(selected_menu_item_index: usize) {
   println!();
   println!("Drakes VS Snakes");
   println!();
-      
+
+  if selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
   println!("1) Start new game");
+
+  if selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
   println!("2) Load game");
+  
+  if selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
   println!("3) High scores");
+  
+  if selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
   println!("4) Exit");
+
   println!();
-        
-  match read_numeric_input().unwrap() {
-    1 => message_queue.post(Message::RequestScene(Scenes::NewGame)),
-    2 => message_queue.post(Message::RequestScene(Scenes::LoadGame)),
-    3 => message_queue.post(Message::RequestScene(Scenes::HighScores)),
-    4 => message_queue.post(Message::RequestShutdown),
-    _ => {}
-  }
 }
 
 struct MessageQueue {
@@ -724,7 +769,18 @@ impl MessageQueue {
 #[derive(Clone, Copy)]
 enum Message {
   RequestShutdown,
-  RequestScene(Scenes)
+  RequestScene(Scenes),
+  PlayerInput(Input)
+}
+
+#[derive(Clone, Copy)]
+enum Input {
+  Up,
+  Left,
+  Right,
+  Down,
+  Confirm,
+  Cancel
 }
 
 fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
