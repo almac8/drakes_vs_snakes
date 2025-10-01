@@ -374,13 +374,12 @@ fn find_path(map: &Map) -> Vec<bool> {
   
   let mut current_index = map.goal_location.array_index();
   while current_index != map.player_location.array_index() {
-    println!("{}", current_index);
     let current_location = Coordinate::from(
       current_index % map.size.width(),
       current_index / map.size.width(),
       &map.size
     );
-  
+
     let mut smallest_neighbor_index = std::usize::MAX;
     let mut smallest_neighbor_value = std::usize::MAX;
   
@@ -393,6 +392,11 @@ fn find_path(map: &Map) -> Vec<bool> {
     }
 
     is_path[current_index] = true;
+
+    if smallest_neighbor_index == std::usize::MAX {
+      break;
+    }
+    
     current_index = smallest_neighbor_index;
   }
   
