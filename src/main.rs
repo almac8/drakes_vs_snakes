@@ -25,6 +25,9 @@ use input::Input;
 mod message;
 use message::Message;
 
+mod message_queue;
+use message_queue::MessageQueue;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -66,10 +69,10 @@ fn main() -> Result<(), String> {
     }
 
     message_queue.swap_buffers();
-    for message in &message_queue.messages {
-      match message {
+    for message in message_queue.messages() {
+      match *message {
         Message::RequestShutdown => is_running = false,
-        Message::RequestScene(new_scene) => current_scene = *new_scene,
+        Message::RequestScene(new_scene) => current_scene = new_scene,
         Message::PlayerInput( .. ) => {}
       }
     }
@@ -699,7 +702,7 @@ fn calculate_max_score(map: &Map) -> usize {
 fn update_main_menu(message_queue: &mut MessageQueue, selected_menu_item_index: &mut usize) {
   let mut confirmed = false;
 
-  for message in &message_queue.messages {
+  for message in message_queue.messages() {
     match *message {
       Message::PlayerInput(input) => match input {
         Input::Up => if *selected_menu_item_index > 0 { *selected_menu_item_index -= 1 },
@@ -742,34 +745,6 @@ fn print_main_menu(selected_menu_item_index: usize) {
   println!("4) Exit");
 
   println!();
-}
-
-struct MessageQueue {
-  messages: Vec<Message>,
-  messages_buffer: Vec<Message>
-}
-
-impl MessageQueue {
-  fn new() -> Self {
-    Self {
-      messages: Vec::new(),
-      messages_buffer: Vec::new()
-    }
-  }
-
-  fn post(&mut self, message: Message) {
-    self.messages_buffer.push(message);
-  }
-
-  fn swap_buffers(&mut self) {
-    self.messages = Vec::new();
-
-    for message in &self.messages_buffer {
-      self.messages.push(*message);
-    }
-
-    self.messages_buffer = Vec::new();
-  }
 }
 
 fn update_new_game(current_map: &mut Map, message_queue: &mut MessageQueue) {
