@@ -46,6 +46,12 @@ impl Coordinate {
     self.y = new_y;
     self.array_index = self.y * size.width() + self.x;
   }
+
+  pub fn set_array_index(&mut self, new_array_index: usize, size: &MapSize) {
+    self.x = new_array_index % size.width();
+    self.y = new_array_index / size.width();
+    self.array_index = new_array_index;
+  }
 }
 
 #[cfg(test)]
@@ -124,5 +130,30 @@ use crate::MapSize;
     assert_eq!(coordinate.x, x);
     assert_eq!(coordinate.y, new_y);
     assert_eq!(coordinate.array_index, new_expected_index);
+  }
+
+  #[test]
+  fn edit_array_index() {
+    let width = 16;
+    let height = 16;
+    let size = MapSize::from(width, height);
+
+    let x = 4;
+    let y = 2;
+    let expected_index = y * width + x;
+    let mut coordinate = Coordinate::from(x, y, &size);
+
+    assert_eq!(coordinate.x, x);
+    assert_eq!(coordinate.y, y);
+    assert_eq!(coordinate.array_index, expected_index);
+
+    let new_array_index = 17;
+    let new_expected_x = 1;
+    let new_expected_y = 1;
+    coordinate.set_array_index(new_array_index, &size);
+
+    assert_eq!(coordinate.x, new_expected_x);
+    assert_eq!(coordinate.y, new_expected_y);
+    assert_eq!(coordinate.array_index, new_array_index);
   }
 }

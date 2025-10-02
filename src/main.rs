@@ -435,12 +435,9 @@ fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
     let smallest_distance_value = distance_from_start[smallest_distance_index];
 
     if smallest_distance_value == std::usize::MAX { break; }
-    
-    let smallest_distance_coordinate = Coordinate::from(
-      smallest_distance_index % map.size.width(),
-      smallest_distance_index / map.size.width(),
-      &map.size
-    );
+
+    let mut smallest_distance_coordinate = Coordinate::new();
+    smallest_distance_coordinate.set_array_index(smallest_distance_index, &map.size);
     
     let neighbors = get_direct_neighbors(
       &smallest_distance_coordinate,
