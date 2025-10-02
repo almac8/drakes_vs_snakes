@@ -53,6 +53,8 @@ use get_neighbors::{
 mod generate_snakes;
 use generate_snakes::generate_snakes;
 
+mod find_lowest_value_index;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
