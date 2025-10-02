@@ -59,6 +59,9 @@ use find_lowest_value_index::find_lowest_value_index_avoiding;
 mod generate_hints;
 use generate_hints::generate_hints;
 
+mod calculate_max_score;
+use calculate_max_score::calculate_max_score;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -617,18 +620,6 @@ fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) 
   map.is_path = find_path(&map);
   
   map
-}
-
-fn calculate_max_score(map: &Map) -> usize {
-  let mut maximum = 0;
-  
-  for index in 0..map.size.array_length() {
-    if !map.is_snake[index] && index != map.player_location.array_index() && index != map.goal_location.array_index() {
-      maximum += map.hint[index];
-    }
-  }
-  
-  maximum
 }
 
 fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue, rng: &mut rand::rngs::StdRng) {
