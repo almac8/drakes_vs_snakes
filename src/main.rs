@@ -53,9 +53,11 @@ use get_neighbors::{
 mod generate_snakes;
 use generate_snakes::generate_snakes;
 
-use crate::find_lowest_value_index::find_lowest_value_index_avoiding;
-
 mod find_lowest_value_index;
+use find_lowest_value_index::find_lowest_value_index_avoiding;
+
+mod generate_hints;
+use generate_hints::generate_hints;
 
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
@@ -584,23 +586,6 @@ fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut
 
     Err(error) => println!("Error: {}", error)
   }
-}
-
-fn generate_hints(map: &Map) -> Vec<usize> {
-  let mut snake_hints = vec![0; map.size.array_length()];
-
-  for (index, value) in map.is_snake.iter().enumerate() {
-    if *value {
-      let snake_location = Coordinate::from_index(index, &map.size);
-
-      let neighbors = get_all_neighbors(&snake_location, &map.size);
-      for neighbor in neighbors {
-        snake_hints[neighbor.array_index()] += 1;
-      }
-    }
-  }
-
-  snake_hints
 }
 
 fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Map {
