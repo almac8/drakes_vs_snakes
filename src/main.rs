@@ -591,11 +591,7 @@ fn generate_hints(map: &Map) -> Vec<usize> {
 
   for (index, value) in map.is_snake.iter().enumerate() {
     if *value {
-      let snake_location = Coordinate::from(
-        index % map.size.width(),
-        index / map.size.width(),
-        &map.size
-      );
+      let snake_location = Coordinate::from_index(index, &map.size);
 
       let neighbors = get_all_neighbors(&snake_location, &map.size);
       for neighbor in neighbors {

@@ -16,13 +16,19 @@ impl Coordinate {
   }
 
   pub fn from(x: usize, y: usize, size: &MapSize) -> Self {
-    let mut new = Self::new();
+    Self {
+      x,
+      y,
+      array_index: y * size.width() + x
+    }
+  }
 
-    new.x = x;
-    new.y = y;
-    new.array_index = y * size.width() + x;
-
-    new
+  pub fn from_index(index: usize, size: &MapSize) -> Self {
+    Self {
+      x: index % size.width(),
+      y: index / size.width(),
+      array_index: index
+    }
   }
 
   pub fn x(&self) -> usize {
@@ -69,7 +75,7 @@ use crate::MapSize;
   }
 
   #[test]
-  fn parameterized_constructor() {
+  fn from_x_y_constructor() {
     let width = 16;
     let height = 16;
     let size = MapSize::from(width, height);
@@ -82,6 +88,23 @@ use crate::MapSize;
     assert_eq!(coordinate.x, x);
     assert_eq!(coordinate.y, y);
     assert_eq!(coordinate.array_index, expected_index);
+  }
+
+  #[test]
+  fn from_index_constructor() {
+    let width = 16;
+    let height = 16;
+    let size = MapSize::from(width, height);
+
+    let index = 18;
+    let expected_x = 2;
+    let expected_y = 1;
+
+    let coordinate = Coordinate::from_index(index, &size);
+
+    assert_eq!(coordinate.array_index, index);
+    assert_eq!(coordinate.x, expected_x);
+    assert_eq!(coordinate.y, expected_y);
   }
 
   #[test]
