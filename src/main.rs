@@ -53,6 +53,8 @@ use get_neighbors::{
 mod generate_snakes;
 use generate_snakes::generate_snakes;
 
+use crate::find_lowest_value_index::find_lowest_value_index_avoiding;
+
 mod find_lowest_value_index;
 
 fn main() -> Result<(), String> {
@@ -428,18 +430,12 @@ fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
   
   for step_index in 0..(map.size.array_length() - num_snakes) {
     if step_index == map.goal_location.array_index() { break; }
+
+    let smallest_distance_index = find_lowest_value_index_avoiding(&distance_from_start, &distance_from_start_calculation_completed);
+    let smallest_distance_value = distance_from_start[smallest_distance_index];
+
+    if smallest_distance_value == std::usize::MAX { break; }
     
-    let mut smallest_distance_index = std::usize::MAX;
-    let mut smallest_distance_value = std::usize::MAX;
-    for (index, distance) in distance_from_start.iter().enumerate() {
-      if distance_from_start_calculation_completed[index] { continue; }
-
-      if *distance < smallest_distance_value {
-        smallest_distance_index = index;
-        smallest_distance_value = *distance;
-      }
-    }
-
     let smallest_distance_coordinate = Coordinate::from(
       smallest_distance_index % map.size.width(),
       smallest_distance_index / map.size.width(),
