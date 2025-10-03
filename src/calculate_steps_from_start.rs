@@ -22,28 +22,31 @@ pub fn calculate_steps_from_start(map: &Map) -> Result<Vec<usize>, String> {
 
   let mut all_step_calculations_completed = false;
   while !all_step_calculations_completed {
-    let current_index = find_lowest_value_index_avoiding(&steps_from_start, &steps_calculation_completed)?;
+    match find_lowest_value_index_avoiding(&steps_from_start, &steps_calculation_completed) {
+      Err(_) => return Err("Unable to find a next step".to_string()),
 
-    if current_index == usize::MAX { return Err("Could not find a path through".to_string()) }
-    let current_value = steps_from_start[current_index];
-    let current_coordinate = Coordinate::from_index(current_index, &map.size);
-    let neighbors = get_direct_neighbors(&current_coordinate, &map.size);
-
-    for neighbor in neighbors {
-      if !steps_calculation_completed[neighbor.array_index()] {
-        let new_value = current_value + 1;
-        if new_value < steps_from_start[neighbor.array_index()] {
-          steps_from_start[neighbor.array_index()] = new_value;
+      Ok(current_index) => {
+        let current_value = steps_from_start[current_index];
+        let current_coordinate = Coordinate::from_index(current_index, &map.size);
+        let neighbors = get_direct_neighbors(&current_coordinate, &map.size);
+    
+        for neighbor in neighbors {
+          if !steps_calculation_completed[neighbor.array_index()] {
+            let new_value = current_value + 1;
+            if new_value < steps_from_start[neighbor.array_index()] {
+              steps_from_start[neighbor.array_index()] = new_value;
+            }
+          }
         }
-      }
-    }
-
-    steps_calculation_completed[current_index] = true;
-
-    all_step_calculations_completed = true;
-    for is_completed in &steps_calculation_completed {
-      if !is_completed {
-        all_step_calculations_completed = false;
+    
+        steps_calculation_completed[current_index] = true;
+    
+        all_step_calculations_completed = true;
+        for is_completed in &steps_calculation_completed {
+          if !is_completed {
+            all_step_calculations_completed = false;
+          }
+        }
       }
     }
   }
@@ -123,7 +126,7 @@ mod testing {
       },
 
       Err(error) => {
-        assert_eq!(error, "Could not find a path through");
+        assert_eq!(error, "Unable to find a next step");
       }
     }
   }

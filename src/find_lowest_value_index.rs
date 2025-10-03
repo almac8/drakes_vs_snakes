@@ -22,11 +22,15 @@ pub fn find_lowest_value_index_avoiding(vector: &Vec<usize>, invalids: &Vec<bool
 
   for (index, value) in vector.iter().enumerate() {
     if !invalids[index] {
-      if *value <= lowest_value {
+      if *value < lowest_value {
         lowest_index = index;
         lowest_value = *value;
       }
     }
+  }
+
+  if lowest_index == usize::MAX {
+    return Err("No valid index found".to_string());
   }
 
   Ok(lowest_index)
@@ -62,8 +66,23 @@ mod testing {
 
     match find_lowest_value_index_avoiding(&vector, &invalids) {
       Ok(_) => panic!("Expected to fail"),
+
       Err(error) => {
         assert_eq!(error, "Vector and Invalids have different lengths");
+      }
+    }
+  }
+
+  #[test]
+  fn fails_when_no_valid_lowest_value() {
+    let vector = vec![ 1, 2, 3, usize::MAX, usize::MAX, usize::MAX];
+    let invalids = vec![true, true, true, false, false, false];
+
+    match find_lowest_value_index_avoiding(&vector, &invalids) {
+      Ok(_) => panic!("Expected to fail"),
+
+      Err(error) => {
+        assert_eq!(error, "No valid index found");
       }
     }
   }
