@@ -62,6 +62,9 @@ use generate_hints::generate_hints;
 mod calculate_max_score;
 use calculate_max_score::calculate_max_score;
 
+mod calculate_steps_from_start;
+use calculate_steps_from_start::calculate_steps_from_start;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -120,7 +123,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::NewGame => {
-        update_new_game(&mut new_game_state, &mut current_map, &mut message_queue, &mut rng);
+        update_new_game(&mut new_game_state, &mut current_map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
       },
 
@@ -377,12 +380,12 @@ fn print_map(map: &Map) {
   println!();
 }
 
-fn find_path(map: &Map) -> Vec<bool> {
+fn find_path(map: &Map) -> Result<Vec<bool>, String> {
   let mut is_path = vec![false; map.size.array_length()];
   is_path[map.player_location.array_index()] = true;
   is_path[map.goal_location.array_index()] = true;
-  
-  let distance_from_start = calculate_distances_from_start(&map);
+
+  let distance_from_start = calculate_steps_from_start(&map)?;
   
   let mut current_index = map.goal_location.array_index();
   while current_index != map.player_location.array_index() {
@@ -394,7 +397,7 @@ fn find_path(map: &Map) -> Vec<bool> {
 
     let mut smallest_neighbor_index = std::usize::MAX;
     let mut smallest_neighbor_value = std::usize::MAX;
-  
+
     let neighbors = get_direct_neighbors(&current_location, &map.size);
     for neighbor_coordinate in neighbors {
       if distance_from_start[neighbor_coordinate.array_index()] < smallest_neighbor_value {
@@ -412,59 +415,7 @@ fn find_path(map: &Map) -> Vec<bool> {
     current_index = smallest_neighbor_index;
   }
   
-  is_path
-}
-
-fn calculate_distances_from_start(map: &Map) -> Vec<usize> {
-  let mut distance_from_start = vec![std::usize::MAX; map.size.array_length()];
-  let mut distance_from_start_calculation_completed = vec![false; map.size.array_length()];
-  
-  distance_from_start[map.player_location.array_index()] = 0;
-  for (index, value) in map.is_snake.iter().enumerate() {
-    if *value {
-      distance_from_start_calculation_completed[index] = true;
-    }
-  }
-
-  let mut num_snakes = 0;
-  for snake in &map.is_snake {
-    if *snake {
-      num_snakes += 1;
-    }
-  }
-  
-  for step_index in 0..(map.size.array_length() - num_snakes) {
-    if step_index == map.goal_location.array_index() { break; }
-
-    let smallest_distance_index = find_lowest_value_index_avoiding(&distance_from_start, &distance_from_start_calculation_completed);
-    let smallest_distance_value = distance_from_start[smallest_distance_index];
-
-    if smallest_distance_value == std::usize::MAX { break; }
-
-    let mut smallest_distance_coordinate = Coordinate::new();
-    smallest_distance_coordinate.set_array_index(smallest_distance_index, &map.size);
-    
-    let neighbors = get_direct_neighbors(
-      &smallest_distance_coordinate,
-      &map.size
-    );
-
-    for neighbor in neighbors {
-      if distance_from_start[neighbor.array_index()] > smallest_distance_value + 1 {
-        distance_from_start[neighbor.array_index()] = smallest_distance_value + 1;
-      }
-    }
-
-    distance_from_start_calculation_completed[smallest_distance_index] = true;
-  }
-
-  for (snake_index, snake_value) in map.is_snake.iter().enumerate() {
-    if *snake_value {
-      distance_from_start[snake_index] = std::usize::MAX;
-    }
-  }
-
-  distance_from_start
+  Ok(is_path)
 }
 
 fn move_player(map: &mut Map, direction: Direction) {
@@ -591,7 +542,7 @@ fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut
   }
 }
 
-fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Map {
+fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Result<Map, String> {
   let mut map = Map::new();
 
   map.size = size;
@@ -617,12 +568,12 @@ fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) 
   map.is_explored = vec![false; map.size.array_length()];
   let player_index_buffer = map.player_location.array_index();
   map.is_explored[player_index_buffer] = true;
-  map.is_path = find_path(&map);
+  map.is_path = find_path(&map)?;
   
-  map
+  Ok(map)
 }
 
-fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue, rng: &mut rand::rngs::StdRng) {
+fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue, rng: &mut rand::rngs::StdRng) -> Result<(), String> {
   let mut confirmed = false;
   let mut canceled = false;
 
@@ -675,7 +626,7 @@ fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, mes
           _ => 0
         };
         
-        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height), new_game_state.num_snakes, rng);
+        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height), new_game_state.num_snakes, rng)?;
         message_queue.post(Message::RequestScene(Scenes::Playfield));
       },
     }
@@ -684,6 +635,8 @@ fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, mes
   if canceled {
     message_queue.post(Message::RequestScene(Scenes::MainMenu));
   }
+
+  Ok(())
 }
 
 fn print_new_game(new_game_state: &NewGameState) {

@@ -1,4 +1,4 @@
-pub fn find_lowest_value_index(vector: &Vec<usize>) -> usize {
+pub fn find_lowest_value_index(vector: &Vec<usize>) -> Result<usize, String> {
   let mut lowest_index = std::usize::MAX;
   let mut lowest_value = std::usize::MAX;
 
@@ -9,10 +9,14 @@ pub fn find_lowest_value_index(vector: &Vec<usize>) -> usize {
     }
   }
 
-  lowest_index
+  Ok(lowest_index)
 }
 
-pub fn find_lowest_value_index_avoiding(vector: &Vec<usize>, invalids: &Vec<bool>) -> usize {
+pub fn find_lowest_value_index_avoiding(vector: &Vec<usize>, invalids: &Vec<bool>) -> Result<usize, String> {
+  if vector.len() != invalids.len() {
+    return Err("Vector and Invalids have different lengths".to_string());
+  }
+
   let mut lowest_index = std::usize::MAX;
   let mut lowest_value = std::usize::MAX;
 
@@ -25,7 +29,7 @@ pub fn find_lowest_value_index_avoiding(vector: &Vec<usize>, invalids: &Vec<bool
     }
   }
 
-  lowest_index
+  Ok(lowest_index)
 }
 
 #[cfg(test)]
@@ -40,9 +44,28 @@ mod testing {
     let vector = vec![ 5, 8, 2, 4, 4, 8, 6, 3 ];
     let expected_index = 2;
 
-    let index = find_lowest_value_index(&vector);
+    match find_lowest_value_index(&vector) {
+      Ok(index) => {
+        assert_eq!(index, expected_index);
+      },
 
-    assert_eq!(index, expected_index);
+      Err(error) => {
+        panic!("Unexpected error: {}", error);
+      }
+    }
+  }
+
+  #[test]
+  fn fails_when_vector_and_invalids_lengths_are_different() {
+    let vector = vec![ 5, 8, 2, 4, 4, 8, 6, 3 ];
+    let invalids = vec![];
+
+    match find_lowest_value_index_avoiding(&vector, &invalids) {
+      Ok(_) => panic!("Expected to fail"),
+      Err(error) => {
+        assert_eq!(error, "Vector and Invalids have different lengths");
+      }
+    }
   }
 
   #[test]
@@ -51,8 +74,14 @@ mod testing {
     let invalids = vec![ false, false, true, false, false, false, false, false ];
     let expected_index = 7;
 
-    let index = find_lowest_value_index_avoiding(&vector, &invalids);
+    match find_lowest_value_index_avoiding(&vector, &invalids) {
+      Ok(index) => {
+        assert_eq!(index, expected_index);
+      },
 
-    assert_eq!(index, expected_index);
+      Err(error) => {
+        panic!("Unexpected error: {}", error);
+      }
+    }
   }
 }
