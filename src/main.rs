@@ -1,5 +1,5 @@
 mod score;
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use score::Score;
 
 mod scenes;
@@ -67,6 +67,9 @@ use calculate_steps_from_start::calculate_steps_from_start;
 
 mod find_path;
 use find_path::find_path;
+
+mod generate_map;
+use generate_map::generate_map;
 
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
@@ -505,37 +508,6 @@ fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut
 
     Err(error) => println!("Error: {}", error)
   }
-}
-
-fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Result<Map, String> {
-  let mut map = Map::new();
-
-  map.size = size;
-
-  map.player_location = Coordinate::from(
-    rng.random_range(0..(map.size.width() / 3)),
-    rng.random_range(0..(map.size.height() / 3)),
-    &map.size
-  );
-
-  map.goal_location = Coordinate::from(
-    rng.random_range((map.size.width() / 3 * 2)..(map.size.width() - 1)),
-    rng.random_range((map.size.height() / 3 * 2)..(map.size.height() - 1)),
-    &map.size
-  );
-  
-  map.is_snake = generate_snakes(&map, num_snakes, rng);
-  map.hint = generate_hints(&map);
-  map.score = Score::new();
-  *map.score.mut_maximum() = calculate_max_score(&map);
-  map.is_marked = vec![false; map.size.array_length()];
-  
-  map.is_explored = vec![false; map.size.array_length()];
-  let player_index_buffer = map.player_location.array_index();
-  map.is_explored[player_index_buffer] = true;
-  map.is_path = find_path(&map)?;
-  
-  Ok(map)
 }
 
 fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue, rng: &mut rand::rngs::StdRng) -> Result<(), String> {

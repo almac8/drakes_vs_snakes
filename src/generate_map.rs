@@ -1,0 +1,134 @@
+use rand::Rng;
+
+use crate::{
+  MapSize,
+  Map,
+  Coordinate,
+  generate_snakes,
+  generate_hints,
+  calculate_max_score,
+  find_path
+};
+
+pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Result<Map, String> {
+  if size.array_length() == 0 { return Err("Uninitialized map size".to_string()) }
+  if size.width() < 4 || size.height() < 4 { return Err("Minimum map size is four".to_string()) }
+  
+  let mut map = Map::new();
+  map.size = size;
+
+  map.player_location = Coordinate::from(
+    rng.random_range(0..(map.size.width() / 3)),
+    rng.random_range(0..(map.size.height() / 3)),
+    &map.size
+  );
+
+  map.goal_location = Coordinate::from(
+    rng.random_range((map.size.width() / 3 * 2)..(map.size.width() - 1)),
+    rng.random_range((map.size.height() / 3 * 2)..(map.size.height() - 1)),
+    &map.size
+  );
+  
+  map.is_snake = generate_snakes(&map, num_snakes, rng);
+  map.hint = generate_hints(&map);
+
+  *map.score.mut_maximum() = calculate_max_score(&map);
+  map.is_path = find_path(&map)?;
+
+  map.is_marked = vec![false; map.size.array_length()];
+
+  map.is_explored = vec![false; map.size.array_length()];
+  let player_index_buffer = map.player_location.array_index();
+  map.is_explored[player_index_buffer] = true;
+
+  Ok(map)
+}
+
+#[cfg(test)]
+mod testing {
+  use rand::SeedableRng;
+
+use crate::MapSize;
+  use super::generate_map;
+
+  #[test]
+  fn fails_for_uninitialized_map_size() {
+    let size = MapSize::new();
+    let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
+
+    match generate_map(size, 2, &mut rng) {
+      Ok(_) => panic!("Expected to fail"),
+      Err(error) => assert_eq!(error, "Uninitialized map size")
+    }
+  }
+
+  #[test]
+  fn fails_if_width_or_height_is_smaller_than_four() {
+    let size = MapSize::from(3, 3);
+    let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
+
+    match generate_map(size, 2, &mut rng) {
+      Ok(_) => panic!("Expected to fail"),
+      Err(error) => assert_eq!(error, "Minimum map size is four")
+    }
+  }
+
+  #[test]
+  fn generate_a_new_map() {
+    let map_width = 4;
+    let map_height = 4;
+
+    let size = MapSize::from(map_width, map_height);
+    let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
+
+    match generate_map(size, 2, &mut rng) {
+      Ok(map) => {
+        assert_eq!(map.size.width(), map_width);
+        assert_eq!(map.size.height(), map_height);
+
+        assert_eq!(map.player_location.array_index(), 0);
+        assert_eq!(map.goal_location.array_index(), 10);
+
+        assert_eq!(map.is_snake, vec![
+          false, false, true,  false,
+          false, false, false, false,
+          true,  false, false, false,
+          false, false, false, false
+        ]);
+
+        assert_eq!(map.hint, vec![
+          0, 1, 0, 1,
+          1, 2, 1, 1,
+          0, 1, 0, 0,
+          1, 1, 0, 0,
+        ]);
+
+        assert_eq!(map.score.current(), 0);
+        assert_eq!(map.score.maximum(), 10);
+
+        assert_eq!(map.is_path, vec![
+          true,  false, false, false,
+          true,  true,  false, false,
+          false, true,  true,  false,
+          false, false, false, false
+        ]);
+
+        assert_eq!(map.is_marked, vec![
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false
+        ]);
+
+        assert_eq!(map.is_explored, vec![
+          true, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false
+        ]);
+      },
+
+      Err(error) => panic!("Unexpected error: {}", error)
+    }
+  }
+}
