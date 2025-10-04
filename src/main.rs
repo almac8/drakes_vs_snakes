@@ -65,6 +65,9 @@ use calculate_max_score::calculate_max_score;
 mod calculate_steps_from_start;
 use calculate_steps_from_start::calculate_steps_from_start;
 
+mod find_path;
+use find_path::find_path;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -378,44 +381,6 @@ fn print_map(map: &Map) {
   }
   println!();
   println!();
-}
-
-fn find_path(map: &Map) -> Result<Vec<bool>, String> {
-  let mut is_path = vec![false; map.size.array_length()];
-  is_path[map.player_location.array_index()] = true;
-  is_path[map.goal_location.array_index()] = true;
-
-  let distance_from_start = calculate_steps_from_start(&map)?;
-  
-  let mut current_index = map.goal_location.array_index();
-  while current_index != map.player_location.array_index() {
-    let current_location = Coordinate::from(
-      current_index % map.size.width(),
-      current_index / map.size.width(),
-      &map.size
-    );
-
-    let mut smallest_neighbor_index = std::usize::MAX;
-    let mut smallest_neighbor_value = std::usize::MAX;
-
-    let neighbors = get_direct_neighbors(&current_location, &map.size);
-    for neighbor_coordinate in neighbors {
-      if distance_from_start[neighbor_coordinate.array_index()] < smallest_neighbor_value {
-        smallest_neighbor_index = neighbor_coordinate.array_index();
-        smallest_neighbor_value = distance_from_start[neighbor_coordinate.array_index()];
-      }
-    }
-
-    is_path[current_index] = true;
-
-    if smallest_neighbor_index == std::usize::MAX {
-      break;
-    }
-    
-    current_index = smallest_neighbor_index;
-  }
-  
-  Ok(is_path)
 }
 
 fn move_player(map: &mut Map, direction: Direction) {
