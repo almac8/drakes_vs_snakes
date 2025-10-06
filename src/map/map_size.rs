@@ -1,3 +1,4 @@
+#[derive(PartialEq, Eq, Debug)]
 pub struct MapSize{
   width: usize,
   height: usize,

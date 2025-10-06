@@ -71,6 +71,12 @@ use find_path::find_path;
 mod generate_map;
 use generate_map::generate_map;
 
+mod new_game;
+use new_game::{
+  update_new_game,
+  print_new_game
+};
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -507,126 +513,5 @@ fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut
     },
 
     Err(error) => println!("Error: {}", error)
-  }
-}
-
-fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map, message_queue: &mut MessageQueue, rng: &mut rand::rngs::StdRng) -> Result<(), String> {
-  let mut confirmed = false;
-  let mut canceled = false;
-
-  for message in message_queue.messages() {
-    match *message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if new_game_state.selected_menu_item_index > 0 { new_game_state.selected_menu_item_index -= 1 },
-        Input::Down => if new_game_state.selected_menu_item_index < 3 { new_game_state.selected_menu_item_index += 1 },
-        Input::Confirm => confirmed = true,
-        Input::Cancel => canceled = true,
-        _ => {}
-      },
-
-      _ => {}
-    }
-  }
-
-  if confirmed {
-    match new_game_state.step {
-      NewGameStep::Width => {
-        new_game_state.width = match new_game_state.selected_menu_item_index {
-          0 => 8,
-          1 => 16,
-          2 => 32,
-          3 => 64,
-          _ => 0
-        };
-
-        new_game_state.step = NewGameStep::Height;
-      },
-
-      NewGameStep::Height => {
-        new_game_state.height = match new_game_state.selected_menu_item_index {
-          0 => 8,
-          1 => 16,
-          2 => 32,
-          3 => 64,
-          _ => 0
-        };
-
-        new_game_state.step = NewGameStep::NumSnakes;
-      },
-
-      NewGameStep::NumSnakes => {
-        new_game_state.num_snakes = match new_game_state.selected_menu_item_index {
-          0 => 16,
-          1 => 32,
-          2 => 64,
-          3 => 128,
-          _ => 0
-        };
-        
-        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height), new_game_state.num_snakes, rng)?;
-        message_queue.post(Message::RequestScene(Scenes::Playfield));
-      },
-    }
-  }
-
-  if canceled {
-    message_queue.post(Message::RequestScene(Scenes::MainMenu));
-  }
-
-  Ok(())
-}
-
-fn print_new_game(new_game_state: &NewGameState) {
-  println!();
-  println!();
-  println!("Game Setup");
-  println!();
-
-  match new_game_state.step {
-    NewGameStep::Width => {
-      println!("Map width?");
-
-      if new_game_state.selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
-      println!("8");
-
-      if new_game_state.selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
-      println!("16");
-
-      if new_game_state.selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
-      println!("32");
-
-      if new_game_state.selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
-      println!("64");
-    },
-
-    NewGameStep::Height => {
-      println!("Map Height?");
-      if new_game_state.selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
-      println!("8");
-
-      if new_game_state.selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
-      println!("16");
-
-      if new_game_state.selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
-      println!("32");
-
-      if new_game_state.selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
-      println!("64");
-    },
-
-    NewGameStep::NumSnakes => {
-      println!("Number of snakes?");
-      if new_game_state.selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
-      println!("16");
-
-      if new_game_state.selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
-      println!("32");
-
-      if new_game_state.selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
-      println!("64");
-
-      if new_game_state.selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
-      println!("128");
-    }
   }
 }

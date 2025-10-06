@@ -1,5 +1,6 @@
 use crate::MapSize;
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct Coordinate {
   x: usize,
   y: usize,

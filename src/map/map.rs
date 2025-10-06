@@ -4,6 +4,7 @@ use crate::{
   Score
 };
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct Map {
   pub size: MapSize,
   pub player_location: Coordinate,

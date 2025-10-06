@@ -1,3 +1,4 @@
+#[derive(PartialEq, Eq, Debug)]
 pub struct Score {
   current: usize,
   maximum: usize
