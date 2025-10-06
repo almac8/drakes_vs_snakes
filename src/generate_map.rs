@@ -33,7 +33,13 @@ pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdR
   map.hint = generate_hints(&map);
 
   *map.score.mut_maximum() = calculate_max_score(&map);
-  map.is_path = find_path(&map)?;
+  match find_path(&map) {
+    Ok(path) => map.is_path = path,
+
+    Err(error) => if error == "KJ".to_string() {
+      generate_map(size, num_snakes, rng)?;
+    }
+  }
 
   map.is_marked = vec![false; map.size.array_length()];
 
@@ -126,6 +132,31 @@ use crate::MapSize;
           false, false, false, false,
           false, false, false, false
         ]);
+      },
+
+      Err(error) => panic!("Unexpected error: {}", error)
+    }
+  }
+
+  #[test]
+  fn regenerates_for_bad_seed() {
+    let size = MapSize::from(8, 8);
+    let num_snakes = 16;
+    let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
+
+    match generate_map(size, num_snakes, &mut rng) {
+      Ok(map) => {
+        assert_eq!(map.size, size);
+        assert_ne!(map.player_location.array_index(), 1);
+        assert_ne!(map.goal_location.array_index(), 0);
+        assert_eq!(map.score.current(), 0);
+        assert_ne!(map.score.maximum(), 0);
+
+        assert_ne!(map.hint, vec![0; 64]);
+        assert_ne!(map.is_snake, vec![false; 64]);
+        assert_eq!(map.is_marked, vec![false; 64]);
+        assert_ne!(map.is_explored, vec![false; 64]);
+        assert_ne!(map.is_path, vec![false; 64]);
       },
 
       Err(error) => panic!("Unexpected error: {}", error)
