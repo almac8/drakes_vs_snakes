@@ -77,6 +77,9 @@ use new_game::{
   print_new_game
 };
 
+mod playfield_state;
+use playfield_state::PlayfieldState;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -437,20 +440,6 @@ fn validate_map(map: &Map, message_queue: &mut MessageQueue) {
   if map.is_snake[map.player_location.array_index()] {
     println!("You lose!");
     message_queue.post(Message::RequestScene(Scenes::MainMenu));
-  }
-}
-
-struct PlayfieldState {
-  is_interacting: bool,
-  map: Map
-}
-
-impl PlayfieldState {
-  fn new() -> Self {
-    Self {
-      is_interacting: false,
-      map: Map::new()
-    }
   }
 }
 
