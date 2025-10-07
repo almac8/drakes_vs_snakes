@@ -80,6 +80,9 @@ use new_game::{
 mod playfield_state;
 use playfield_state::PlayfieldState;
 
+mod move_player;
+use move_player::move_player;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -363,37 +366,6 @@ fn main() -> Result<(), String> {
       }
     }
     Ok(())
-}
-
-fn move_player(map: &mut Map, direction: Direction) {
-  match direction {
-    Direction::North => if map.player_location.y() == 0 { return; },
-    Direction::West => if map.player_location.x() == 0 { return; },
-    Direction::East => if map.player_location.x() == map.size.width() - 1 { return; },
-    Direction::South => if map.player_location.y() == map.size.height() - 1 { return; }
-  }
-  
-  let target = match direction {
-    Direction::North => Coordinate::from(map.player_location.x(), map.player_location.y() - 1, &map.size),
-    Direction::West => Coordinate::from(map.player_location.x() - 1, map.player_location.y(), &map.size),
-    Direction::East => Coordinate::from(map.player_location.x() + 1, map.player_location.y(), &map.size),
-    Direction::South => Coordinate::from(map.player_location.x(), map.player_location.y() + 1, &map.size)
-  };
-  
-  if !map.is_marked[target.array_index()] {
-    let mut size_buffer = MapSize::new();
-    size_buffer.set_width(map.size.width());
-    size_buffer.set_height(map.size.height());
-
-    map.player_location.set_x(target.x(), &size_buffer);
-    map.player_location.set_y(target.y(), &size_buffer);
-      
-    if !map.is_explored[map.player_location.array_index()] {
-      let player_location_buffer = map.player_location.array_index();
-      map.is_explored[player_location_buffer] = true;
-      *map.score.mut_current() += map.hint[map.player_location.array_index()];
-    }
-  }
 }
 
 fn interact(playfield_state: &mut PlayfieldState, direction: Direction) {
