@@ -141,48 +141,8 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::Playfield => {
-        let mut canceled = false;
-
-        for message in message_queue.messages() {
-          match message {
-            Message::PlayerInput(input) => match input {
-              Input::Up => {
-                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::North) }
-                else { move_player(&mut playfield_state.map, Direction::North) }
-              },
-
-              Input::Left => {
-                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::West) }
-                else { move_player(&mut playfield_state.map, Direction::West) }
-              },
-
-              Input::Right => {
-                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::East) }
-                else { move_player(&mut playfield_state.map, Direction::East) }
-              },
-
-              Input::Down => {
-                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::South) }
-                else { move_player(&mut playfield_state.map, Direction::South) }
-              },
-
-              Input::Cancel => canceled = true,
-              Input::Action => playfield_state.is_interacting = !playfield_state.is_interacting,
-
-              _ => {}
-            },
-            
-            _ => {}
-          }
-        }
-        
-        if canceled {
-          message_queue.post(Message::RequestScene(Scenes::Pause));
-        }
-        
-        if playfield_state.is_interacting { println!("Is Marking"); }
-        print_map(&playfield_state.map);
-        validate_map(&playfield_state.map, &mut current_scene);
+        update_playfield(&mut message_queue, &mut playfield_state);
+        print_playfield(&playfield_state);
       },
 
       Scenes::Pause => {
@@ -402,35 +362,6 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn print_map(map: &Map) {
-  println!("Score: {}/{}", map.score.current(), map.score.maximum());
-  for index in 0..map.size.array_length() {
-    if index == map.player_location.array_index() {
-      print!("P");
-    } else if index == map.goal_location.array_index() {
-      print!("G");
-    } else if map.is_marked[index] {
-      print!("X");
-    } else if map.is_explored[index] {
-      if map.is_path[index] {
-        print!("*");
-      } else {
-        print!("{}", map.hint[index]);
-      }
-    } else {
-      print!("_");
-    }
-
-    if index % map.size.width() == map.size.width() - 1 {
-      println!();
-    } else {
-      print!(" ");
-    }
-  }
-  println!();
-  println!();
-}
-
 fn move_player(map: &mut Map, direction: Direction) {
   match direction {
     Direction::North => if map.player_location.y() == 0 { return; },
@@ -481,7 +412,7 @@ fn interact(playfield_state: &mut PlayfieldState, direction: Direction) {
   playfield_state.is_interacting = false;
 }
 
-fn validate_map(map: &Map, current_scene: &mut Scenes) {
+fn validate_map(map: &Map, message_queue: &mut MessageQueue) {
   if map.player_location.array_index() == map.goal_location.array_index() {
     println!("You win!");
     println!("Enter your name:");
@@ -500,12 +431,12 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
 
     std::fs::write("high_scores.txt", high_scores_string).unwrap();
 
-    *current_scene = Scenes::MainMenu;
+    message_queue.post(Message::RequestScene(Scenes::MainMenu));
   }
   
   if map.is_snake[map.player_location.array_index()] {
     println!("You lose!");
-    *current_scene = Scenes::MainMenu;
+    message_queue.post(Message::RequestScene(Scenes::MainMenu));
   }
 }
 
@@ -521,4 +452,74 @@ impl PlayfieldState {
       map: Map::new()
     }
   }
+}
+
+fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
+  let mut canceled = false;
+  
+  for message in message_queue.messages() {
+    match message {
+      Message::PlayerInput(input) => match input {
+        Input::Up => {
+          if playfield_state.is_interacting { interact(playfield_state, Direction::North) }
+          else { move_player(&mut playfield_state.map, Direction::North) }
+        },
+        
+        Input::Left => {
+          if playfield_state.is_interacting { interact(playfield_state, Direction::West) }
+          else { move_player(&mut playfield_state.map, Direction::West) }
+        },
+        
+        Input::Right => {
+          if playfield_state.is_interacting { interact(playfield_state, Direction::East) }
+          else { move_player(&mut playfield_state.map, Direction::East) }
+        },
+        
+        Input::Down => {
+          if playfield_state.is_interacting { interact(playfield_state, Direction::South) }
+          else { move_player(&mut playfield_state.map, Direction::South) }
+        },
+        
+        Input::Cancel => canceled = true,
+        Input::Action => playfield_state.is_interacting = !playfield_state.is_interacting,
+        
+        _ => {}
+      },
+      
+      _ => {}
+    }
+  }
+  
+  if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
+  validate_map(&playfield_state.map, message_queue);
+}
+
+fn print_playfield(playfield_state: &PlayfieldState) {
+  if playfield_state.is_interacting { println!("Is Marking"); }
+  println!("Score: {}/{}", playfield_state.map.score.current(), playfield_state.map.score.maximum());
+  for index in 0..playfield_state.map.size.array_length() {
+    if index == playfield_state.map.player_location.array_index() {
+      print!("P");
+    } else if index == playfield_state.map.goal_location.array_index() {
+      print!("G");
+    } else if playfield_state.map.is_marked[index] {
+      print!("X");
+    } else if playfield_state.map.is_explored[index] {
+      if playfield_state.map.is_path[index] {
+        print!("*");
+      } else {
+        print!("{}", playfield_state.map.hint[index]);
+      }
+    } else {
+      print!("_");
+    }
+
+    if index % playfield_state.map.size.width() == playfield_state.map.size.width() - 1 {
+      println!();
+    } else {
+      print!(" ");
+    }
+  }
+  println!();
+  println!();
 }
