@@ -112,6 +112,7 @@ fn main() -> Result<(), String> {
           Keycode::S => message_queue.post(Message::PlayerInput(Input::Down)),
           Keycode::Return => message_queue.post(Message::PlayerInput(Input::Confirm)),
           Keycode::Escape => message_queue.post(Message::PlayerInput(Input::Cancel)),
+          Keycode::Space => message_queue.post(Message::PlayerInput(Input::Action)),
           _ => {}
         }},
 
@@ -140,9 +141,57 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::Playfield => {
+        let mut canceled = false;
+
+        for message in message_queue.messages() {
+          match message {
+            Message::PlayerInput(input) => match input {
+              Input::Up => {
+                if is_marking {
+                  mark(&mut current_map, Direction::North, &mut is_marking);
+                } else {
+                  move_player(&mut current_map, Direction::North);
+                }
+              },
+
+              Input::Left => {
+                if is_marking {
+                  mark(&mut current_map, Direction::West, &mut is_marking);
+                } else {
+                  move_player(&mut current_map, Direction::West);
+                }
+              },
+
+              Input::Right => {
+                if is_marking {
+                  mark(&mut current_map, Direction::East, &mut is_marking);
+                } else {
+                  move_player(&mut current_map, Direction::East);
+                }
+              },
+
+              Input::Down => {
+                if is_marking {
+                  mark(&mut current_map, Direction::South, &mut is_marking);
+                } else {
+                  move_player(&mut current_map, Direction::South);
+                }
+              },
+
+              Input::Cancel => canceled = true,
+              Input::Action => is_marking = !is_marking,
+              _ => {}
+            },
+            _ => {}
+          }
+        }
+        
+        if canceled {
+          message_queue.post(Message::RequestScene(Scenes::Pause));
+        }
+        
         if is_marking { println!("Is Marking"); }
         print_map(&current_map);
-        handle_play_input(&mut current_map, &mut current_scene, &mut is_marking);
         validate_map(&current_map, &mut current_scene);
       },
 
@@ -467,51 +516,5 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
   if map.is_snake[map.player_location.array_index()] {
     println!("You lose!");
     *current_scene = Scenes::MainMenu;
-  }
-}
-
-fn handle_play_input(map: &mut Map, current_scene: &mut Scenes, is_marking: &mut bool) {
-  match read_numeric_input() {
-    Ok(input) => match input {
-      5555 => *current_scene = Scenes::Pause,
-
-      5 => *is_marking = !*is_marking,
-      
-      8 => {
-        if *is_marking {
-          mark(map, Direction::North, is_marking);
-        } else {
-          move_player(map, Direction::North);
-        }
-      },
-      
-      4 => {
-        if *is_marking {
-          mark(map, Direction::West, is_marking);
-        } else {
-          move_player(map, Direction::West);
-        }
-      },
-      
-      6 => {
-        if *is_marking {
-          mark(map, Direction::East, is_marking);
-        } else {
-          move_player(map, Direction::East);
-        }
-      },
-      
-      2 => {
-        if *is_marking {
-          mark(map, Direction::South, is_marking);
-        } else {
-          move_player(map, Direction::South);
-        }
-      },
-
-      _ => {}
-    },
-
-    Err(error) => println!("Error: {}", error)
   }
 }

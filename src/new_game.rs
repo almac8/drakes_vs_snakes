@@ -21,8 +21,7 @@ pub fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map,
         Input::Down => if new_game_state.selected_menu_item_index < 3 { new_game_state.selected_menu_item_index += 1 },
         Input::Confirm => confirmed = true,
         Input::Cancel => canceled = true,
-        Input::Left => {},
-        Input::Right => {},
+        _ => {}
       },
       _ => {}
     }

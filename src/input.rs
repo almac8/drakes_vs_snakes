@@ -5,5 +5,6 @@ pub enum Input {
   Right,
   Down,
   Confirm,
-  Cancel
+  Cancel,
+  Action
 }
