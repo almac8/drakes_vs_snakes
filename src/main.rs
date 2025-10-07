@@ -276,13 +276,13 @@ fn main() -> Result<(), String> {
             }
           }
           
-          playfield_state.map.size.set_width(save_values[0].parse().unwrap());
-          playfield_state.map.size.set_height(save_values[1].parse().unwrap());
+          playfield_state.map.size.set_width(save_values[0].parse().unwrap())?;
+          playfield_state.map.size.set_height(save_values[1].parse().unwrap())?;
           let num_map_cells = playfield_state.map.size.width() * playfield_state.map.size.height();
 
           let mut size_buffer = MapSize::new();
-          size_buffer.set_width(playfield_state.map.size.width());
-          size_buffer.set_height(playfield_state.map.size.height());
+          size_buffer.set_width(playfield_state.map.size.width())?;
+          size_buffer.set_height(playfield_state.map.size.height())?;
 
           playfield_state.map.player_location.set_x(save_values[2].parse().unwrap(), &size_buffer);
           playfield_state.map.player_location.set_y(save_values[3].parse().unwrap(), &size_buffer);

@@ -47,8 +47,6 @@ use super::generate_snakes;
   #[test]
   fn standard_generation() {
     let mut map = Map::new();
-    map.size.set_width(4);
-    map.size.set_height(4);
     map.player_location.set_x(0, &map.size);
     map.player_location.set_y(0, &map.size);
     map.goal_location.set_x(2, &map.size);

@@ -39,9 +39,7 @@ mod testing {
   
   #[test]
   fn fails_if_player_location_equals_goal_location() {
-    let mut map = Map::new();
-    map.size.set_width(3);
-    map.size.set_height(3);
+    let map = Map::new();
 
     match find_path(&map) {
       Ok(_) => panic!("Expected to fail"),
@@ -52,8 +50,6 @@ mod testing {
   #[test]
   fn fails_for_uninitialized_snake_vector() {
     let mut map = Map::new();
-    map.size.set_width(3);
-    map.size.set_height(3);
     map.player_location.set_array_index(0, &map.size);
     map.goal_location.set_array_index(8, &map.size);
 
@@ -66,23 +62,23 @@ mod testing {
   #[test]
   fn find_the_shortest_path() {
     let mut map = Map::new();
-    map.size.set_width(3);
-    map.size.set_height(3);
     map.player_location.set_array_index(0, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
+    map.goal_location.set_array_index(15, &map.size);
 
     map.is_snake = vec![
-      false, true,  false,
-      false, false, false,
-      false, true,  false
+      false, true,  false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, true,  false, false
     ];
 
     match find_path(&map) {
       Ok(path) => {
         assert_eq!(path, vec![
-          true,  false, false,
-          true,  true,  true,
-          false, false, true
+           true, false, false, false,
+           true, false, false, false,
+           true,  true,  true, false,
+          false, false,  true,  true
         ]);
       },
 

@@ -22,19 +22,19 @@ mod testing {
   #[test]
   fn calculating_maximum_score() {
     let mut map = Map::new();
-    map.size.set_width(3);
-    map.size.set_height(3);
 
     map.hint = vec![
-      1, 2, 3,
-      4, 5, 6,
-      7, 8, 9
+      1, 2, 3, 4,
+      1, 2, 3, 4,
+      1, 2, 3, 4,
+      1, 2, 3, 4
     ];
 
     map.is_snake = vec![
-      false, true, false,
-      false, false, false,
-      false, true, false,
+      false,  true, false, false,
+      false,  true, false, false,
+      false,  true, false, false,
+      false,  true, false, false
     ];
 
     map.player_location.set_x(0, &map.size);
@@ -44,6 +44,6 @@ mod testing {
 
     let max_score = calculate_max_score(&map);
 
-    assert_eq!(max_score, 25);
+    assert_eq!(max_score, 28);
   }
 }

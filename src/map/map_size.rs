@@ -39,14 +39,22 @@ impl MapSize {
     self.array_length
   }
 
-  pub fn set_width(&mut self, new_width: usize) {
+  pub fn set_width(&mut self, new_width: usize) -> Result<(), String> {
+    if new_width < 4 { return Err("Minimum width is 4".to_string()) }
+
     self.width = new_width;
     self.array_length = self.width * self.height;
+
+    Ok(())
   }
 
-  pub fn set_height(&mut self, new_height: usize) {
+  pub fn set_height(&mut self, new_height: usize) -> Result<(), String>{
+    if new_height < 4 { return Err("Minimum height is 4".to_string()) }
+
     self.height = new_height;
     self.array_length = self.width * self.height;
+
+    Ok(())
   }
 }
 
@@ -113,11 +121,34 @@ mod tests {
     assert_eq!(size.array_length, width * height);
 
     let new_width = 8;
-    size.set_width(new_width);
 
-    assert_eq!(size.width, new_width);
+    match size.set_width(new_width) {
+      Ok(()) => {
+        assert_eq!(size.width, new_width);
+        assert_eq!(size.height, height);
+        assert_eq!(size.array_length, new_width * height);
+      },
+
+      Err(error) => panic!("Unexpected error: {}", error)
+    }
+  }
+
+  #[test]
+  fn edit_width_minimum_error() {
+    let width = 4;
+    let height = 8;
+    let mut size = MapSize::from(width, height).unwrap();
+
+    assert_eq!(size.width, width);
     assert_eq!(size.height, height);
-    assert_eq!(size.array_length, new_width * height);
+    assert_eq!(size.array_length, width * height);
+
+    let new_width = 2;
+
+    match size.set_width(new_width) {
+      Ok(()) => panic!("Expected to fail"),
+      Err(error) => assert_eq!(error, "Minimum width is 4")
+    }
   }
 
   #[test]
@@ -131,10 +162,33 @@ mod tests {
     assert_eq!(size.array_length, width * height);
 
     let new_height = 8;
-    size.set_height(new_height);
+
+    match size.set_height(new_height) {
+      Ok(()) => {
+        assert_eq!(size.width, width);
+        assert_eq!(size.height, new_height);
+        assert_eq!(size.array_length, width * new_height);
+      },
+
+      Err(error) => panic!("Unexpected error: {}", error)
+    }
+  }
+
+  #[test]
+  fn edit_height_minimum_error() {
+    let width = 8;
+    let height = 4;
+    let mut size = MapSize::from(width, height).unwrap();
 
     assert_eq!(size.width, width);
-    assert_eq!(size.height, new_height);
-    assert_eq!(size.array_length, width * new_height);
+    assert_eq!(size.height, height);
+    assert_eq!(size.array_length, width * height);
+
+    let new_height = 2;
+
+    match size.set_height(new_height) {
+      Ok(()) => panic!("Expected to fail"),
+      Err(error) => assert_eq!(error, "Minimum height is 4")
+    }
   }
 }

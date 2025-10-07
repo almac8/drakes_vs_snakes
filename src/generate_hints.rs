@@ -29,8 +29,8 @@ mod testing {
   #[test]
   fn generating_hints() {
     let mut map = Map::new();
-    map.size.set_width(5);
-    map.size.set_height(5);
+    map.size.set_width(5).unwrap();
+    map.size.set_height(5).unwrap();
     map.is_snake = vec![false; 25];
     map.is_snake[0] = true;
     map.is_snake[12] = true;
