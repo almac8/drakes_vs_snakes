@@ -8,9 +8,9 @@ pub struct MapSize{
 impl MapSize {
   pub fn new() -> Self {
     Self {
-      width: 0,
-      height: 0,
-      array_length: 0
+      width: 4,
+      height: 4,
+      array_length: 16
     }
   }
 
@@ -53,9 +53,9 @@ mod tests {
   fn default_constructor() {
     let size_1 = MapSize::new();
 
-    assert_eq!(size_1.width(), 0);
-    assert_eq!(size_1.height(), 0);
-    assert_eq!(size_1.array_length(), 0);
+    assert_eq!(size_1.width(), 4);
+    assert_eq!(size_1.height(), 4);
+    assert_eq!(size_1.array_length(), 16);
   }
   
   #[test]

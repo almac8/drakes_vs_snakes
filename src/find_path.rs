@@ -36,17 +36,7 @@ pub fn find_path(map: &Map) -> Result<Vec<bool>, String> {
 mod testing {
   use crate::Map;
   use super::find_path;
-
-  #[test]
-  fn fails_if_map_size_is_uninitialized() {
-    let map = Map::new();
-
-    match find_path(&map) {
-      Ok(_) => panic!("Expected to fail"),
-      Err(error) => assert_eq!(error, "Map size is uninitialized")
-    }
-  }
-
+  
   #[test]
   fn fails_if_player_location_equals_goal_location() {
     let mut map = Map::new();

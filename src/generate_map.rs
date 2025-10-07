@@ -62,18 +62,7 @@ mod testing {
 
 use crate::MapSize;
   use super::generate_map;
-
-  #[test]
-  fn fails_for_uninitialized_map_size() {
-    let size = MapSize::new();
-    let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
-
-    match generate_map(size, 2, &mut rng) {
-      Ok(_) => panic!("Expected to fail"),
-      Err(error) => assert_eq!(error, "Uninitialized map size")
-    }
-  }
-
+  
   #[test]
   fn fails_if_width_or_height_is_smaller_than_four() {
     let size = MapSize::from(3, 3);

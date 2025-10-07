@@ -62,20 +62,7 @@ mod testing {
   };
 
   use super::calculate_steps_from_start;
-
-  #[test]
-  fn fails_for_uninitialized_map_size() {
-    let map = Map::new();
-
-    match calculate_steps_from_start(&map) {
-      Ok(_) => { panic!("Supposed to fail") },
-
-      Err(error) => {
-        assert_eq!(error, "Map size uninitialized");
-      }
-    }
-  }
-
+  
   #[test]
   fn fails_for_equal_player_and_goal_locations() {
     let mut map = Map::new();
