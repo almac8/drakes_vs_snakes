@@ -147,41 +147,31 @@ fn main() -> Result<(), String> {
           match message {
             Message::PlayerInput(input) => match input {
               Input::Up => {
-                if playfield_state.is_interacting {
-                  mark(&mut playfield_state.map, Direction::North, &mut playfield_state.is_interacting);
-                } else {
-                  move_player(&mut playfield_state.map, Direction::North);
-                }
+                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::North) }
+                else { move_player(&mut playfield_state.map, Direction::North) }
               },
 
               Input::Left => {
-                if playfield_state.is_interacting {
-                  mark(&mut playfield_state.map, Direction::West, &mut playfield_state.is_interacting);
-                } else {
-                  move_player(&mut playfield_state.map, Direction::West);
-                }
+                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::West) }
+                else { move_player(&mut playfield_state.map, Direction::West) }
               },
 
               Input::Right => {
-                if playfield_state.is_interacting {
-                  mark(&mut playfield_state.map, Direction::East, &mut playfield_state.is_interacting);
-                } else {
-                  move_player(&mut playfield_state.map, Direction::East);
-                }
+                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::East) }
+                else { move_player(&mut playfield_state.map, Direction::East) }
               },
 
               Input::Down => {
-                if playfield_state.is_interacting {
-                  mark(&mut playfield_state.map, Direction::South, &mut playfield_state.is_interacting);
-                } else {
-                  move_player(&mut playfield_state.map, Direction::South);
-                }
+                if playfield_state.is_interacting { interact(&mut playfield_state, Direction::South) }
+                else { move_player(&mut playfield_state.map, Direction::South) }
               },
 
               Input::Cancel => canceled = true,
               Input::Action => playfield_state.is_interacting = !playfield_state.is_interacting,
+
               _ => {}
             },
+            
             _ => {}
           }
         }
@@ -472,23 +462,23 @@ fn move_player(map: &mut Map, direction: Direction) {
   }
 }
 
-fn mark(map: &mut Map, direction: Direction, is_marking: &mut bool) {
+fn interact(playfield_state: &mut PlayfieldState, direction: Direction) {
   match direction {
-    Direction::North => if map.player_location.y() == 0 { return; },
-    Direction::West => if map.player_location.x() == 0 { return; },
-    Direction::East => if map.player_location.x() == map.size.width() - 1 { return; },
-    Direction::South => if map.player_location.y() == map.size.height() - 1 { return; }
+    Direction::North => if playfield_state.map.player_location.y() == 0 { return; },
+    Direction::West => if playfield_state.map.player_location.x() == 0 { return; },
+    Direction::East => if playfield_state.map.player_location.x() == playfield_state.map.size.width() - 1 { return; },
+    Direction::South => if playfield_state.map.player_location.y() == playfield_state.map.size.height() - 1 { return; }
   }
   
   let target = match direction {
-    Direction::North => Coordinate::from(map.player_location.x(), map.player_location.y() - 1, &map.size),
-    Direction::West => Coordinate::from(map.player_location.x() - 1, map.player_location.y(), &map.size),
-    Direction::East => Coordinate::from(map.player_location.x() + 1, map.player_location.y(), &map.size),
-    Direction::South => Coordinate::from(map.player_location.x(), map.player_location.y() + 1, &map.size)
+    Direction::North => Coordinate::from(playfield_state.map.player_location.x(), playfield_state.map.player_location.y() - 1, &playfield_state.map.size),
+    Direction::West => Coordinate::from(playfield_state.map.player_location.x() - 1, playfield_state.map.player_location.y(), &playfield_state.map.size),
+    Direction::East => Coordinate::from(playfield_state.map.player_location.x() + 1, playfield_state.map.player_location.y(), &playfield_state.map.size),
+    Direction::South => Coordinate::from(playfield_state.map.player_location.x(), playfield_state.map.player_location.y() + 1, &playfield_state.map.size)
   };
 
-  map.is_marked[target.array_index()] = !map.is_marked[target.array_index()];
-  *is_marking = false;
+  playfield_state.map.is_marked[target.array_index()] = !playfield_state.map.is_marked[target.array_index()];
+  playfield_state.is_interacting = false;
 }
 
 fn validate_map(map: &Map, current_scene: &mut Scenes) {
