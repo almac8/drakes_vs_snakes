@@ -93,12 +93,12 @@ fn main() -> Result<(), String> {
 
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
-  let mut is_marking = false;
-  let mut current_map = Map::new();
   let mut message_queue = MessageQueue::new();
+  let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
+  
   let mut main_menu_state = MainMenuState::new();
   let mut new_game_state = NewGameState::new();
-  let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
+  let mut playfield_state = PlayfieldState::new();
 
   while is_running {
     for event in event_pump.poll_iter() {
@@ -136,7 +136,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::NewGame => {
-        update_new_game(&mut new_game_state, &mut current_map, &mut message_queue, &mut rng)?;
+        update_new_game(&mut new_game_state, &mut playfield_state.map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
       },
 
@@ -147,39 +147,39 @@ fn main() -> Result<(), String> {
           match message {
             Message::PlayerInput(input) => match input {
               Input::Up => {
-                if is_marking {
-                  mark(&mut current_map, Direction::North, &mut is_marking);
+                if playfield_state.is_interacting {
+                  mark(&mut playfield_state.map, Direction::North, &mut playfield_state.is_interacting);
                 } else {
-                  move_player(&mut current_map, Direction::North);
+                  move_player(&mut playfield_state.map, Direction::North);
                 }
               },
 
               Input::Left => {
-                if is_marking {
-                  mark(&mut current_map, Direction::West, &mut is_marking);
+                if playfield_state.is_interacting {
+                  mark(&mut playfield_state.map, Direction::West, &mut playfield_state.is_interacting);
                 } else {
-                  move_player(&mut current_map, Direction::West);
+                  move_player(&mut playfield_state.map, Direction::West);
                 }
               },
 
               Input::Right => {
-                if is_marking {
-                  mark(&mut current_map, Direction::East, &mut is_marking);
+                if playfield_state.is_interacting {
+                  mark(&mut playfield_state.map, Direction::East, &mut playfield_state.is_interacting);
                 } else {
-                  move_player(&mut current_map, Direction::East);
+                  move_player(&mut playfield_state.map, Direction::East);
                 }
               },
 
               Input::Down => {
-                if is_marking {
-                  mark(&mut current_map, Direction::South, &mut is_marking);
+                if playfield_state.is_interacting {
+                  mark(&mut playfield_state.map, Direction::South, &mut playfield_state.is_interacting);
                 } else {
-                  move_player(&mut current_map, Direction::South);
+                  move_player(&mut playfield_state.map, Direction::South);
                 }
               },
 
               Input::Cancel => canceled = true,
-              Input::Action => is_marking = !is_marking,
+              Input::Action => playfield_state.is_interacting = !playfield_state.is_interacting,
               _ => {}
             },
             _ => {}
@@ -190,9 +190,9 @@ fn main() -> Result<(), String> {
           message_queue.post(Message::RequestScene(Scenes::Pause));
         }
         
-        if is_marking { println!("Is Marking"); }
-        print_map(&current_map);
-        validate_map(&current_map, &mut current_scene);
+        if playfield_state.is_interacting { println!("Is Marking"); }
+        print_map(&playfield_state.map);
+        validate_map(&playfield_state.map, &mut current_scene);
       },
 
       Scenes::Pause => {
@@ -235,44 +235,44 @@ fn main() -> Result<(), String> {
         }
 
         let mut contents = String::new().to_owned();
-        contents.push_str(&current_map.size.width().to_string());
+        contents.push_str(&playfield_state.map.size.width().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.size.height().to_string());
+        contents.push_str(&playfield_state.map.size.height().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.player_location.x().to_string());
+        contents.push_str(&playfield_state.map.player_location.x().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.player_location.y().to_string());
+        contents.push_str(&playfield_state.map.player_location.y().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.goal_location.x().to_string());
+        contents.push_str(&playfield_state.map.goal_location.x().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.goal_location.y().to_string());
+        contents.push_str(&playfield_state.map.goal_location.y().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.score.current().to_string());
+        contents.push_str(&playfield_state.map.score.current().to_string());
         contents.push_str(",");
-        contents.push_str(&current_map.score.maximum().to_string());
+        contents.push_str(&playfield_state.map.score.maximum().to_string());
         contents.push_str(",");
         
-        for hint in current_map.hint.iter() {
+        for hint in playfield_state.map.hint.iter() {
           contents.push_str(&hint.to_string());
           contents.push_str(",");
         }
       
-        for is_snake in current_map.is_snake.iter() {
+        for is_snake in playfield_state.map.is_snake.iter() {
           contents.push_str(if *is_snake { "1" } else { "0" });
           contents.push_str(",");
         }
       
-        for is_marked in current_map.is_marked.iter() {
+        for is_marked in playfield_state.map.is_marked.iter() {
           contents.push_str(if *is_marked { "1" } else { "0" });
           contents.push_str(",");
         }
       
-        for is_explored in current_map.is_explored.iter() {
+        for is_explored in playfield_state.map.is_explored.iter() {
           contents.push_str(if *is_explored { "1" } else { "0" });
           contents.push_str(",");
         }
       
-        for is_path in current_map.is_path.iter() {
+        for is_path in playfield_state.map.is_path.iter() {
           contents.push_str(if *is_path { "1" } else { "0" });
           contents.push_str(",");
         }
@@ -320,61 +320,61 @@ fn main() -> Result<(), String> {
             }
           }
           
-          current_map.size.set_width(save_values[0].parse().unwrap());
-          current_map.size.set_height(save_values[1].parse().unwrap());
-          let num_map_cells = current_map.size.width() * current_map.size.height();
+          playfield_state.map.size.set_width(save_values[0].parse().unwrap());
+          playfield_state.map.size.set_height(save_values[1].parse().unwrap());
+          let num_map_cells = playfield_state.map.size.width() * playfield_state.map.size.height();
 
           let mut size_buffer = MapSize::new();
-          size_buffer.set_width(current_map.size.width());
-          size_buffer.set_height(current_map.size.height());
+          size_buffer.set_width(playfield_state.map.size.width());
+          size_buffer.set_height(playfield_state.map.size.height());
 
-          current_map.player_location.set_x(save_values[2].parse().unwrap(), &size_buffer);
-          current_map.player_location.set_y(save_values[3].parse().unwrap(), &size_buffer);
+          playfield_state.map.player_location.set_x(save_values[2].parse().unwrap(), &size_buffer);
+          playfield_state.map.player_location.set_y(save_values[3].parse().unwrap(), &size_buffer);
 
-          current_map.goal_location.set_x(save_values[4].parse().unwrap(), &size_buffer);
-          current_map.goal_location.set_y(save_values[5].parse().unwrap(), &size_buffer);
+          playfield_state.map.goal_location.set_x(save_values[4].parse().unwrap(), &size_buffer);
+          playfield_state.map.goal_location.set_y(save_values[5].parse().unwrap(), &size_buffer);
 
-          *current_map.score.mut_current() = save_values[6].parse().unwrap();
-          *current_map.score.mut_maximum() = save_values[7].parse().unwrap();
+          *playfield_state.map.score.mut_current() = save_values[6].parse().unwrap();
+          *playfield_state.map.score.mut_maximum() = save_values[7].parse().unwrap();
             
           let hints_offset = 8;
-          current_map.hint = vec![0; num_map_cells];
+          playfield_state.map.hint = vec![0; num_map_cells];
           for hint_index in 0..(num_map_cells) {
             let hint_offset = hints_offset + hint_index;
             let new_value = save_values[hint_offset].parse().unwrap();
-            current_map.hint[hint_index] = new_value;
+            playfield_state.map.hint[hint_index] = new_value;
           }
             
           let is_snakes_offset = hints_offset + num_map_cells;
-          current_map.is_snake = vec![false; num_map_cells];
+          playfield_state.map.is_snake = vec![false; num_map_cells];
           for is_snake_index in 0..num_map_cells {
             let is_snake_offset = is_snakes_offset + is_snake_index;
             let new_value: usize = save_values[is_snake_offset].parse().unwrap();
-            current_map.is_snake[is_snake_index] = if new_value == 1 { true } else { false };
+            playfield_state.map.is_snake[is_snake_index] = if new_value == 1 { true } else { false };
           }
           
           let is_markeds_offset = is_snakes_offset + num_map_cells;
-          current_map.is_marked = vec![false; num_map_cells];
+          playfield_state.map.is_marked = vec![false; num_map_cells];
           for is_marked_index in 0..num_map_cells {
             let is_marked_offset = is_markeds_offset + is_marked_index;
             let new_value: usize = save_values[is_marked_offset].parse().unwrap();
-            current_map.is_marked[is_marked_index] = if new_value == 1 { true } else { false };
+            playfield_state.map.is_marked[is_marked_index] = if new_value == 1 { true } else { false };
           }
             
           let is_exploreds_offset = is_markeds_offset + num_map_cells;
-          current_map.is_explored = vec![false; num_map_cells];
+          playfield_state.map.is_explored = vec![false; num_map_cells];
           for is_explored_index in 0..num_map_cells {
             let is_explored_offset = is_exploreds_offset + is_explored_index;
             let new_value: usize = save_values[is_explored_offset].parse().unwrap();
-            current_map.is_explored[is_explored_index] = if new_value == 1 { true } else { false };
+            playfield_state.map.is_explored[is_explored_index] = if new_value == 1 { true } else { false };
           }
             
           let is_paths_offset = is_exploreds_offset + num_map_cells;
-          current_map.is_path = vec![false; num_map_cells];
+          playfield_state.map.is_path = vec![false; num_map_cells];
             for is_path_index in 0..num_map_cells {
               let is_path_offset = is_paths_offset + is_path_index;
               let new_value: usize = save_values[is_path_offset].parse().unwrap();
-              current_map.is_path[is_path_index] = if new_value == 1 { true } else { false };
+              playfield_state.map.is_path[is_path_index] = if new_value == 1 { true } else { false };
             }
           }
           
@@ -516,5 +516,19 @@ fn validate_map(map: &Map, current_scene: &mut Scenes) {
   if map.is_snake[map.player_location.array_index()] {
     println!("You lose!");
     *current_scene = Scenes::MainMenu;
+  }
+}
+
+struct PlayfieldState {
+  is_interacting: bool,
+  map: Map
+}
+
+impl PlayfieldState {
+  fn new() -> Self {
+    Self {
+      is_interacting: false,
+      map: Map::new()
+    }
   }
 }
