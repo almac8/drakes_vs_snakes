@@ -11,9 +11,6 @@ use crate::{
 };
 
 pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Result<Map, String> {
-  if size.array_length() == 0 { return Err("Uninitialized map size".to_string()) }
-  if size.width() < 4 || size.height() < 4 { return Err("Minimum map size is four".to_string()) }
-  
   let mut map = Map::new();
   map.size = size;
 
@@ -62,24 +59,12 @@ mod testing {
 
 use crate::MapSize;
   use super::generate_map;
-  
-  #[test]
-  fn fails_if_width_or_height_is_smaller_than_four() {
-    let size = MapSize::from(3, 3);
-    let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
-
-    match generate_map(size, 2, &mut rng) {
-      Ok(_) => panic!("Expected to fail"),
-      Err(error) => assert_eq!(error, "Minimum map size is four")
-    }
-  }
-
   #[test]
   fn generate_a_new_map() {
     let map_width = 4;
     let map_height = 4;
 
-    let size = MapSize::from(map_width, map_height);
+    let size = MapSize::new();
     let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
 
     match generate_map(size, 2, &mut rng) {
@@ -135,7 +120,7 @@ use crate::MapSize;
 
   #[test]
   fn regenerates_for_bad_seed() {
-    let size = MapSize::from(8, 8);
+    let size = MapSize::from(8, 8).unwrap();
     let num_snakes = 16;
     let mut rng = rand::rngs::StdRng::seed_from_u64(1234);
 

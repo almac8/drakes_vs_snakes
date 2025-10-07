@@ -42,43 +42,43 @@ mod testing {
 
   #[test]
   fn center_direct_neighbors() {
-    let map_size = MapSize::from(3, 3);
+    let map_size = MapSize::new();
     let target_location = Coordinate::from(1, 1, &map_size);
     let neighbors = get_direct_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 4);
     assert_eq!(neighbors[0].array_index(), 1);
-    assert_eq!(neighbors[1].array_index(), 3);
-    assert_eq!(neighbors[2].array_index(), 5);
-    assert_eq!(neighbors[3].array_index(), 7);
+    assert_eq!(neighbors[1].array_index(), 4);
+    assert_eq!(neighbors[2].array_index(), 6);
+    assert_eq!(neighbors[3].array_index(), 9);
   }
-  
+
   #[test]
   fn nw_direct_neighbors() {
-    let map_size = MapSize::from(3, 3);
+    let map_size = MapSize::new();
     let target_location = Coordinate::from(0, 0, &map_size);
     let neighbors = get_direct_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 2);
     assert_eq!(neighbors[0].array_index(), 1);
-    assert_eq!(neighbors[1].array_index(), 3);
+    assert_eq!(neighbors[1].array_index(), 4);
   }
 
   #[test]
   fn se_direct_neighbors() {
-    let map_size = MapSize::from(3, 3);
-    let target_location = Coordinate::from(2, 2, &map_size);
+    let map_size = MapSize::new();
+    let target_location = Coordinate::from(3, 3, &map_size);
     let neighbors = get_direct_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 2);
-    assert_eq!(neighbors[0].array_index(), 5);
-    assert_eq!(neighbors[1].array_index(), 7);
+    assert_eq!(neighbors[0].array_index(), 11);
+    assert_eq!(neighbors[1].array_index(), 14);
   }
 
   #[test]
   fn target_out_of_range_direct_neighbors() {
-    let map_size = MapSize::from(3, 3);
-    let target_location = Coordinate::from(4, 4, &map_size);
+    let map_size = MapSize::new();
+    let target_location = Coordinate::from(5, 5, &map_size);
     let neighbors = get_direct_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 0);
@@ -86,7 +86,7 @@ mod testing {
 
   #[test]
   fn center_all_neighbors() {
-    let map_size = MapSize::from(3, 3);
+    let map_size = MapSize::new();
     let target_location = Coordinate::from(1, 1, &map_size);
     let neighbors = get_all_neighbors(&target_location, &map_size);
 
@@ -94,41 +94,41 @@ mod testing {
     assert_eq!(neighbors[0].array_index(), 0);
     assert_eq!(neighbors[1].array_index(), 1);
     assert_eq!(neighbors[2].array_index(), 2);
-    assert_eq!(neighbors[3].array_index(), 3);
-    assert_eq!(neighbors[4].array_index(), 5);
-    assert_eq!(neighbors[5].array_index(), 6);
-    assert_eq!(neighbors[6].array_index(), 7);
-    assert_eq!(neighbors[7].array_index(), 8);
+    assert_eq!(neighbors[3].array_index(), 4);
+    assert_eq!(neighbors[4].array_index(), 6);
+    assert_eq!(neighbors[5].array_index(), 8);
+    assert_eq!(neighbors[6].array_index(), 9);
+    assert_eq!(neighbors[7].array_index(), 10);
   }
 
   #[test]
   fn nw_all_neighbors() {
-    let map_size = MapSize::from(3, 3);
+    let map_size = MapSize::new();
     let target_location = Coordinate::from(0, 0, &map_size);
     let neighbors = get_all_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 3);
     assert_eq!(neighbors[0].array_index(), 1);
-    assert_eq!(neighbors[1].array_index(), 3);
-    assert_eq!(neighbors[2].array_index(), 4);
+    assert_eq!(neighbors[1].array_index(), 4);
+    assert_eq!(neighbors[2].array_index(), 5);
   }
 
   #[test]
   fn se_all_neighbors() {
-    let map_size = MapSize::from(3, 3);
-    let target_location = Coordinate::from(2, 2, &map_size);
+    let map_size = MapSize::new();
+    let target_location = Coordinate::from(3, 3, &map_size);
     let neighbors = get_all_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 3);
-    assert_eq!(neighbors[0].array_index(), 4);
-    assert_eq!(neighbors[1].array_index(), 5);
-    assert_eq!(neighbors[2].array_index(), 7);
+    assert_eq!(neighbors[0].array_index(), 10);
+    assert_eq!(neighbors[1].array_index(), 11);
+    assert_eq!(neighbors[2].array_index(), 14);
   }
 
   #[test]
   fn target_out_of_range_all_neighbors() {
-    let map_size = MapSize::from(3, 3);
-    let target_location = Coordinate::from(4, 4, &map_size);
+    let map_size = MapSize::new();
+    let target_location = Coordinate::from(5, 5, &map_size);
     let neighbors = get_all_neighbors(&target_location, &map_size);
 
     assert_eq!(neighbors.len(), 0);

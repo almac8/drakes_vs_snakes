@@ -56,17 +56,12 @@ pub fn calculate_steps_from_start(map: &Map) -> Result<Vec<usize>, String> {
 
 #[cfg(test)]
 mod testing {
-  use crate::{
-    MapSize,
-    Map
-  };
-
+  use crate::Map;
   use super::calculate_steps_from_start;
-  
+
   #[test]
   fn fails_for_equal_player_and_goal_locations() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.is_snake.push(false);
 
     match calculate_steps_from_start(&map) {
@@ -81,7 +76,6 @@ mod testing {
   #[test]
   fn fails_for_uninitialized_snake_vector() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.player_location.set_array_index(0, &map.size);
     map.goal_location.set_array_index(8, &map.size);
 
@@ -97,14 +91,14 @@ mod testing {
   #[test]
   fn fails_for_no_path() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.player_location.set_array_index(0, &map.size);
     map.goal_location.set_array_index(8, &map.size);
 
     map.is_snake = vec![
-      false, false, false,
-      true, true, true,
-      false, false, false
+      false, false, false, false,
+       true,  true,  true,  true,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     match calculate_steps_from_start(&map) {
@@ -121,22 +115,23 @@ mod testing {
   #[test]
   fn calculate_the_correct_steps() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.player_location.set_array_index(0, &map.size);
     map.goal_location.set_array_index(8, &map.size);
 
     map.is_snake = vec![
-      false, true, false,
-      false, false, false,
-      false, true, false
+      false, true, false, false,
+      false, false, false, true,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     match calculate_steps_from_start(&map) {
       Ok(steps_from_start) => {
         assert_eq!(steps_from_start, vec![
-          0, usize::MAX, 4,
-          1,          2, 3,
-          2, usize::MAX, 4
+          0, usize::MAX, 4,          5,
+          1,          2, 3, usize::MAX,
+          2,          3, 4,          5,
+          3,          4, 5,          6
         ]);
       },
 

@@ -79,7 +79,7 @@ use crate::MapSize;
   fn from_x_y_constructor() {
     let width = 16;
     let height = 16;
-    let size = MapSize::from(width, height);
+    let size = MapSize::from(width, height).unwrap();
 
     let x = 2;
     let y = 4;
@@ -95,7 +95,7 @@ use crate::MapSize;
   fn from_index_constructor() {
     let width = 16;
     let height = 16;
-    let size = MapSize::from(width, height);
+    let size = MapSize::from(width, height).unwrap();
 
     let index = 18;
     let expected_x = 2;
@@ -112,7 +112,7 @@ use crate::MapSize;
   fn edit_x() {
     let width = 16;
     let height = 16;
-    let size = MapSize::from(width, height);
+    let size = MapSize::from(width, height).unwrap();
 
     let x = 2;
     let y = 4;
@@ -136,7 +136,7 @@ use crate::MapSize;
   fn edit_y() {
     let width = 16;
     let height = 16;
-    let size = MapSize::from(width, height);
+    let size = MapSize::from(width, height).unwrap();
 
     let x = 4;
     let y = 2;
@@ -160,7 +160,7 @@ use crate::MapSize;
   fn edit_array_index() {
     let width = 16;
     let height = 16;
-    let size = MapSize::from(width, height);
+    let size = MapSize::from(width, height).unwrap();
 
     let x = 4;
     let y = 2;

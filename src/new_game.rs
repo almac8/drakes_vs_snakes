@@ -69,8 +69,8 @@ pub fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map,
           3 => 128,
           _ => 0
         };
-
-        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height), new_game_state.num_snakes, rng)?;
+        
+        *current_map = generate_map(MapSize::from(new_game_state.width, new_game_state.height)?, new_game_state.num_snakes, rng)?;
         message_queue.post(Message::RequestScene(Scenes::Playfield));
         new_game_state.step = NewGameStep::Width;
         new_game_state.selected_menu_item_index = 0;

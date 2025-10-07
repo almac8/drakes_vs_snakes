@@ -48,33 +48,34 @@ mod testing {
   use crate::{
     Map,
     Direction,
-    MapSize
   };
   use super::move_player;
 
   #[test]
   fn moves_player_up() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
+    map.player_location.set_array_index(5, &map.size);
     map.goal_location.set_array_index(8, &map.size);
     
     map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
     ];
 
     let direction = Direction::North;
@@ -87,26 +88,28 @@ mod testing {
   #[test]
   fn stops_at_north_wall() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.player_location.set_array_index(1, &map.size);
     map.goal_location.set_array_index(8, &map.size);
     
     map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
     ];
 
     let direction = Direction::North;
@@ -119,221 +122,31 @@ mod testing {
   #[test]
   fn moves_player_left() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
-    
-    map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
-    ];
-
-    map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
-    ];
-
-    map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    let direction = Direction::West;
-
-    move_player(&mut map, direction);
-
-    assert_eq!(map.player_location.array_index(), 3);
-  }
-
-  #[test]
-  fn stops_at_west_wall() {
-    let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(3, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
-    
-    map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
-    ];
-
-    map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
-    ];
-
-    map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    let direction = Direction::West;
-
-    move_player(&mut map, direction);
-
-    assert_eq!(map.player_location.array_index(), 3);
-  }
-
-  #[test]
-  fn moves_player_right() {
-    let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
-    
-    map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
-    ];
-
-    map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
-    ];
-
-    map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    let direction = Direction::East;
-
-    move_player(&mut map, direction);
-
-    assert_eq!(map.player_location.array_index(), 5);
-  }
-
-  #[test]
-  fn stops_at_east_wall() {
-    let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.player_location.set_array_index(5, &map.size);
     map.goal_location.set_array_index(8, &map.size);
     
     map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
     ];
 
-    let direction = Direction::East;
-
-    move_player(&mut map, direction);
-
-    assert_eq!(map.player_location.array_index(), 5);
-  }
-
-  #[test]
-  fn moves_player_down() {
-    let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
-    
-    map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
-    ];
-
-    map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
-    ];
-
-    map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    let direction = Direction::South;
-
-    move_player(&mut map, direction);
-
-    assert_eq!(map.player_location.array_index(), 7);
-  }
-
-  #[test]
-  fn stops_at_south_wall() {
-    let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(7, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
-    
-    map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
-    ];
-
-    map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
-    ];
-
-    map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    let direction = Direction::South;
-
-    move_player(&mut map, direction);
-
-    assert_eq!(map.player_location.array_index(), 7);
-  }
-
-  #[test]
-  fn stops_at_marked_location() {
-    let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
-    map.goal_location.set_array_index(8, &map.size);
-
-    map.is_marked = vec![
-      false,  true, false,
-      false, false, false,
-      false, false, false
-    ];
-
-    map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
-    ];
-
-    map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    let direction = Direction::North;
+    let direction = Direction::West;
 
     move_player(&mut map, direction);
 
@@ -341,28 +154,234 @@ mod testing {
   }
 
   #[test]
-  fn explores_new_location() {
+  fn stops_at_west_wall() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
     map.player_location.set_array_index(4, &map.size);
     map.goal_location.set_array_index(8, &map.size);
-
+    
     map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ];
+
+    let direction = Direction::West;
+
+    move_player(&mut map, direction);
+
+    assert_eq!(map.player_location.array_index(), 4);
+  }
+
+  #[test]
+  fn moves_player_right() {
+    let mut map = Map::new();
+    map.player_location.set_array_index(5, &map.size);
+    map.goal_location.set_array_index(8, &map.size);
+    
+    map.is_marked = vec![
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.is_explored = vec![
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.hint = vec![
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ];
+
+    let direction = Direction::East;
+
+    move_player(&mut map, direction);
+
+    assert_eq!(map.player_location.array_index(), 6);
+  }
+
+  #[test]
+  fn stops_at_east_wall() {
+    let mut map = Map::new();
+    map.player_location.set_array_index(7, &map.size);
+    map.goal_location.set_array_index(8, &map.size);
+    
+    map.is_marked = vec![
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.is_explored = vec![
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.hint = vec![
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ];
+
+    let direction = Direction::East;
+
+    move_player(&mut map, direction);
+
+    assert_eq!(map.player_location.array_index(), 7);
+  }
+
+  #[test]
+  fn moves_player_down() {
+    let mut map = Map::new();
+    map.player_location.set_array_index(5, &map.size);
+    map.goal_location.set_array_index(8, &map.size);
+    
+    map.is_marked = vec![
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.is_explored = vec![
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.hint = vec![
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ];
+
+    let direction = Direction::South;
+
+    move_player(&mut map, direction);
+
+    assert_eq!(map.player_location.array_index(), 9);
+  }
+
+  #[test]
+  fn stops_at_south_wall() {
+    let mut map = Map::new();
+    map.player_location.set_array_index(13, &map.size);
+    map.goal_location.set_array_index(8, &map.size);
+    
+    map.is_marked = vec![
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.is_explored = vec![
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.hint = vec![
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ];
+
+    let direction = Direction::South;
+
+    move_player(&mut map, direction);
+
+    assert_eq!(map.player_location.array_index(), 13);
+  }
+
+  #[test]
+  fn stops_at_marked_location() {
+    let mut map = Map::new();
+    map.player_location.set_array_index(5, &map.size);
+    map.goal_location.set_array_index(8, &map.size);
+
+    map.is_marked = vec![
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.is_explored = vec![
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.hint = vec![
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ];
+
+    let direction = Direction::North;
+
+    move_player(&mut map, direction);
+
+    assert_eq!(map.player_location.array_index(), 5);
+  }
+
+  #[test]
+  fn explores_new_location() {
+    let mut map = Map::new();
+    map.player_location.set_array_index(5, &map.size);
+    map.goal_location.set_array_index(8, &map.size);
+
+    map.is_marked = vec![
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.is_explored = vec![
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
+    ];
+
+    map.hint = vec![
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
     ];
 
     let direction = Direction::North;
@@ -376,32 +395,28 @@ mod testing {
   #[test]
   fn updates_the_score() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
+    map.player_location.set_array_index(5, &map.size);
     map.goal_location.set_array_index(8, &map.size);
 
     map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.is_explored = vec![
-      false, false, false,
-      false,  true, false,
-      false, false, false
+      false, false, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    map.hint = vec![
-      0, 4, 0,
-      0, 0, 0,
-      0, 0, 0
+      0, 4, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
     ];
 
     let direction = Direction::North;
@@ -415,32 +430,28 @@ mod testing {
   #[test]
   fn only_adds_score_of_unexplored() {
     let mut map = Map::new();
-    map.size = MapSize::from(3, 3);
-    map.player_location.set_array_index(4, &map.size);
+    map.player_location.set_array_index(5, &map.size);
     map.goal_location.set_array_index(8, &map.size);
 
     map.is_marked = vec![
-      false, false, false,
-      false, false, false,
-      false, false, false
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.is_explored = vec![
-      false, true, false,
-      false,  true, false,
-      false, false, false
+      false, true, false, false,
+      false,  true, false, false,
+      false, false, false, false,
+      false, false, false, false
     ];
 
     map.hint = vec![
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
-    map.hint = vec![
-      0, 4, 0,
-      0, 0, 0,
-      0, 0, 0
+      0, 4, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0
     ];
 
     let direction = Direction::North;
