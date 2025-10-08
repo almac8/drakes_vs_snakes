@@ -390,8 +390,43 @@ fn validate_map(map: &Map) -> MapValidation {
 }
 
 fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
+  handle_playfield_input(message_queue, playfield_state);
+  handle_map_validation(playfield_state, message_queue);
+}
+
+fn print_playfield(playfield_state: &PlayfieldState) {
+  if playfield_state.is_interacting { println!("Is Marking"); }
+  println!("Score: {}/{}", playfield_state.map.score.current(), playfield_state.map.score.maximum());
+  for index in 0..playfield_state.map.size.array_length() {
+    if index == playfield_state.map.player_location.array_index() {
+      print!("P");
+    } else if index == playfield_state.map.goal_location.array_index() {
+      print!("G");
+    } else if playfield_state.map.is_marked[index] {
+      print!("X");
+    } else if playfield_state.map.is_explored[index] {
+      if playfield_state.map.is_path[index] {
+        print!("*");
+      } else {
+        print!("{}", playfield_state.map.hint[index]);
+      }
+    } else {
+      print!("_");
+    }
+
+    if index % playfield_state.map.size.width() == playfield_state.map.size.width() - 1 {
+      println!();
+    } else {
+      print!(" ");
+    }
+  }
+  println!();
+  println!();
+}
+
+fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
   let mut canceled = false;
-  
+
   for message in message_queue.messages() {
     match message {
       Message::PlayerInput(input) => match input {
@@ -448,9 +483,11 @@ fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut Play
       _ => {}
     }
   }
-  
-  if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
 
+  if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
+}
+
+fn handle_map_validation(playfield_state: &PlayfieldState, message_queue: &mut MessageQueue) {
   match validate_map(&playfield_state.map) {
     MapValidation::Valid => {},
 
@@ -480,34 +517,4 @@ fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut Play
       message_queue.post(Message::RequestScene(Scenes::MainMenu));
     }
   }
-}
-
-fn print_playfield(playfield_state: &PlayfieldState) {
-  if playfield_state.is_interacting { println!("Is Marking"); }
-  println!("Score: {}/{}", playfield_state.map.score.current(), playfield_state.map.score.maximum());
-  for index in 0..playfield_state.map.size.array_length() {
-    if index == playfield_state.map.player_location.array_index() {
-      print!("P");
-    } else if index == playfield_state.map.goal_location.array_index() {
-      print!("G");
-    } else if playfield_state.map.is_marked[index] {
-      print!("X");
-    } else if playfield_state.map.is_explored[index] {
-      if playfield_state.map.is_path[index] {
-        print!("*");
-      } else {
-        print!("{}", playfield_state.map.hint[index]);
-      }
-    } else {
-      print!("_");
-    }
-
-    if index % playfield_state.map.size.width() == playfield_state.map.size.width() - 1 {
-      println!();
-    } else {
-      print!(" ");
-    }
-  }
-  println!();
-  println!();
 }
