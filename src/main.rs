@@ -109,6 +109,7 @@ fn main() -> Result<(), String> {
   let mut main_menu_state = MainMenuState::new();
   let mut new_game_state = NewGameState::new();
   let mut playfield_state = PlayfieldState::new();
+  let mut pause_menu_state = PauseMenuState::new();
 
   while is_running {
     for event in event_pump.poll_iter() {
@@ -156,17 +157,8 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::Pause => {
-        println!("Paused");
-        println!("1) Resume");
-        println!("2) Save Game");
-        println!("3) Main Menu");
-
-        match read_numeric_input().unwrap() {
-          1 => current_scene = Scenes::Playfield,
-          2 => current_scene = Scenes::SaveGame,
-          3 => current_scene = Scenes::MainMenu,
-          _ => {}
-        }
+        update_pause_menu(&mut message_queue, &mut pause_menu_state);
+        print_pause_menu(&pause_menu_state);
       },
 
       Scenes::SaveGame => {
@@ -537,4 +529,60 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
   Ok(
     map
   )
+}
+
+fn update_pause_menu(message_queue: &mut MessageQueue, pause_menu_state: &mut PauseMenuState) {
+  let mut cancelled = false;
+  let mut confirmed = false;
+
+  for message in message_queue.messages() {
+    match message {
+      Message::PlayerInput(input) => match input {
+        Input::Up => if pause_menu_state.selected_menu_item_index > 0 { pause_menu_state.selected_menu_item_index -= 1 },
+        Input::Down => if pause_menu_state.selected_menu_item_index < 2 { pause_menu_state.selected_menu_item_index += 1 },
+        Input::Confirm => confirmed = true,
+        Input::Cancel => cancelled = true,
+        _ => {}
+      },
+
+      _ => {}
+    }
+  }
+
+  if confirmed {
+    match pause_menu_state.selected_menu_item_index {
+      0 => message_queue.post(Message::RequestScene(Scenes::Playfield)),
+      1 => message_queue.post(Message::RequestScene(Scenes::SaveGame)),
+      2 => message_queue.post(Message::RequestScene(Scenes::MainMenu)),
+
+      _ => {}
+    }
+  }
+
+  if cancelled { message_queue.post(Message::RequestScene(Scenes::Playfield)) }
+}
+
+fn print_pause_menu(pause_menu_state: &PauseMenuState) {
+  println!("Paused");
+  
+  if pause_menu_state.selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
+  println!("1) Resume");
+
+  if pause_menu_state.selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
+  println!("2) Save Game");
+
+  if pause_menu_state.selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
+  println!("3) Main Menu");
+}
+
+struct PauseMenuState {
+  selected_menu_item_index: usize
+}
+
+impl PauseMenuState {
+  fn new() -> Self {
+    Self {
+      selected_menu_item_index: 0
+    }
+  }
 }
