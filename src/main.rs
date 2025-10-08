@@ -1,4 +1,5 @@
 mod score;
+
 use rand::SeedableRng;
 use score::Score;
 
@@ -220,114 +221,43 @@ fn main() -> Result<(), String> {
           path_buffer.push("./saves/");
           path_buffer.push(filenames[input - 1].clone());
           
-          let mut save_string = std::fs::read_to_string(path_buffer).unwrap();
-          let mut save_values = Vec::new();
-
-          let mut is_reading = true;
-          while is_reading {
-            let comma_index = save_string.find(",");
-            match comma_index {
-              Some(comma_index) => {
-                let value = &save_string[..comma_index].to_owned();
-                save_values.push(value.to_string());
-                let save_string_buffer = &save_string[comma_index + 1..].to_owned();
-                save_string = save_string_buffer.to_string();
-              },
-
-              None => is_reading = false
-            }
-          }
-          
-          playfield_state.map.size.set_width(save_values[0].parse().unwrap())?;
-          playfield_state.map.size.set_height(save_values[1].parse().unwrap())?;
-          let num_map_cells = playfield_state.map.size.width() * playfield_state.map.size.height();
-
-          let mut size_buffer = MapSize::new();
-          size_buffer.set_width(playfield_state.map.size.width())?;
-          size_buffer.set_height(playfield_state.map.size.height())?;
-
-          playfield_state.map.player_location.set_x(save_values[2].parse().unwrap(), &size_buffer);
-          playfield_state.map.player_location.set_y(save_values[3].parse().unwrap(), &size_buffer);
-
-          playfield_state.map.goal_location.set_x(save_values[4].parse().unwrap(), &size_buffer);
-          playfield_state.map.goal_location.set_y(save_values[5].parse().unwrap(), &size_buffer);
-
-          *playfield_state.map.score.mut_current() = save_values[6].parse().unwrap();
-          *playfield_state.map.score.mut_maximum() = save_values[7].parse().unwrap();
-            
-          let hints_offset = 8;
-          playfield_state.map.hint = vec![0; num_map_cells];
-          for hint_index in 0..(num_map_cells) {
-            let hint_offset = hints_offset + hint_index;
-            let new_value = save_values[hint_offset].parse().unwrap();
-            playfield_state.map.hint[hint_index] = new_value;
-          }
-            
-          let is_snakes_offset = hints_offset + num_map_cells;
-          playfield_state.map.is_snake = vec![false; num_map_cells];
-          for is_snake_index in 0..num_map_cells {
-            let is_snake_offset = is_snakes_offset + is_snake_index;
-            let new_value: usize = save_values[is_snake_offset].parse().unwrap();
-            playfield_state.map.is_snake[is_snake_index] = if new_value == 1 { true } else { false };
-          }
-          
-          let is_markeds_offset = is_snakes_offset + num_map_cells;
-          playfield_state.map.is_marked = vec![false; num_map_cells];
-          for is_marked_index in 0..num_map_cells {
-            let is_marked_offset = is_markeds_offset + is_marked_index;
-            let new_value: usize = save_values[is_marked_offset].parse().unwrap();
-            playfield_state.map.is_marked[is_marked_index] = if new_value == 1 { true } else { false };
-          }
-            
-          let is_exploreds_offset = is_markeds_offset + num_map_cells;
-          playfield_state.map.is_explored = vec![false; num_map_cells];
-          for is_explored_index in 0..num_map_cells {
-            let is_explored_offset = is_exploreds_offset + is_explored_index;
-            let new_value: usize = save_values[is_explored_offset].parse().unwrap();
-            playfield_state.map.is_explored[is_explored_index] = if new_value == 1 { true } else { false };
-          }
-            
-          let is_paths_offset = is_exploreds_offset + num_map_cells;
-          playfield_state.map.is_path = vec![false; num_map_cells];
-            for is_path_index in 0..num_map_cells {
-              let is_path_offset = is_paths_offset + is_path_index;
-              let new_value: usize = save_values[is_path_offset].parse().unwrap();
-              playfield_state.map.is_path[is_path_index] = if new_value == 1 { true } else { false };
-            }
-          }
-          
-          current_scene = Scenes::Playfield;
-        },
-
-        Scenes::HighScores => {
-          println!("High Scores");
-          let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").unwrap();
-          let mut is_parsing = true;
-
-          let mut values = Vec::new();
-
-          while is_parsing {
-            match unparsed_high_scores_string.find(",") {
-              Some(index) => {
-                values.push(unparsed_high_scores_string[0..index].to_string());
-                unparsed_high_scores_string = unparsed_high_scores_string[(index + 1)..].to_string();
-              },
-
-              None => is_parsing = false
-            }
-          }
-
-          let num_listings = values.len() / 2;
-          for index in 0..num_listings {
-            println!("{}: {}", values[index * 2], values[(index * 2) + 1]);
-          }
-
-          read_numeric_input().unwrap();
-          current_scene = Scenes::MainMenu;
+          let save_string = std::fs::read_to_string(path_buffer).unwrap();
+          playfield_state.map = deserialize_map(save_string)?;
         }
+        
+        current_scene = Scenes::Playfield;
+      },
+
+      Scenes::HighScores => {
+        println!("High Scores");
+        let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").unwrap();
+        let mut is_parsing = true;
+
+        let mut values = Vec::new();
+
+        while is_parsing {
+          match unparsed_high_scores_string.find(",") {
+            Some(index) => {
+              values.push(unparsed_high_scores_string[0..index].to_string());
+              unparsed_high_scores_string = unparsed_high_scores_string[(index + 1)..].to_string();
+            },
+
+            None => is_parsing = false
+          }
+        }
+
+        let num_listings = values.len() / 2;
+        for index in 0..num_listings {
+          println!("{}: {}", values[index * 2], values[(index * 2) + 1]);
+        }
+
+        read_numeric_input().unwrap();
+        current_scene = Scenes::MainMenu;
       }
     }
-    Ok(())
+  }
+
+  Ok(())
 }
 
 enum MapValidation {
@@ -524,4 +454,87 @@ fn serialize_map(map: &Map) -> String {
   }
 
   contents
+}
+
+fn deserialize_map(map_string: String) -> Result<Map, String> {
+  let mut save_values = Vec::new();
+  let mut save_string = String::from(map_string);
+  
+  let mut is_reading = true;
+  while is_reading {
+    let comma_index = save_string.find(",");
+    match comma_index {
+      Some(comma_index) => {
+        let value = &save_string[..comma_index].to_owned();
+        save_values.push(value.to_string());
+        let save_string_buffer = &save_string[comma_index + 1..].to_owned();
+        save_string = save_string_buffer.to_string();
+      },
+      
+      None => is_reading = false
+    }
+  }
+
+  let mut map = Map::new();
+
+  map.size.set_width(save_values[0].parse().unwrap())?;
+  map.size.set_height(save_values[1].parse().unwrap())?;
+  let num_map_cells = map.size.width() * map.size.height();
+
+  let mut size_buffer = MapSize::new();
+  size_buffer.set_width(map.size.width())?;
+  size_buffer.set_height(map.size.height())?;
+
+  map.player_location.set_x(save_values[2].parse().unwrap(), &size_buffer);
+  map.player_location.set_y(save_values[3].parse().unwrap(), &size_buffer);
+
+  map.goal_location.set_x(save_values[4].parse().unwrap(), &size_buffer);
+  map.goal_location.set_y(save_values[5].parse().unwrap(), &size_buffer);
+
+  *map.score.mut_current() = save_values[6].parse().unwrap();
+  *map.score.mut_maximum() = save_values[7].parse().unwrap();
+            
+  let hints_offset = 8;
+  map.hint = vec![0; num_map_cells];
+  for hint_index in 0..(num_map_cells) {
+    let hint_offset = hints_offset + hint_index;
+    let new_value = save_values[hint_offset].parse().unwrap();
+    map.hint[hint_index] = new_value;
+  }
+            
+  let is_snakes_offset = hints_offset + num_map_cells;
+  map.is_snake = vec![false; num_map_cells];
+  for is_snake_index in 0..num_map_cells {
+    let is_snake_offset = is_snakes_offset + is_snake_index;
+    let new_value: usize = save_values[is_snake_offset].parse().unwrap();
+    map.is_snake[is_snake_index] = if new_value == 1 { true } else { false };
+  }
+          
+  let is_markeds_offset = is_snakes_offset + num_map_cells;
+  map.is_marked = vec![false; num_map_cells];
+  for is_marked_index in 0..num_map_cells {
+    let is_marked_offset = is_markeds_offset + is_marked_index;
+    let new_value: usize = save_values[is_marked_offset].parse().unwrap();
+    map.is_marked[is_marked_index] = if new_value == 1 { true } else { false };
+  }
+            
+  let is_exploreds_offset = is_markeds_offset + num_map_cells;
+  map.is_explored = vec![false; num_map_cells];
+  for is_explored_index in 0..num_map_cells {
+    let is_explored_offset = is_exploreds_offset + is_explored_index;
+    let new_value: usize = save_values[is_explored_offset].parse().unwrap();
+    map.is_explored[is_explored_index] = if new_value == 1 { true } else { false };
+  }
+            
+  let is_paths_offset = is_exploreds_offset + num_map_cells;
+  map.is_path = vec![false; num_map_cells];
+  for is_path_index in 0..num_map_cells {
+    let is_path_offset = is_paths_offset + is_path_index;
+    let new_value: usize = save_values[is_path_offset].parse().unwrap();
+    map.is_path[is_path_index] = if new_value == 1 { true } else { false };
+  }
+
+  Ok(
+    map
+  )
 }
