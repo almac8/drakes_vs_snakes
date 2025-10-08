@@ -371,32 +371,22 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn validate_map(map: &Map, message_queue: &mut MessageQueue) {
+enum MapValidation {
+  Valid,
+  Won,
+  Lost
+}
+
+fn validate_map(map: &Map) -> MapValidation {
   if map.player_location.array_index() == map.goal_location.array_index() {
-    println!("You win!");
-    println!("Enter your name:");
-
-    let text_input = read_text_input().unwrap();
-
-    let mut high_scores_string = match std::fs::read_to_string("high_scores.txt") {
-      Ok(scores) => scores,
-      Err(_) => "".to_string()
-    };
-
-    high_scores_string.push_str(&text_input);
-    high_scores_string.push_str(",");
-    high_scores_string.push_str(&map.score.current().to_string());
-    high_scores_string.push_str(",");
-
-    std::fs::write("high_scores.txt", high_scores_string).unwrap();
-
-    message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    return MapValidation::Won;
   }
   
   if map.is_snake[map.player_location.array_index()] {
-    println!("You lose!");
-    message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    return MapValidation::Lost;
   }
+
+  return MapValidation::Valid;
 }
 
 fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
@@ -460,7 +450,36 @@ fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut Play
   }
   
   if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
-  validate_map(&playfield_state.map, message_queue);
+
+  match validate_map(&playfield_state.map) {
+    MapValidation::Valid => {},
+
+    MapValidation::Won => {
+      println!("You win!");
+      println!("Enter your name:");
+    
+      let text_input = read_text_input().unwrap();
+    
+      let mut high_scores_string = match std::fs::read_to_string("high_scores.txt") {
+        Ok(scores) => scores,
+        Err(_) => "".to_string()
+      };
+    
+      high_scores_string.push_str(&text_input);
+      high_scores_string.push_str(",");
+      high_scores_string.push_str(&playfield_state.map.score.current().to_string());
+      high_scores_string.push_str(",");
+
+      std::fs::write("high_scores.txt", high_scores_string).unwrap();
+      
+      message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    },
+
+    MapValidation::Lost => {
+      println!("You lose!");
+      message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    }
+  }
 }
 
 fn print_playfield(playfield_state: &PlayfieldState) {
