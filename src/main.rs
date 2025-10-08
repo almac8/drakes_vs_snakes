@@ -83,6 +83,9 @@ use playfield_state::PlayfieldState;
 mod move_player;
 use move_player::move_player;
 
+mod interact;
+use interact::interact;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -368,25 +371,6 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn interact(playfield_state: &mut PlayfieldState, direction: Direction) {
-  match direction {
-    Direction::North => if playfield_state.map.player_location.y() == 0 { return; },
-    Direction::West => if playfield_state.map.player_location.x() == 0 { return; },
-    Direction::East => if playfield_state.map.player_location.x() == playfield_state.map.size.width() - 1 { return; },
-    Direction::South => if playfield_state.map.player_location.y() == playfield_state.map.size.height() - 1 { return; }
-  }
-  
-  let target = match direction {
-    Direction::North => Coordinate::from(playfield_state.map.player_location.x(), playfield_state.map.player_location.y() - 1, &playfield_state.map.size),
-    Direction::West => Coordinate::from(playfield_state.map.player_location.x() - 1, playfield_state.map.player_location.y(), &playfield_state.map.size),
-    Direction::East => Coordinate::from(playfield_state.map.player_location.x() + 1, playfield_state.map.player_location.y(), &playfield_state.map.size),
-    Direction::South => Coordinate::from(playfield_state.map.player_location.x(), playfield_state.map.player_location.y() + 1, &playfield_state.map.size)
-  };
-
-  playfield_state.map.is_marked[target.array_index()] = !playfield_state.map.is_marked[target.array_index()];
-  playfield_state.is_interacting = false;
-}
-
 fn validate_map(map: &Map, message_queue: &mut MessageQueue) {
   if map.player_location.array_index() == map.goal_location.array_index() {
     println!("You win!");
@@ -422,23 +406,47 @@ fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut Play
     match message {
       Message::PlayerInput(input) => match input {
         Input::Up => {
-          if playfield_state.is_interacting { interact(playfield_state, Direction::North) }
-          else { move_player(&mut playfield_state.map, Direction::North) }
+          if playfield_state.is_interacting {
+            match interact(playfield_state, Direction::North) {
+              Ok(()) => println!("Interaction"),
+              Err(error) => println!("Interaction failed: {}", error)
+            }
+          } else {
+            move_player(&mut playfield_state.map, Direction::North)
+          }
         },
         
         Input::Left => {
-          if playfield_state.is_interacting { interact(playfield_state, Direction::West) }
-          else { move_player(&mut playfield_state.map, Direction::West) }
+          if playfield_state.is_interacting {
+            match interact(playfield_state, Direction::West) {
+              Ok(()) => println!("Interaction"),
+              Err(error) => println!("Interaction failed: {}", error)
+            }
+          } else {
+            move_player(&mut playfield_state.map, Direction::West)
+          }
         },
         
         Input::Right => {
-          if playfield_state.is_interacting { interact(playfield_state, Direction::East) }
-          else { move_player(&mut playfield_state.map, Direction::East) }
+          if playfield_state.is_interacting {
+            match interact(playfield_state, Direction::East) {
+              Ok(()) => println!("Interaction"),
+              Err(error) => println!("Interaction failed: {}", error)
+            }
+          } else {
+            move_player(&mut playfield_state.map, Direction::East)
+          }
         },
         
         Input::Down => {
-          if playfield_state.is_interacting { interact(playfield_state, Direction::South) }
-          else { move_player(&mut playfield_state.map, Direction::South) }
+          if playfield_state.is_interacting {
+            match interact(playfield_state, Direction::South) {
+              Ok(()) => println!("Interaction"),
+              Err(error) => println!("Interaction failed: {}", error)
+            }
+          } else {
+            move_player(&mut playfield_state.map, Direction::South)
+          }
         },
         
         Input::Cancel => canceled = true,
