@@ -87,6 +87,9 @@ use move_player::move_player;
 mod interact;
 use interact::interact;
 
+mod pause_menu_state;
+use pause_menu_state::PauseMenuState;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -573,16 +576,4 @@ fn print_pause_menu(pause_menu_state: &PauseMenuState) {
 
   if pause_menu_state.selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
   println!("3) Main Menu");
-}
-
-struct PauseMenuState {
-  selected_menu_item_index: usize
-}
-
-impl PauseMenuState {
-  fn new() -> Self {
-    Self {
-      selected_menu_item_index: 0
-    }
-  }
 }
