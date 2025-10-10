@@ -90,6 +90,12 @@ use interact::interact;
 mod pause_menu_state;
 use pause_menu_state::PauseMenuState;
 
+mod pause_menu;
+use pause_menu::{
+  update_pause_menu,
+  print_pause_menu
+};
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -532,48 +538,4 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
   Ok(
     map
   )
-}
-
-fn update_pause_menu(message_queue: &mut MessageQueue, pause_menu_state: &mut PauseMenuState) {
-  let mut cancelled = false;
-  let mut confirmed = false;
-
-  for message in message_queue.messages() {
-    match message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if pause_menu_state.selected_menu_item_index > 0 { pause_menu_state.selected_menu_item_index -= 1 },
-        Input::Down => if pause_menu_state.selected_menu_item_index < 2 { pause_menu_state.selected_menu_item_index += 1 },
-        Input::Confirm => confirmed = true,
-        Input::Cancel => cancelled = true,
-        _ => {}
-      },
-
-      _ => {}
-    }
-  }
-
-  if confirmed {
-    match pause_menu_state.selected_menu_item_index {
-      0 => message_queue.post(Message::RequestScene(Scenes::Playfield)),
-      1 => message_queue.post(Message::RequestScene(Scenes::SaveGame)),
-      2 => message_queue.post(Message::RequestScene(Scenes::MainMenu)),
-
-      _ => {}
-    }
-  }
-
-  if cancelled { message_queue.post(Message::RequestScene(Scenes::Playfield)) }
-}
-
-fn print_pause_menu(pause_menu_state: &PauseMenuState) {
-  println!("Paused");
-  
-  if pause_menu_state.selected_menu_item_index == 0 { print!("  * ") } else { print!("    ") }
-  println!("1) Resume");
-
-  if pause_menu_state.selected_menu_item_index == 1 { print!("  * ") } else { print!("    ") }
-  println!("2) Save Game");
-
-  if pause_menu_state.selected_menu_item_index == 2 { print!("  * ") } else { print!("    ") }
-  println!("3) Main Menu");
 }
