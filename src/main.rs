@@ -1,6 +1,6 @@
 mod score;
 
-use std::time::{Duration, Instant};
+use std::{num::ParseIntError, time::{Duration, Instant}};
 
 use rand::SeedableRng;
 use score::Score;
@@ -121,6 +121,7 @@ fn main() -> Result<(), String> {
   let mut new_game_state = NewGameState::new();
   let mut playfield_state = PlayfieldState::new();
   let mut pause_menu_state = PauseMenuState::new();
+  let mut high_scores_state = HighScoresState::new();
   
   let fps_cap = 4;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
@@ -211,30 +212,8 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::HighScores => {
-        println!("High Scores");
-        let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").unwrap();
-        let mut is_parsing = true;
-
-        let mut values = Vec::new();
-
-        while is_parsing {
-          match unparsed_high_scores_string.find(",") {
-            Some(index) => {
-              values.push(unparsed_high_scores_string[0..index].to_string());
-              unparsed_high_scores_string = unparsed_high_scores_string[(index + 1)..].to_string();
-            },
-
-            None => is_parsing = false
-          }
-        }
-
-        let num_listings = values.len() / 2;
-        for index in 0..num_listings {
-          println!("{}: {}", values[index * 2], values[(index * 2) + 1]);
-        }
-
-        read_numeric_input().unwrap();
-        current_scene = Scenes::MainMenu;
+        update_high_scores(&mut message_queue, &mut high_scores_state)?;
+        print_high_scores(&high_scores_state);
       },
 
       Scenes::AddHighScore => {
@@ -561,4 +540,81 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
 fn print_save_game() {
   println!("Save Game");
   println!("File name?");
+}
+
+fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut HighScoresState) -> Result<(), String> {
+  if !high_scores_state.is_loaded {
+    high_scores_state.listings = load_high_scores()?;
+  }
+
+  let mut should_return = false;
+  
+  for message in message_queue.messages() {
+    match message {
+      Message::PlayerInput(_) => should_return = true,
+      _ => {}
+    }
+  }
+
+  if should_return {
+    message_queue.post(Message::RequestScene(Scenes::MainMenu));
+  }
+
+  Ok(())
+}
+
+fn print_high_scores(high_scores_state: &HighScoresState) {
+  println!("High Scores");
+
+  for listing in &high_scores_state.listings {
+    println!("{}: {}", listing.name, listing.score);
+  }
+}
+
+struct HighScoresState {
+  is_loaded: bool,
+  listings: Vec<HighScoresListing>
+}
+
+impl HighScoresState {
+  fn new() -> Self {
+    Self {
+      is_loaded: false,
+      listings: Vec::new()
+    }
+  }
+}
+
+struct HighScoresListing {
+  name: String,
+  score: usize
+}
+
+fn load_high_scores() -> Result<Vec<HighScoresListing>, String> {
+  let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").map_err(| error | error.to_string())?;
+
+  let mut is_parsing = true;
+  let mut raw_values = Vec::new();
+  let mut listings = Vec::new();
+  
+  while is_parsing {
+    match unparsed_high_scores_string.find(",") {
+      Some(index) => {
+        raw_values.push(unparsed_high_scores_string[0..index].to_string());
+        unparsed_high_scores_string = unparsed_high_scores_string[(index + 1)..].to_string();
+      },
+      
+      None => is_parsing = false
+    }
+  }
+  
+  let num_listings = raw_values.len() / 2;
+  for index in 0..num_listings {
+    listings.push(HighScoresListing {
+      name: raw_values[index * 2].clone(),
+      score: raw_values[index * 2 + 1].parse().map_err(| error: ParseIntError | error.to_string())?
+    });
+  }
+
+  Ok(listings)
 }
