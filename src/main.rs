@@ -171,34 +171,8 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::SaveGame => {
-        println!("Save Game");
-        println!("File name?");
-
-        let mut path_buffer = std::path::PathBuf::new();
-        path_buffer.push("./saves/");
-
-        let mut text_input = read_text_input().unwrap();
-        text_input.push_str(".txt");
-
-        path_buffer.push(text_input);
-
-        let mut saves_exist = false;
-        let paths = std::fs::read_dir("./").unwrap();
-        for path in paths {
-          let path_string = path.unwrap().path().display().to_string();
-          if path_string == "./saves" {
-            saves_exist = true;
-          }
-        }
-        
-        if !saves_exist {
-          std::fs::create_dir("./saves").unwrap();
-        }
-        
-        let contents = serialize_map(&playfield_state.map);
-
-        std::fs::write(path_buffer.as_path(), contents).unwrap();
-        current_scene = Scenes::Pause;
+        print_save_game();
+        update_save_game(&mut message_queue, &playfield_state)?;
       },
 
       Scenes::LoadGame => {
@@ -541,4 +515,35 @@ fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &Pla
 fn print_add_high_score() {
   println!("You win!");
   println!("Enter your name:");
+}
+
+fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState) -> Result<(), String> {
+  let mut path_buffer = std::path::PathBuf::new();
+  path_buffer.push("./saves/");
+  
+  let mut text_input = read_text_input()?;
+  text_input.push_str(".txt");
+  path_buffer.push(text_input);
+  
+  let mut saves_exist = false;
+  let paths = std::fs::read_dir("./").map_err(| error | error.to_string())?;
+  for path in paths {
+    let path_string = path.map_err(| error | error.to_string())?.path().display().to_string();
+    if path_string == "./saves" { saves_exist = true }
+  }
+  
+  if !saves_exist { std::fs::create_dir("./saves").map_err(| error | error.to_string())? }
+  
+  let contents = serialize_map(&playfield_state.map);
+  
+  std::fs::write(path_buffer.as_path(), contents).map_err(| error | error.to_string())?;
+  
+  message_queue.post(Message::RequestScene(Scenes::Pause));
+  
+  Ok(())
+}
+
+fn print_save_game() {
+  println!("Save Game");
+  println!("File name?");
 }
