@@ -1,5 +1,7 @@
 mod score;
 
+use std::time::{Duration, Instant};
+
 use rand::SeedableRng;
 use score::Score;
 
@@ -119,8 +121,13 @@ fn main() -> Result<(), String> {
   let mut new_game_state = NewGameState::new();
   let mut playfield_state = PlayfieldState::new();
   let mut pause_menu_state = PauseMenuState::new();
-
+  
+  let fps_cap = 4;
+  let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
+  
   while is_running {
+    let frame_start = Instant::now();
+
     for event in event_pump.poll_iter() {
       match event {
         Event::Quit { .. } => message_queue.post(Message::RequestShutdown),
@@ -235,7 +242,15 @@ fn main() -> Result<(), String> {
         print_add_high_score();
       }
     }
+    
+    let frame_duration = Instant::now() - frame_start;
+
+    if frame_duration < frame_duration_cap {
+      let sleep_duration = frame_duration_cap - frame_duration;
+      std::thread::sleep(sleep_duration);
+    }
   }
+
 
   Ok(())
 }
