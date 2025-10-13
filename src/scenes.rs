@@ -6,5 +6,6 @@ pub enum Scenes {
   Pause,
   SaveGame,
   LoadGame,
-  HighScores
+  HighScores,
+  AddHighScore
 }

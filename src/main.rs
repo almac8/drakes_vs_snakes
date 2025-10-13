@@ -254,6 +254,11 @@ fn main() -> Result<(), String> {
 
         read_numeric_input().unwrap();
         current_scene = Scenes::MainMenu;
+      },
+
+      Scenes::AddHighScore => {
+        update_add_high_score(&mut message_queue, &playfield_state)?;
+        print_add_high_score();
       }
     }
   }
@@ -380,32 +385,8 @@ fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mu
 fn handle_map_validation(playfield_state: &PlayfieldState, message_queue: &mut MessageQueue) {
   match validate_map(&playfield_state.map) {
     MapValidation::Valid => {},
-
-    MapValidation::Won => {
-      println!("You win!");
-      println!("Enter your name:");
-    
-      let text_input = read_text_input().unwrap();
-    
-      let mut high_scores_string = match std::fs::read_to_string("high_scores.txt") {
-        Ok(scores) => scores,
-        Err(_) => "".to_string()
-      };
-    
-      high_scores_string.push_str(&text_input);
-      high_scores_string.push_str(",");
-      high_scores_string.push_str(&playfield_state.map.score.current().to_string());
-      high_scores_string.push_str(",");
-
-      std::fs::write("high_scores.txt", high_scores_string).unwrap();
-      
-      message_queue.post(Message::RequestScene(Scenes::MainMenu));
-    },
-
-    MapValidation::Lost => {
-      println!("You lose!");
-      message_queue.post(Message::RequestScene(Scenes::MainMenu));
-    }
+    MapValidation::Won => message_queue.post(Message::RequestScene(Scenes::AddHighScore)),
+    MapValidation::Lost => message_queue.post(Message::RequestScene(Scenes::MainMenu))
   }
 }
 
@@ -538,4 +519,26 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
   Ok(
     map
   )
+}
+
+fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState) -> Result<(), String> {
+  let text_input = read_text_input().unwrap();
+
+  let mut high_scores_string = std::fs::read_to_string("high_scores.txt").map_err(| error | error.to_string())?;
+  
+  high_scores_string.push_str(&text_input);
+  high_scores_string.push_str(",");
+  high_scores_string.push_str(&playfield_state.map.score.current().to_string());
+  high_scores_string.push_str(",");
+  
+  std::fs::write("high_scores.txt", high_scores_string).map_err(| error | error.to_string())?;
+  
+  message_queue.post(Message::RequestScene(Scenes::MainMenu));
+
+  Ok(())
+}
+
+fn print_add_high_score() {
+  println!("You win!");
+  println!("Enter your name:");
 }
