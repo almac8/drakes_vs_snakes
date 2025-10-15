@@ -7,7 +7,7 @@ use crate::{
 
 pub fn calculate_steps_from_start(map: &Map) -> Result<Vec<usize>, String> {
   if map.size.array_length() == 0 { return Err("Map size uninitialized".to_string()) }
-  if map.is_snake.len() == 0 { return Err("Uninitialized snake vector".to_string()) }
+  if map.is_snake.is_empty() { return Err("Uninitialized snake vector".to_string()) }
   if map.player_location.array_index() == map.goal_location.array_index() { return Err("Player and Goal locations are the same".to_string()) }
   
   let mut steps_from_start = vec![usize::MAX; map.size.array_length()];
