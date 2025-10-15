@@ -1,6 +1,6 @@
-pub fn find_lowest_value_index(vector: &Vec<usize>) -> Result<usize, String> {
-  let mut lowest_index = std::usize::MAX;
-  let mut lowest_value = std::usize::MAX;
+pub fn find_lowest_value_index(vector: &[usize]) -> Result<usize, String> {
+  let mut lowest_index = usize::MAX;
+  let mut lowest_value = usize::MAX;
 
   for (index, value) in vector.iter().enumerate() {
     if *value <= lowest_value {
@@ -12,13 +12,13 @@ pub fn find_lowest_value_index(vector: &Vec<usize>) -> Result<usize, String> {
   Ok(lowest_index)
 }
 
-pub fn find_lowest_value_index_avoiding(vector: &Vec<usize>, invalids: &Vec<bool>) -> Result<usize, String> {
+pub fn find_lowest_value_index_avoiding(vector: &[usize], invalids: &[bool]) -> Result<usize, String> {
   if vector.len() != invalids.len() {
     return Err("Vector and Invalids have different lengths".to_string());
   }
 
-  let mut lowest_index = std::usize::MAX;
-  let mut lowest_value = std::usize::MAX;
+  let mut lowest_index = usize::MAX;
+  let mut lowest_value = usize::MAX;
 
   for (index, value) in vector.iter().enumerate() {
     if !invalids[index] && *value < lowest_value {
