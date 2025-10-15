@@ -10,17 +10,13 @@ pub fn update_main_menu(message_queue: &mut MessageQueue, main_menu_state: &mut 
   let mut confirmed = false;
 
   for message in message_queue.messages() {
-    match *message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if main_menu_state.selected_menu_item_index > 0 { main_menu_state.selected_menu_item_index -= 1 },
-        Input::Down => if main_menu_state.selected_menu_item_index < 3 { main_menu_state.selected_menu_item_index += 1 },
-        Input::Confirm => confirmed = true,
-
-        _ => {}
-      },
-
+    if let Message::PlayerInput(input) = *message { match input {
+      Input::Up => if main_menu_state.selected_menu_item_index > 0 { main_menu_state.selected_menu_item_index -= 1 },
+      Input::Down => if main_menu_state.selected_menu_item_index < 3 { main_menu_state.selected_menu_item_index += 1 },
+      Input::Confirm => confirmed = true,
+      
       _ => {}
-    }
+    }}
   }
 
   if confirmed {
