@@ -99,12 +99,21 @@ fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
 
+  let gl_attr = video_subsystem.gl_attr();
+  gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+  gl_attr.set_context_version(3, 3);
+
   let window = video_subsystem
     .window("Drakes VS Snakes", 640, 480)
     .opengl()
     .build()
     .map_err(| error | error.to_string())?;
 
+  let _gl = gl::load_with(| procname | video_subsystem.gl_get_proc_address(procname) as *const gl::types::GLvoid);
+  let _gl_context = window.gl_create_context();
+
+  unsafe { gl::Viewport(0, 0, 640, 480) }
+  
   let mut event_pump = sdl_context.event_pump()?;
 
   let mut current_scene = Scenes::MainMenu;
@@ -157,41 +166,81 @@ fn main() -> Result<(), String> {
       Scenes::MainMenu => {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
+
+        unsafe {
+          gl::ClearColor(0.5, 0.25, 0.25, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::NewGame => {
         update_new_game(&mut new_game_state, &mut playfield_state.map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
+
+        unsafe {
+          gl::ClearColor(0.25, 0.5, 0.25, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::Playfield => {
         update_playfield(&mut message_queue, &mut playfield_state);
         print_playfield(&playfield_state);
+
+        unsafe {
+          gl::ClearColor(0.25, 0.25, 0.5, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::Pause => {
         update_pause_menu(&mut message_queue, &mut pause_menu_state);
         print_pause_menu(&pause_menu_state);
+
+        unsafe {
+          gl::ClearColor(0.5, 0.5, 0.25, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::SaveGame => {
         print_save_game();
         update_save_game(&mut message_queue, &playfield_state)?;
+
+        unsafe {
+          gl::ClearColor(0.5, 0.25, 0.5, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::LoadGame => {
         update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state)?;
         print_load_game(&load_game_state);
+
+        unsafe {
+          gl::ClearColor(0.25, 0.5, 0.5, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::HighScores => {
         update_high_scores(&mut message_queue, &mut high_scores_state)?;
         print_high_scores(&high_scores_state);
+
+        unsafe {
+          gl::ClearColor(0.75, 0.5, 0.5, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       },
 
       Scenes::AddHighScore => {
         update_add_high_score(&mut message_queue, &playfield_state)?;
         print_add_high_score();
+
+        unsafe {
+          gl::ClearColor(0.75, 0.75, 0.5, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       }
     }
   
