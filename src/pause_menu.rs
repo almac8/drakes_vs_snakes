@@ -11,18 +11,14 @@ pub fn update_pause_menu(message_queue: &mut MessageQueue, pause_menu_state: &mu
   let mut confirmed = false;
 
   for message in message_queue.messages() {
-    match message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if pause_menu_state.selected_menu_item_index > 0 { pause_menu_state.selected_menu_item_index -= 1 },
-        Input::Down => if pause_menu_state.selected_menu_item_index < 2 { pause_menu_state.selected_menu_item_index += 1 },
-        Input::Confirm => confirmed = true,
-        Input::Cancel => cancelled = true,
-
-        _ => {}
-      },
-
+    if let Message::PlayerInput(input) = message { match input {
+      Input::Up => if pause_menu_state.selected_menu_item_index > 0 { pause_menu_state.selected_menu_item_index -= 1 },
+      Input::Down => if pause_menu_state.selected_menu_item_index < 2 { pause_menu_state.selected_menu_item_index += 1 },
+      Input::Confirm => confirmed = true,
+      Input::Cancel => cancelled = true,
+      
       _ => {}
-    }
+    }}
   }
 
   if confirmed {

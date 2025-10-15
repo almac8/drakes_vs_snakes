@@ -15,16 +15,13 @@ pub fn update_new_game(new_game_state: &mut NewGameState, current_map: &mut Map,
   let mut canceled = false;
 
   for message in message_queue.messages() {
-    match message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if new_game_state.selected_menu_item_index > 0 { new_game_state.selected_menu_item_index -= 1 },
-        Input::Down => if new_game_state.selected_menu_item_index < 3 { new_game_state.selected_menu_item_index += 1 },
-        Input::Confirm => confirmed = true,
-        Input::Cancel => canceled = true,
-        _ => {}
-      },
+    if let Message::PlayerInput(input) = message { match input {
+      Input::Up => if new_game_state.selected_menu_item_index > 0 { new_game_state.selected_menu_item_index -= 1 },
+      Input::Down => if new_game_state.selected_menu_item_index < 3 { new_game_state.selected_menu_item_index += 1 },
+      Input::Confirm => confirmed = true,
+      Input::Cancel => canceled = true,
       _ => {}
-    }
+    }}
   }
 
   if canceled {
