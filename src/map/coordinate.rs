@@ -8,14 +8,6 @@ pub struct Coordinate {
 }
 
 impl Coordinate {
-  pub fn new() -> Self {
-    Self {
-      x: 0,
-      y: 0,
-      array_index: 0
-    }
-  }
-
   pub fn from(x: usize, y: usize, size: &MapSize) -> Self {
     Self {
       x,
@@ -65,15 +57,6 @@ impl Coordinate {
 mod tests {
 use super::Coordinate;
 use crate::MapSize;
-
-  #[test]
-  fn default_constructor() {
-    let coordinate = Coordinate::new();
-
-    assert_eq!(coordinate.x, 0);
-    assert_eq!(coordinate.y, 0);
-    assert_eq!(coordinate.array_index, 0);
-  }
 
   #[test]
   fn from_x_y_constructor() {

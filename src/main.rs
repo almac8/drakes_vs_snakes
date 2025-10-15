@@ -20,9 +20,6 @@ mod text_input;
 use sdl2::{event::Event, keyboard::Keycode};
 use text_input::read_text_input;
 
-mod numeric_input;
-use numeric_input::read_numeric_input;
-
 mod input;
 use input::Input;
 
@@ -109,8 +106,6 @@ fn main() -> Result<(), String> {
     .map_err(| error | error.to_string())?;
 
   let mut event_pump = sdl_context.event_pump()?;
-
-  window.gl_swap_window();
 
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -199,7 +194,8 @@ fn main() -> Result<(), String> {
         print_add_high_score();
       }
     }
-    
+  
+    window.gl_swap_window();
     let frame_duration = Instant::now() - frame_start;
 
     if frame_duration < frame_duration_cap {
