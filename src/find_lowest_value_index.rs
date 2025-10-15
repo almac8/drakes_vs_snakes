@@ -21,11 +21,9 @@ pub fn find_lowest_value_index_avoiding(vector: &Vec<usize>, invalids: &Vec<bool
   let mut lowest_value = std::usize::MAX;
 
   for (index, value) in vector.iter().enumerate() {
-    if !invalids[index] {
-      if *value < lowest_value {
-        lowest_index = index;
-        lowest_value = *value;
-      }
+    if !invalids[index] && *value < lowest_value {
+      lowest_index = index;
+      lowest_value = *value;
     }
   }
 
