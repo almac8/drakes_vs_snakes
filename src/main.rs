@@ -1,6 +1,6 @@
 mod score;
 
-use std::{ffi::CString, num::ParseIntError, time::{Duration, Instant}};
+use std::{ffi::CString, num::ParseIntError, path::Path, time::{Duration, Instant}};
 
 use rand::SeedableRng;
 use score::Score;
@@ -112,7 +112,11 @@ fn main() -> Result<(), String> {
   let _gl = gl::load_with(| procname | video_subsystem.gl_get_proc_address(procname) as *const gl::types::GLvoid);
   let _gl_context = window.gl_create_context();
 
-  unsafe { gl::Viewport(0, 0, 640, 480) }
+  unsafe {
+    gl::Viewport(0, 0, 640, 480);
+    gl::Enable(gl::BLEND);
+    gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+  }
   
   let mut event_pump = sdl_context.event_pump()?;
 
@@ -129,10 +133,10 @@ fn main() -> Result<(), String> {
   let mut load_game_state = LoadGameState::new();
 
   let quad_vertex_data: Vec<f32> = vec![
-    -0.5, -0.5,
-     0.5, -0.5,
-     0.5,  0.5,
-    -0.5,  0.5
+    -0.5, -0.5, 0.0, 0.0,
+     0.5, -0.5, 1.0, 0.0,
+     0.5,  0.5, 1.0, 1.0,
+    -0.5,  0.5, 0.0, 1.0
   ];
 
   let mut quad_vertex_buffer: gl::types::GLuint = 0;
@@ -183,8 +187,18 @@ fn main() -> Result<(), String> {
       2,
       gl::FLOAT,
       gl::FALSE,
-      (2 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
       std::ptr::null()
+    );
+
+    gl::EnableVertexAttribArray(1);
+    gl::VertexAttribPointer(
+      1,
+      2,
+      gl::FLOAT,
+      gl::FALSE,
+      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      (2 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
     );
 
     gl::BindBuffer(gl::ARRAY_BUFFER, 0);
@@ -216,6 +230,32 @@ fn main() -> Result<(), String> {
     gl::AttachShader(quad_shader_program, quad_vertex_shader);
     gl::AttachShader(quad_shader_program, quad_fragment_shader);
     gl::LinkProgram(quad_shader_program);
+  }
+
+  let drake_image = image::open(Path::new("res/drake.png")).map_err(| error | error.to_string())?;
+  let drake_image = drake_image.flipv();
+  let drake_image_data = drake_image.as_bytes();
+
+  let mut drake_texture: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenTextures(1, &mut drake_texture);
+    gl::BindTexture(gl::TEXTURE_2D, drake_texture);
+
+    gl::TexImage2D(
+      gl::TEXTURE_2D,
+      0,
+      gl::RGBA as gl::types::GLint,
+      drake_image.width() as gl::types::GLint,
+      drake_image.height() as gl::types::GLint,
+      0,
+      gl::RGBA,
+      gl::UNSIGNED_BYTE,
+      drake_image_data.as_ptr() as *const gl::types::GLvoid
+    );
+
+    gl::GenerateMipmap(gl::TEXTURE_2D);
+
+    gl::BindTexture(gl::TEXTURE_2D, 0);
   }
   
   let fps_cap = 4;
@@ -261,6 +301,7 @@ fn main() -> Result<(), String> {
           gl::ClearColor(0.5, 0.25, 0.25, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
+          gl::BindTexture(gl::TEXTURE_2D, drake_texture);
           gl::UseProgram(quad_shader_program);
 
           gl::BindVertexArray(quad_vertex_array);
