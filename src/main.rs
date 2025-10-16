@@ -1,6 +1,6 @@
 mod score;
 
-use std::{num::ParseIntError, time::{Duration, Instant}};
+use std::{ffi::CString, num::ParseIntError, time::{Duration, Instant}};
 
 use rand::SeedableRng;
 use score::Score;
@@ -127,6 +127,96 @@ fn main() -> Result<(), String> {
   let mut pause_menu_state = PauseMenuState::new();
   let mut high_scores_state = HighScoresState::new();
   let mut load_game_state = LoadGameState::new();
+
+  let quad_vertex_data: Vec<f32> = vec![
+    -0.5, -0.5,
+     0.5, -0.5,
+     0.5,  0.5,
+    -0.5,  0.5
+  ];
+
+  let mut quad_vertex_buffer: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenBuffers(1, &mut quad_vertex_buffer);
+    gl::BindBuffer(gl::ARRAY_BUFFER, quad_vertex_buffer);
+
+    gl::BufferData(
+      gl::ARRAY_BUFFER,
+      (quad_vertex_data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
+      quad_vertex_data.as_ptr() as *const gl::types::GLvoid,
+      gl::STATIC_DRAW
+    );
+
+    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+  }
+
+  let quad_element_data: Vec<u32> = vec![
+    0, 1, 2,
+    0, 2, 3
+  ];
+
+  let mut quad_element_buffer: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenBuffers(1, &mut quad_element_buffer);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+
+    gl::BufferData(
+      gl::ELEMENT_ARRAY_BUFFER,
+      (quad_element_data.len() * std::mem::size_of::<u32>()) as gl::types::GLsizeiptr,
+      quad_element_data.as_ptr() as *const gl::types::GLvoid,
+      gl::STATIC_DRAW
+    );
+
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+  }
+  
+  let mut quad_vertex_array: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenVertexArrays(1, &mut quad_vertex_array);
+    gl::BindVertexArray(quad_vertex_array);
+    gl::BindBuffer(gl::ARRAY_BUFFER, quad_vertex_buffer);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+
+    gl::EnableVertexAttribArray(0);
+    gl::VertexAttribPointer(
+      0,
+      2,
+      gl::FLOAT,
+      gl::FALSE,
+      (2 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      std::ptr::null()
+    );
+
+    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+    gl::BindVertexArray(0);
+  }
+
+  let quad_vertex_shader_source = CString::new(
+    include_str!("quad_vertex_shader.glsl")
+  ).map_err(| error | error.to_string())?;
+
+  let quad_vertex_shader = unsafe { gl::CreateShader(gl::VERTEX_SHADER) };
+  unsafe {
+    gl::ShaderSource(quad_vertex_shader, 1, &quad_vertex_shader_source.as_ptr(), std::ptr::null());
+    gl::CompileShader(quad_vertex_shader);
+  }
+
+  let quad_fragment_shader_source = CString::new(
+    include_str!("quad_fragment_shader.glsl")
+  ).map_err(| error | error.to_string())?;
+
+  let quad_fragment_shader = unsafe { gl::CreateShader(gl::FRAGMENT_SHADER) };
+  unsafe {
+    gl::ShaderSource(quad_fragment_shader, 1, &quad_fragment_shader_source.as_ptr(), std::ptr::null());
+    gl::CompileShader(quad_fragment_shader);
+  }
+
+  let quad_shader_program = unsafe { gl::CreateProgram() };
+  unsafe {
+    gl::AttachShader(quad_shader_program, quad_vertex_shader);
+    gl::AttachShader(quad_shader_program, quad_fragment_shader);
+    gl::LinkProgram(quad_shader_program);
+  }
   
   let fps_cap = 4;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
@@ -170,6 +260,12 @@ fn main() -> Result<(), String> {
         unsafe {
           gl::ClearColor(0.5, 0.25, 0.25, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
+
+          gl::UseProgram(quad_shader_program);
+
+          gl::BindVertexArray(quad_vertex_array);
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+          gl::BindVertexArray(0);
         }
       },
 
