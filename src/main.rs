@@ -132,13 +132,8 @@ fn main() -> Result<(), String> {
   let mut high_scores_state = HighScoresState::new();
   let mut load_game_state = LoadGameState::new();
 
-  let quad_vertex_data: Vec<f32> = vec![
-    -16.0,  16.0, 0.0, 0.0,
-     16.0,  16.0, 1.0, 0.0,
-     16.0, -16.0, 1.0, 1.0,
-    -16.0, -16.0, 0.0, 1.0
-  ];
-
+  let quad_vertex_data = generate_vertex_data(32, 32);
+  
   let mut quad_vertex_buffer: gl::types::GLuint = 0;
   unsafe {
     gl::GenBuffers(1, &mut quad_vertex_buffer);
@@ -938,4 +933,13 @@ fn calculate_projection_matrix(left: f32, right: f32, bottom: f32, top: f32, nea
     z: Vector4::new(0.0, 0.0, -2.0 / fmn, -(fpn / fmn)),
     w: Vector4::new(0.0, 0.0, 0.0, 1.0)
   }
+}
+
+fn generate_vertex_data(width: u32, height: u32) -> Vec<f32> {
+  vec![
+    -(width as f32 / 2.0),  (height as f32 / 2.0), 0.0, 0.0,
+     (width as f32 / 2.0),  (height as f32 / 2.0), 1.0, 0.0,
+     (width as f32 / 2.0), -(height as f32 / 2.0), 1.0, 1.0,
+    -(width as f32 / 2.0), -(height as f32 / 2.0), 0.0, 1.0
+  ]
 }
