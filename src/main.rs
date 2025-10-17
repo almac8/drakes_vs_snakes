@@ -133,10 +133,10 @@ fn main() -> Result<(), String> {
   let mut load_game_state = LoadGameState::new();
 
   let quad_vertex_data: Vec<f32> = vec![
-    -0.5, -0.5, 0.0, 0.0,
-     0.5, -0.5, 1.0, 0.0,
-     0.5,  0.5, 1.0, 1.0,
-    -0.5,  0.5, 0.0, 1.0
+    -16.0,  16.0, 0.0, 0.0,
+     16.0,  16.0, 1.0, 0.0,
+     16.0, -16.0, 1.0, 1.0,
+    -16.0, -16.0, 0.0, 1.0
   ];
 
   let mut quad_vertex_buffer: gl::types::GLuint = 0;
@@ -258,6 +258,24 @@ fn main() -> Result<(), String> {
     gl::BindTexture(gl::TEXTURE_2D, 0);
   }
   
+  let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
+  let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, model_matrix_name.as_ptr()) };
+  let model_matrix = Matrix4::identity();
+
+  let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
+  let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, view_matrix_name.as_ptr()) };
+  let view_matrix = Matrix4::identity();
+
+  let projection_matrix_name = CString::new("projection").map_err(| error | error.to_string())?;
+  let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, projection_matrix_name.as_ptr()) };
+  let projection_matrix = calculate_projection_matrix(
+    -(640.0 / 2.0),
+    640.0 / 2.0,
+    480.0 / 2.0,
+    -(480.0 / 2.0),
+    1.0, -1.0
+  );
+
   let fps_cap = 4;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
   
@@ -303,7 +321,11 @@ fn main() -> Result<(), String> {
 
           gl::BindTexture(gl::TEXTURE_2D, drake_texture);
           gl::UseProgram(quad_shader_program);
-
+  
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&model_matrix).as_ptr());
+          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
+          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
+          
           gl::BindVertexArray(quad_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
@@ -855,4 +877,65 @@ fn load_saves_list() -> Result<Vec<String>, String> {
   }
 
   Ok(filenames)
+}
+
+fn flatten_matrix(matrix: &Matrix4) -> Vec<f32> {
+  vec![
+    matrix.x.x, matrix.y.x, matrix.z.x, matrix.w.x,
+    matrix.x.y, matrix.y.y, matrix.z.y, matrix.w.y,
+    matrix.x.z, matrix.y.z, matrix.z.z, matrix.w.z,
+    matrix.x.w, matrix.y.w, matrix.z.w, matrix.w.w
+  ]
+}
+
+struct Matrix4 {
+  x: Vector4,
+  y: Vector4,
+  z: Vector4,
+  w: Vector4
+}
+
+impl Matrix4 {
+  fn identity() -> Self {
+    Self {
+      x: Vector4::new(1.0, 0.0, 0.0, 0.0),
+      y: Vector4::new(0.0, 1.0, 0.0, 0.0),
+      z: Vector4::new(0.0, 0.0, 1.0, 0.0),
+      w: Vector4::new(0.0, 0.0, 0.0, 1.0)
+    }
+  }
+}
+
+struct Vector4 {
+  x: f32,
+  y: f32,
+  z: f32,
+  w: f32
+}
+
+impl Vector4 {
+  fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
+    Self {
+      x,
+      y,
+      z,
+      w
+    }
+  }
+}
+
+fn calculate_projection_matrix(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) -> Matrix4 {
+  let rml = right - left;
+  let rpl = right + left;
+  let tmb = top - bottom;
+  let tpb = top + bottom;
+  let fmn = far - near;
+  let fpn = far + near;
+
+  Matrix4 {
+    x: Vector4::new(2.0 / rml, 0.0, 0.0, -(rpl / rml)),
+    y: Vector4::new(0.0, 2.0 / tmb, 0.0, -(tpb / tmb)),
+    z: Vector4::new(0.0, 0.0, -2.0 / fmn, -(fpn / fmn)),
+    w: Vector4::new(0.0, 0.0, 0.0, 1.0)
+  }
 }
