@@ -203,6 +203,54 @@ fn main() -> Result<(), String> {
     gl::BindVertexArray(0);
   }
 
+  let emblem_vertex_data = generate_vertex_data(32, 32);
+
+  let mut emblem_vertex_buffer: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenBuffers(1, &mut emblem_vertex_buffer);
+    gl::BindBuffer(gl::ARRAY_BUFFER, emblem_vertex_buffer);
+
+    gl::BufferData(
+      gl::ARRAY_BUFFER,
+      (emblem_vertex_data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
+      emblem_vertex_data.as_ptr() as *const gl::types::GLvoid,
+      gl::STATIC_DRAW
+    );
+
+    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+  }
+  
+  let mut emblem_vertex_array: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenVertexArrays(1, &mut emblem_vertex_array);
+    gl::BindVertexArray(emblem_vertex_array);
+    gl::BindBuffer(gl::ARRAY_BUFFER, emblem_vertex_buffer);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+
+    gl::EnableVertexAttribArray(0);
+    gl::VertexAttribPointer(
+      0,
+      2,
+      gl::FLOAT,
+      gl::FALSE,
+      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      std::ptr::null()
+    );
+
+    gl::EnableVertexAttribArray(1);
+    gl::VertexAttribPointer(
+      1,
+      2,
+      gl::FLOAT,
+      gl::FALSE,
+      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      (2 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
+    );
+
+    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+    gl::BindVertexArray(0);
+  }
+
   let quad_vertex_shader_source = CString::new(
     include_str!("quad_vertex_shader.glsl")
   ).map_err(| error | error.to_string())?;
@@ -235,6 +283,8 @@ fn main() -> Result<(), String> {
   let high_scores_texture = Texture::load(Path::new("res/main_menu/high_scores.png"))?;
   let settings_texture = Texture::load(Path::new("res/main_menu/settings.png"))?;
   let quit_texture = Texture::load(Path::new("res/main_menu/quit.png"))?;
+  let emblem_0_texture = Texture::load(Path::new("res/emblem_0.png"))?;
+  let emblem_1_texture = Texture::load(Path::new("res/emblem_1.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, model_matrix_name.as_ptr()) };
@@ -248,6 +298,12 @@ fn main() -> Result<(), String> {
   settings_model_matrix.y.w = 96.0;
   let mut quit_model_matrix = Matrix4::identity();
   quit_model_matrix.y.w = 128.0;
+
+  let mut emblem_0_model_matrix = Matrix4::identity();
+  emblem_0_model_matrix.x.w = -100.0;
+
+  let mut emblem_1_model_matrix = Matrix4::identity();
+  emblem_1_model_matrix.x.w = 100.0;
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
   let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, view_matrix_name.as_ptr()) };
@@ -310,38 +366,38 @@ fn main() -> Result<(), String> {
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
           
+          gl::BindVertexArray(menu_option_vertex_array);
           gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_model_matrix).as_ptr());
-          
-          gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          gl::BindVertexArray(0);
-
+          
           gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_model_matrix).as_ptr());
-          
-          gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          gl::BindVertexArray(0);
-
+          
           gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_model_matrix).as_ptr());
-          
-          gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          gl::BindVertexArray(0);
-
+          
           gl::BindTexture(gl::TEXTURE_2D, settings_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_model_matrix).as_ptr());
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
-          gl::BindVertexArray(menu_option_vertex_array);
+          gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_model_matrix).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_model_matrix).as_ptr());
+          emblem_0_model_matrix.y.w = main_menu_state.selected_menu_item_index as f32 * 32.0;
+          emblem_1_model_matrix.y.w = main_menu_state.selected_menu_item_index as f32 * 32.0;
           
-          gl::BindVertexArray(menu_option_vertex_array);
+          gl::BindVertexArray(emblem_vertex_array);
+          gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_0_model_matrix).as_ptr());
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+          
+          gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_1_model_matrix).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
         }
