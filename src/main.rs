@@ -227,131 +227,11 @@ fn main() -> Result<(), String> {
     gl::LinkProgram(quad_shader_program);
   }
 
-  let mut new_game_image = image::open(Path::new("res/main_menu/new_game.png")).map_err(| error | error.to_string())?;
-  new_game_image = new_game_image.flipv();
-  let new_game_image_data = new_game_image.as_bytes();
-
-  let mut new_game_texture: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenTextures(1, &mut new_game_texture);
-    gl::BindTexture(gl::TEXTURE_2D, new_game_texture);
-
-    gl::TexImage2D(
-      gl::TEXTURE_2D,
-      0,
-      gl::RGBA as gl::types::GLint,
-      new_game_image.width() as gl::types::GLint,
-      new_game_image.height() as gl::types::GLint,
-      0,
-      gl::RGBA,
-      gl::UNSIGNED_BYTE,
-      new_game_image_data.as_ptr() as *const gl::types::GLvoid
-    );
-
-    gl::GenerateMipmap(gl::TEXTURE_2D);
-    gl::BindTexture(gl::TEXTURE_2D, 0);
-  }
-
-  
-  let mut load_game_image = image::open(Path::new("res/main_menu/load_game.png")).map_err(| error | error.to_string())?;
-  load_game_image = load_game_image.flipv();
-  let load_game_image_data = load_game_image.as_bytes();
-
-  let mut load_game_texture: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenTextures(1, &mut load_game_texture);
-    gl::BindTexture(gl::TEXTURE_2D, load_game_texture);
-
-    gl::TexImage2D(
-      gl::TEXTURE_2D,
-      0,
-      gl::RGBA as gl::types::GLint,
-      load_game_image.width() as gl::types::GLint,
-      load_game_image.height() as gl::types::GLint,
-      0,
-      gl::RGBA,
-      gl::UNSIGNED_BYTE,
-      load_game_image_data.as_ptr() as *const gl::types::GLvoid
-    );
-
-    gl::GenerateMipmap(gl::TEXTURE_2D);
-    gl::BindTexture(gl::TEXTURE_2D, 0);
-  }
-
-  let mut high_scores_image = image::open(Path::new("res/main_menu/high_scores.png")).map_err(| error | error.to_string())?;
-  high_scores_image = high_scores_image.flipv();
-  let high_scores_image_data = high_scores_image.as_bytes();
-
-  let mut high_scores_texture: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenTextures(1, &mut high_scores_texture);
-    gl::BindTexture(gl::TEXTURE_2D, high_scores_texture);
-
-    gl::TexImage2D(
-      gl::TEXTURE_2D,
-      0,
-      gl::RGBA as gl::types::GLint,
-      high_scores_image.width() as gl::types::GLint,
-      high_scores_image.height() as gl::types::GLint,
-      0,
-      gl::RGBA,
-      gl::UNSIGNED_BYTE,
-      high_scores_image_data.as_ptr() as *const gl::types::GLvoid
-    );
-
-    gl::GenerateMipmap(gl::TEXTURE_2D);
-    gl::BindTexture(gl::TEXTURE_2D, 0);
-  }
-
-  let mut settings_image = image::open(Path::new("res/main_menu/settings.png")).map_err(| error | error.to_string())?;
-  settings_image = settings_image.flipv();
-  let settings_image_data = settings_image.as_bytes();
-
-  let mut settings_texture: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenTextures(1, &mut settings_texture);
-    gl::BindTexture(gl::TEXTURE_2D, settings_texture);
-
-    gl::TexImage2D(
-      gl::TEXTURE_2D,
-      0,
-      gl::RGBA as gl::types::GLint,
-      settings_image.width() as gl::types::GLint,
-      settings_image.height() as gl::types::GLint,
-      0,
-      gl::RGBA,
-      gl::UNSIGNED_BYTE,
-      settings_image_data.as_ptr() as *const gl::types::GLvoid
-    );
-
-    gl::GenerateMipmap(gl::TEXTURE_2D);
-    gl::BindTexture(gl::TEXTURE_2D, 0);
-  }
-
-  let mut quit_image = image::open(Path::new("res/main_menu/quit.png")).map_err(| error | error.to_string())?;
-  quit_image = quit_image.flipv();
-  let quit_image_data = quit_image.as_bytes();
-
-  let mut quit_texture: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenTextures(1, &mut quit_texture);
-    gl::BindTexture(gl::TEXTURE_2D, quit_texture);
-
-    gl::TexImage2D(
-      gl::TEXTURE_2D,
-      0,
-      gl::RGBA as gl::types::GLint,
-      quit_image.width() as gl::types::GLint,
-      quit_image.height() as gl::types::GLint,
-      0,
-      gl::RGBA,
-      gl::UNSIGNED_BYTE,
-      quit_image_data.as_ptr() as *const gl::types::GLvoid
-    );
-
-    gl::GenerateMipmap(gl::TEXTURE_2D);
-    gl::BindTexture(gl::TEXTURE_2D, 0);
-  }
+  let new_game_texture = Texture::load(Path::new("res/main_menu/new_game.png"))?;
+  let load_game_texture = Texture::load(Path::new("res/main_menu/load_game.png"))?;
+  let high_scores_texture = Texture::load(Path::new("res/main_menu/high_scores.png"))?;
+  let settings_texture = Texture::load(Path::new("res/main_menu/settings.png"))?;
+  let quit_texture = Texture::load(Path::new("res/main_menu/quit.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, model_matrix_name.as_ptr()) };
@@ -427,35 +307,35 @@ fn main() -> Result<(), String> {
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
           
-          gl::BindTexture(gl::TEXTURE_2D, new_game_texture);
+          gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id);
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, load_game_texture);
+          gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id);
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, high_scores_texture);
+          gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id);
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, settings_texture);
+          gl::BindTexture(gl::TEXTURE_2D, settings_texture.id);
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, quit_texture);
+          gl::BindTexture(gl::TEXTURE_2D, quit_texture.id);
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
@@ -1079,4 +959,51 @@ fn generate_vertex_data(width: u32, height: u32) -> Vec<f32> {
      (width as f32 / 2.0), -(height as f32 / 2.0), 1.0, 1.0,
     -(width as f32 / 2.0), -(height as f32 / 2.0), 0.0, 1.0
   ]
+}
+
+struct Texture {
+  id: gl::types::GLuint
+}
+
+impl Texture {
+  fn load(file_path: &Path) -> Result<Self, String> {
+    let mut texture_image = image::open(file_path).map_err(| error | error.to_string())?;
+    texture_image = texture_image.flipv();
+    let texture_image_data = texture_image.as_bytes();
+    let mut new_texture_id: gl::types::GLuint = 0;
+
+    unsafe {
+      gl::GenTextures(1, &mut new_texture_id);
+      gl::BindTexture(gl::TEXTURE_2D, new_texture_id);
+      
+      gl::TexImage2D(
+        gl::TEXTURE_2D,
+        0,
+        gl::RGBA as gl::types::GLint,
+        texture_image.width() as gl::types::GLint,
+        texture_image.height() as gl::types::GLint,
+        0,
+        gl::RGBA,
+        gl::UNSIGNED_BYTE,
+        texture_image_data.as_ptr() as *const gl::types::GLvoid
+      );
+      
+      gl::GenerateMipmap(gl::TEXTURE_2D);
+      gl::BindTexture(gl::TEXTURE_2D, 0);
+    }
+    
+    Ok(
+      Self {
+        id: new_texture_id
+      }
+    )
+  }
+}
+
+impl Drop for Texture {
+  fn drop(&mut self) {
+    unsafe {
+      gl::DeleteTextures(1, &self.id as *const gl::types::GLuint);
+    }
+  }
 }
