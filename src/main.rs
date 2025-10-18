@@ -98,6 +98,12 @@ use pause_menu::{
 mod texture;
 use texture::Texture;
 
+mod vector4;
+use vector4::Vector4;
+
+mod matrix4;
+use matrix4::Matrix4;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -957,42 +963,6 @@ fn flatten_matrix(matrix: &Matrix4) -> Vec<f32> {
     matrix.x.z, matrix.y.z, matrix.z.z, matrix.w.z,
     matrix.x.w, matrix.y.w, matrix.z.w, matrix.w.w
   ]
-}
-
-struct Matrix4 {
-  x: Vector4,
-  y: Vector4,
-  z: Vector4,
-  w: Vector4
-}
-
-impl Matrix4 {
-  fn identity() -> Self {
-    Self {
-      x: Vector4::new(1.0, 0.0, 0.0, 0.0),
-      y: Vector4::new(0.0, 1.0, 0.0, 0.0),
-      z: Vector4::new(0.0, 0.0, 1.0, 0.0),
-      w: Vector4::new(0.0, 0.0, 0.0, 1.0)
-    }
-  }
-}
-
-struct Vector4 {
-  x: f32,
-  y: f32,
-  z: f32,
-  w: f32
-}
-
-impl Vector4 {
-  fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
-    Self {
-      x,
-      y,
-      z,
-      w
-    }
-  }
 }
 
 fn calculate_projection_matrix(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) -> Matrix4 {
