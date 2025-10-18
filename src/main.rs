@@ -104,6 +104,9 @@ use vector4::Vector4;
 mod matrix4;
 use matrix4::Matrix4;
 
+mod load_game_state;
+use load_game_state::LoadGameState;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -922,22 +925,6 @@ fn print_load_game(load_game_state: &LoadGameState) {
   for (index, name) in load_game_state.saves.iter().enumerate() {
     if load_game_state.selected_menu_item_index == index { print!("  * ") } else { print!("    ") }
     println!("{}", name);
-  }
-}
-
-struct LoadGameState {
-  saves_list_loaded: bool,
-  saves: Vec<String>,
-  selected_menu_item_index: usize
-}
-
-impl LoadGameState {
-  fn new() -> Self {
-    Self {
-      saves_list_loaded: false,
-      saves: Vec::new(),
-      selected_menu_item_index: 0
-    }
   }
 }
 
