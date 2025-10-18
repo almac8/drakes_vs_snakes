@@ -95,6 +95,9 @@ use pause_menu::{
   print_pause_menu
 };
 
+mod texture;
+use texture::Texture;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -307,35 +310,35 @@ fn main() -> Result<(), String> {
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
           
-          gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id);
+          gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id);
+          gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id);
+          gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, settings_texture.id);
+          gl::BindTexture(gl::TEXTURE_2D, settings_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          gl::BindTexture(gl::TEXTURE_2D, quit_texture.id);
+          gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_model_matrix).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array);
@@ -959,51 +962,4 @@ fn generate_vertex_data(width: u32, height: u32) -> Vec<f32> {
      (width as f32 / 2.0), -(height as f32 / 2.0), 1.0, 1.0,
     -(width as f32 / 2.0), -(height as f32 / 2.0), 0.0, 1.0
   ]
-}
-
-struct Texture {
-  id: gl::types::GLuint
-}
-
-impl Texture {
-  fn load(file_path: &Path) -> Result<Self, String> {
-    let mut texture_image = image::open(file_path).map_err(| error | error.to_string())?;
-    texture_image = texture_image.flipv();
-    let texture_image_data = texture_image.as_bytes();
-    let mut new_texture_id: gl::types::GLuint = 0;
-
-    unsafe {
-      gl::GenTextures(1, &mut new_texture_id);
-      gl::BindTexture(gl::TEXTURE_2D, new_texture_id);
-      
-      gl::TexImage2D(
-        gl::TEXTURE_2D,
-        0,
-        gl::RGBA as gl::types::GLint,
-        texture_image.width() as gl::types::GLint,
-        texture_image.height() as gl::types::GLint,
-        0,
-        gl::RGBA,
-        gl::UNSIGNED_BYTE,
-        texture_image_data.as_ptr() as *const gl::types::GLvoid
-      );
-      
-      gl::GenerateMipmap(gl::TEXTURE_2D);
-      gl::BindTexture(gl::TEXTURE_2D, 0);
-    }
-    
-    Ok(
-      Self {
-        id: new_texture_id
-      }
-    )
-  }
-}
-
-impl Drop for Texture {
-  fn drop(&mut self) {
-    unsafe {
-      gl::DeleteTextures(1, &self.id as *const gl::types::GLuint);
-    }
-  }
 }
