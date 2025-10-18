@@ -132,7 +132,7 @@ fn main() -> Result<(), String> {
   let mut high_scores_state = HighScoresState::new();
   let mut load_game_state = LoadGameState::new();
 
-  let quad_vertex_data = generate_vertex_data(32, 32);
+  let quad_vertex_data = generate_vertex_data(160, 32);
   
   let mut quad_vertex_buffer: gl::types::GLuint = 0;
   unsafe {
@@ -169,10 +169,10 @@ fn main() -> Result<(), String> {
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
   }
   
-  let mut quad_vertex_array: gl::types::GLuint = 0;
+  let mut menu_option_vertex_array: gl::types::GLuint = 0;
   unsafe {
-    gl::GenVertexArrays(1, &mut quad_vertex_array);
-    gl::BindVertexArray(quad_vertex_array);
+    gl::GenVertexArrays(1, &mut menu_option_vertex_array);
+    gl::BindVertexArray(menu_option_vertex_array);
     gl::BindBuffer(gl::ARRAY_BUFFER, quad_vertex_buffer);
     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
 
@@ -227,35 +227,144 @@ fn main() -> Result<(), String> {
     gl::LinkProgram(quad_shader_program);
   }
 
-  let drake_image = image::open(Path::new("res/drake.png")).map_err(| error | error.to_string())?;
-  let drake_image = drake_image.flipv();
-  let drake_image_data = drake_image.as_bytes();
+  let mut new_game_image = image::open(Path::new("res/main_menu/new_game.png")).map_err(| error | error.to_string())?;
+  new_game_image = new_game_image.flipv();
+  let new_game_image_data = new_game_image.as_bytes();
 
-  let mut drake_texture: gl::types::GLuint = 0;
+  let mut new_game_texture: gl::types::GLuint = 0;
   unsafe {
-    gl::GenTextures(1, &mut drake_texture);
-    gl::BindTexture(gl::TEXTURE_2D, drake_texture);
+    gl::GenTextures(1, &mut new_game_texture);
+    gl::BindTexture(gl::TEXTURE_2D, new_game_texture);
 
     gl::TexImage2D(
       gl::TEXTURE_2D,
       0,
       gl::RGBA as gl::types::GLint,
-      drake_image.width() as gl::types::GLint,
-      drake_image.height() as gl::types::GLint,
+      new_game_image.width() as gl::types::GLint,
+      new_game_image.height() as gl::types::GLint,
       0,
       gl::RGBA,
       gl::UNSIGNED_BYTE,
-      drake_image_data.as_ptr() as *const gl::types::GLvoid
+      new_game_image_data.as_ptr() as *const gl::types::GLvoid
     );
 
     gl::GenerateMipmap(gl::TEXTURE_2D);
-
     gl::BindTexture(gl::TEXTURE_2D, 0);
   }
+
   
+  let mut load_game_image = image::open(Path::new("res/main_menu/load_game.png")).map_err(| error | error.to_string())?;
+  load_game_image = load_game_image.flipv();
+  let load_game_image_data = load_game_image.as_bytes();
+
+  let mut load_game_texture: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenTextures(1, &mut load_game_texture);
+    gl::BindTexture(gl::TEXTURE_2D, load_game_texture);
+
+    gl::TexImage2D(
+      gl::TEXTURE_2D,
+      0,
+      gl::RGBA as gl::types::GLint,
+      load_game_image.width() as gl::types::GLint,
+      load_game_image.height() as gl::types::GLint,
+      0,
+      gl::RGBA,
+      gl::UNSIGNED_BYTE,
+      load_game_image_data.as_ptr() as *const gl::types::GLvoid
+    );
+
+    gl::GenerateMipmap(gl::TEXTURE_2D);
+    gl::BindTexture(gl::TEXTURE_2D, 0);
+  }
+
+  let mut high_scores_image = image::open(Path::new("res/main_menu/high_scores.png")).map_err(| error | error.to_string())?;
+  high_scores_image = high_scores_image.flipv();
+  let high_scores_image_data = high_scores_image.as_bytes();
+
+  let mut high_scores_texture: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenTextures(1, &mut high_scores_texture);
+    gl::BindTexture(gl::TEXTURE_2D, high_scores_texture);
+
+    gl::TexImage2D(
+      gl::TEXTURE_2D,
+      0,
+      gl::RGBA as gl::types::GLint,
+      high_scores_image.width() as gl::types::GLint,
+      high_scores_image.height() as gl::types::GLint,
+      0,
+      gl::RGBA,
+      gl::UNSIGNED_BYTE,
+      high_scores_image_data.as_ptr() as *const gl::types::GLvoid
+    );
+
+    gl::GenerateMipmap(gl::TEXTURE_2D);
+    gl::BindTexture(gl::TEXTURE_2D, 0);
+  }
+
+  let mut settings_image = image::open(Path::new("res/main_menu/settings.png")).map_err(| error | error.to_string())?;
+  settings_image = settings_image.flipv();
+  let settings_image_data = settings_image.as_bytes();
+
+  let mut settings_texture: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenTextures(1, &mut settings_texture);
+    gl::BindTexture(gl::TEXTURE_2D, settings_texture);
+
+    gl::TexImage2D(
+      gl::TEXTURE_2D,
+      0,
+      gl::RGBA as gl::types::GLint,
+      settings_image.width() as gl::types::GLint,
+      settings_image.height() as gl::types::GLint,
+      0,
+      gl::RGBA,
+      gl::UNSIGNED_BYTE,
+      settings_image_data.as_ptr() as *const gl::types::GLvoid
+    );
+
+    gl::GenerateMipmap(gl::TEXTURE_2D);
+    gl::BindTexture(gl::TEXTURE_2D, 0);
+  }
+
+  let mut quit_image = image::open(Path::new("res/main_menu/quit.png")).map_err(| error | error.to_string())?;
+  quit_image = quit_image.flipv();
+  let quit_image_data = quit_image.as_bytes();
+
+  let mut quit_texture: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenTextures(1, &mut quit_texture);
+    gl::BindTexture(gl::TEXTURE_2D, quit_texture);
+
+    gl::TexImage2D(
+      gl::TEXTURE_2D,
+      0,
+      gl::RGBA as gl::types::GLint,
+      quit_image.width() as gl::types::GLint,
+      quit_image.height() as gl::types::GLint,
+      0,
+      gl::RGBA,
+      gl::UNSIGNED_BYTE,
+      quit_image_data.as_ptr() as *const gl::types::GLvoid
+    );
+
+    gl::GenerateMipmap(gl::TEXTURE_2D);
+    gl::BindTexture(gl::TEXTURE_2D, 0);
+  }
+
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, model_matrix_name.as_ptr()) };
-  let model_matrix = Matrix4::identity();
+  
+  let new_game_model_matrix = Matrix4::identity();
+  let mut load_game_model_matrix = Matrix4::identity();
+  load_game_model_matrix.y.w = 32.0;
+  let mut high_scores_model_matrix = Matrix4::identity();
+  high_scores_model_matrix.y.w = 64.0;
+  let mut settings_model_matrix = Matrix4::identity();
+  settings_model_matrix.y.w = 96.0;
+  let mut quit_model_matrix = Matrix4::identity();
+  quit_model_matrix.y.w = 128.0;
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
   let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, view_matrix_name.as_ptr()) };
@@ -314,14 +423,42 @@ fn main() -> Result<(), String> {
           gl::ClearColor(0.5, 0.25, 0.25, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
-          gl::BindTexture(gl::TEXTURE_2D, drake_texture);
           gl::UseProgram(quad_shader_program);
-  
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&model_matrix).as_ptr());
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
           
-          gl::BindVertexArray(quad_vertex_array);
+          gl::BindTexture(gl::TEXTURE_2D, new_game_texture);
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_model_matrix).as_ptr());
+          
+          gl::BindVertexArray(menu_option_vertex_array);
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+          gl::BindVertexArray(0);
+
+          gl::BindTexture(gl::TEXTURE_2D, load_game_texture);
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_model_matrix).as_ptr());
+          
+          gl::BindVertexArray(menu_option_vertex_array);
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+          gl::BindVertexArray(0);
+
+          gl::BindTexture(gl::TEXTURE_2D, high_scores_texture);
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_model_matrix).as_ptr());
+          
+          gl::BindVertexArray(menu_option_vertex_array);
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+          gl::BindVertexArray(0);
+
+          gl::BindTexture(gl::TEXTURE_2D, settings_texture);
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_model_matrix).as_ptr());
+          
+          gl::BindVertexArray(menu_option_vertex_array);
+          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+          gl::BindVertexArray(0);
+
+          gl::BindTexture(gl::TEXTURE_2D, quit_texture);
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_model_matrix).as_ptr());
+          
+          gl::BindVertexArray(menu_option_vertex_array);
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
         }
