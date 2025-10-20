@@ -12,7 +12,7 @@ pub fn update_main_menu(message_queue: &mut MessageQueue, main_menu_state: &mut 
   for message in message_queue.messages() {
     if let Message::PlayerInput(input) = *message { match input {
       Input::Up => if main_menu_state.selected_menu_item_index > 0 { main_menu_state.selected_menu_item_index -= 1 },
-      Input::Down => if main_menu_state.selected_menu_item_index < 3 { main_menu_state.selected_menu_item_index += 1 },
+      Input::Down => if main_menu_state.selected_menu_item_index < 4 { main_menu_state.selected_menu_item_index += 1 },
       Input::Confirm => confirmed = true,
       
       _ => {}
@@ -24,7 +24,8 @@ pub fn update_main_menu(message_queue: &mut MessageQueue, main_menu_state: &mut 
       0 => message_queue.post(Message::RequestScene(Scenes::NewGame)),
       1 => message_queue.post(Message::RequestScene(Scenes::LoadGame)),
       2 => message_queue.post(Message::RequestScene(Scenes::HighScores)),
-      3 => message_queue.post(Message::RequestShutdown),
+      3 => message_queue.post(Message::RequestScene(Scenes::Settings)),
+      4 => message_queue.post(Message::RequestShutdown),
       _ => {}
     }
   }
@@ -45,7 +46,10 @@ pub fn print_main_menu(main_menu_state: &MainMenuState) {
   println!("3) High scores");
   
   if main_menu_state.selected_menu_item_index == 3 { print!("  * ") } else { print!("    ") }
-  println!("4) Exit");
+  println!("4) Settings");
+
+  if main_menu_state.selected_menu_item_index == 4 { print!("  * ") } else { print!("    ") }
+  println!("5) Exit");
 
   println!();
 }
@@ -96,11 +100,11 @@ use super::{
     message_queue.swap_buffers();
 
     let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item_index = 2;
+    main_menu_state.selected_menu_item_index = 3;
 
     update_main_menu(&mut message_queue, &mut main_menu_state);
 
-    assert_eq!(main_menu_state.selected_menu_item_index, 3);
+    assert_eq!(main_menu_state.selected_menu_item_index, 4);
   }
 
   #[test]
@@ -110,11 +114,11 @@ use super::{
     message_queue.swap_buffers();
 
     let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item_index = 3;
+    main_menu_state.selected_menu_item_index = 4;
 
     update_main_menu(&mut message_queue, &mut main_menu_state);
 
-    assert_eq!(main_menu_state.selected_menu_item_index, 3);
+    assert_eq!(main_menu_state.selected_menu_item_index, 4);
   }
 
   #[test]
@@ -165,13 +169,29 @@ use super::{
   }
 
   #[test]
-  fn confirm_exit() {
+  fn confirm_settings() {
     let mut message_queue = MessageQueue::new();
     message_queue.post(Message::PlayerInput(Input::Confirm));
     message_queue.swap_buffers();
 
     let mut main_menu_state = MainMenuState::new();
     main_menu_state.selected_menu_item_index = 3;
+
+    update_main_menu(&mut message_queue, &mut main_menu_state);
+
+    message_queue.swap_buffers();
+
+    assert_eq!(message_queue.messages()[0], Message::RequestScene(Scenes::Settings));
+  }
+
+  #[test]
+  fn confirm_exit() {
+    let mut message_queue = MessageQueue::new();
+    message_queue.post(Message::PlayerInput(Input::Confirm));
+    message_queue.swap_buffers();
+
+    let mut main_menu_state = MainMenuState::new();
+    main_menu_state.selected_menu_item_index = 4;
 
     update_main_menu(&mut message_queue, &mut main_menu_state);
 

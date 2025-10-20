@@ -480,6 +480,16 @@ fn main() -> Result<(), String> {
           gl::ClearColor(0.75, 0.75, 0.5, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
         }
+      },
+
+      Scenes::Settings => {
+        update_settings(&mut message_queue);
+        print_settings();
+
+        unsafe {
+          gl::ClearColor(0.5, 0.75, 0.75, 1.0);
+          gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
       }
     }
   
@@ -975,4 +985,20 @@ fn generate_vertex_data(width: u32, height: u32) -> Vec<f32> {
      (width as f32 / 2.0), -(height as f32 / 2.0), 1.0, 1.0,
     -(width as f32 / 2.0), -(height as f32 / 2.0), 0.0, 1.0
   ]
+}
+
+fn update_settings(message_queue: &mut MessageQueue) {
+  let mut cancelled = false;
+
+  for message in message_queue.messages() {
+    if let Message::PlayerInput(input) = message { match input {
+      _ => cancelled = true
+    }}
+  }
+
+  if cancelled { message_queue.post(Message::RequestScene(Scenes::MainMenu)) }
+}
+
+fn print_settings() {
+  println!("Settings");
 }
