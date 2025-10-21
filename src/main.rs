@@ -144,6 +144,9 @@ fn main() -> Result<(), String> {
   let mut high_scores_state = HighScoresState::new();
   let mut load_game_state = LoadGameState::new();
 
+  let tile_width = 32;
+  let tile_height = 32;
+
   let quad_vertex_data = generate_vertex_data(160, 32);
   
   let mut quad_vertex_buffer: gl::types::GLuint = 0;
@@ -260,6 +263,54 @@ fn main() -> Result<(), String> {
     gl::BindVertexArray(0);
   }
 
+  let tile_vertex_data = generate_vertex_data(tile_width, tile_height);
+  
+  let mut tile_vertex_buffer: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenBuffers(1, &mut tile_vertex_buffer);
+    gl::BindBuffer(gl::ARRAY_BUFFER, tile_vertex_buffer);
+
+    gl::BufferData(
+      gl::ARRAY_BUFFER,
+      (tile_vertex_data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
+      tile_vertex_data.as_ptr() as *const gl::types::GLvoid,
+      gl::STATIC_DRAW
+    );
+
+    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+  }
+  
+  let mut tile_vertex_array: gl::types::GLuint = 0;
+  unsafe {
+    gl::GenVertexArrays(1, &mut tile_vertex_array);
+    gl::BindVertexArray(tile_vertex_array);
+    gl::BindBuffer(gl::ARRAY_BUFFER, tile_vertex_buffer);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+
+    gl::EnableVertexAttribArray(0);
+    gl::VertexAttribPointer(
+      0,
+      2,
+      gl::FLOAT,
+      gl::FALSE,
+      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      std::ptr::null()
+    );
+
+    gl::EnableVertexAttribArray(1);
+    gl::VertexAttribPointer(
+      1,
+      2,
+      gl::FLOAT,
+      gl::FALSE,
+      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
+      (2 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
+    );
+
+    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+    gl::BindVertexArray(0);
+  }
+
   let quad_vertex_shader_source = CString::new(
     include_str!("quad_vertex_shader.glsl")
   ).map_err(| error | error.to_string())?;
@@ -292,8 +343,19 @@ fn main() -> Result<(), String> {
   let high_scores_texture = Texture::load(Path::new("res/main_menu/high_scores.png"))?;
   let settings_texture = Texture::load(Path::new("res/main_menu/settings.png"))?;
   let quit_texture = Texture::load(Path::new("res/main_menu/quit.png"))?;
-  let emblem_0_texture = Texture::load(Path::new("res/emblem_0.png"))?;
-  let emblem_1_texture = Texture::load(Path::new("res/emblem_1.png"))?;
+  let emblem_0_texture = Texture::load(Path::new("res/main_menu/emblem_0.png"))?;
+  let emblem_1_texture = Texture::load(Path::new("res/main_menu/emblem_1.png"))?;
+  let drake_texture = Texture::load(Path::new("res/playfield/drake.png"))?;
+  let grass_texture = Texture::load(Path::new("res/playfield/grass.png"))?;
+  let snake_texture = Texture::load(Path::new("res/playfield/snake.png"))?;
+  let grass_1_texture = Texture::load(Path::new("res/playfield/grass_1.png"))?;
+  let grass_2_texture = Texture::load(Path::new("res/playfield/grass_2.png"))?;
+  let grass_3_texture = Texture::load(Path::new("res/playfield/grass_3.png"))?;
+  let grass_4_texture = Texture::load(Path::new("res/playfield/grass_4.png"))?;
+  let grass_5_texture = Texture::load(Path::new("res/playfield/grass_5.png"))?;
+  let grass_6_texture = Texture::load(Path::new("res/playfield/grass_6.png"))?;
+  let grass_7_texture = Texture::load(Path::new("res/playfield/grass_7.png"))?;
+  let grass_8_texture = Texture::load(Path::new("res/playfield/grass_8.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, model_matrix_name.as_ptr()) };
@@ -316,7 +378,7 @@ fn main() -> Result<(), String> {
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
   let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, view_matrix_name.as_ptr()) };
-  let view_matrix = Matrix4::identity();
+  let mut view_matrix = Matrix4::identity();
 
   let projection_matrix_name = CString::new("projection").map_err(| error | error.to_string())?;
   let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, projection_matrix_name.as_ptr()) };
@@ -429,6 +491,82 @@ fn main() -> Result<(), String> {
         unsafe {
           gl::ClearColor(0.25, 0.25, 0.5, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
+
+          gl::UseProgram(quad_shader_program);
+          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
+          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
+
+          gl::BindVertexArray(tile_vertex_array);
+
+          for index in 0..playfield_state.map.size.array_length() {
+            let mut tile_model_matrix = Matrix4::identity();
+            let tile_location = Coordinate::from_index(index, &playfield_state.map.size);
+            tile_model_matrix.x.w = tile_location.x() as f32 * tile_width as f32;
+            tile_model_matrix.x.w -= playfield_state.map.size.width() as f32 * tile_width as f32 / 2.0;
+            tile_model_matrix.y.w = tile_location.y() as f32 * tile_height as f32;
+            tile_model_matrix.y.w -= playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0;
+
+            gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_model_matrix).as_ptr());
+            
+            gl::BindTexture(gl::TEXTURE_2D, grass_texture.id());
+            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+
+            match playfield_state.map.hint[index] {
+              1 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_1_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              2 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_2_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              3 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_3_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              4 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_4_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              5 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_5_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              6 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_6_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              7 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_7_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              8 => {
+                gl::BindTexture(gl::TEXTURE_2D, grass_8_texture.id());
+                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              }
+
+              _ => {}
+            }
+
+            if playfield_state.map.player_location.array_index() == index {
+              gl::BindTexture(gl::TEXTURE_2D, drake_texture.id());
+              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              view_matrix.x.w = -tile_model_matrix.x.w;
+              view_matrix.y.w = -tile_model_matrix.y.w;
+            }
+
+            if playfield_state.map.is_snake[index] {
+              gl::BindTexture(gl::TEXTURE_2D, snake_texture.id());
+              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            }
+          }
         }
       },
 
