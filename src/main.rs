@@ -149,6 +149,9 @@ use validate_map::validate_map;
 mod validate_saves_directory;
 use validate_saves_directory::validate_saves_directory;
 
+mod load_saves_list;
+use load_saves_list::load_saves_list;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -983,7 +986,7 @@ fn load_high_scores() -> Result<Vec<HighScoresListing>, String> {
 
 fn update_load_game(message_queue: &mut MessageQueue, load_game_state: &mut LoadGameState, playfield_state: &mut PlayfieldState) -> Result<(), String> {
   if !load_game_state.saves_list_loaded {
-    load_game_state.saves = load_saves_list()?;
+    load_game_state.saves = load_saves_list(Path::new("./saves"))?;
   }
 
   let mut cancelled = false;
@@ -1017,20 +1020,4 @@ fn update_load_game(message_queue: &mut MessageQueue, load_game_state: &mut Load
   }
 
   Ok(())
-}
-
-fn load_saves_list() -> Result<Vec<String>, String> {
-  validate_saves_directory(Path::new("./saves"))?;
-  let files = std::fs::read_dir("./saves").map_err(| error | error.to_string())?;
-  let mut filenames = Vec::new();
-
-  for file in files {
-    let file = file.map_err(| error | error.to_string())?;
-    match file.file_name().into_string() {
-      Ok(filename) => filenames.push(filename),
-      Err(_) => return Err("Error parsing filename".to_string())
-    }
-  }
-
-  Ok(filenames)
 }

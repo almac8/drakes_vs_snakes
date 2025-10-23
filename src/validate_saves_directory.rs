@@ -21,7 +21,7 @@ mod testing {
 
   #[test]
   fn saves_directory_exists() {
-    let directory_path = Path::new("./test_saves");
+    let directory_path = Path::new("./saves_directory_exists_test_saves");
 
     match std::fs::read_dir(directory_path) {
       Ok(_) => panic!("Expected directory not to exist"),
@@ -51,7 +51,7 @@ mod testing {
 
   #[test]
   fn saves_directory_does_not_exist() {
-    let directory_path = Path::new("./test_saves");
+    let directory_path = Path::new("./saves_directory_does_not_exist_test_saves");
 
     match std::fs::read_dir(directory_path) {
       Ok(_) => panic!("Expected to fail"),
