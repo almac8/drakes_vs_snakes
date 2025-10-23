@@ -140,6 +140,9 @@ use flatten_matrix::flatten_matrix;
 mod high_scores_state;
 use high_scores_state::HighScoresState;
 
+mod update_settings;
+use update_settings::update_settings;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -1044,16 +1047,4 @@ fn load_saves_list() -> Result<Vec<String>, String> {
   }
 
   Ok(filenames)
-}
-
-fn update_settings(message_queue: &mut MessageQueue) {
-  let mut cancelled = false;
-
-  for message in message_queue.messages() {
-    if let Message::PlayerInput(input) = message { match input {
-      _ => cancelled = true
-    }}
-  }
-
-  if cancelled { message_queue.post(Message::RequestScene(Scenes::MainMenu)) }
 }
