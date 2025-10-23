@@ -155,6 +155,9 @@ use load_saves_list::load_saves_list;
 mod print_save_game;
 use print_save_game::print_save_game;
 
+mod validate_high_scores_file;
+use validate_high_scores_file::validate_high_scores_file;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
