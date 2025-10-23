@@ -107,6 +107,39 @@ use matrix4::Matrix4;
 mod load_game_state;
 use load_game_state::LoadGameState;
 
+mod map_validation;
+use map_validation::MapValidation;
+
+mod print_playfield;
+use print_playfield::print_playfield;
+
+mod print_add_high_score;
+use print_add_high_score::print_add_high_score;
+
+mod high_scores_listing;
+use high_scores_listing::HighScoresListing;
+
+mod print_high_scores;
+use print_high_scores::print_high_scores;
+
+mod print_load_game;
+use print_load_game::print_load_game;
+
+mod print_settings;
+use print_settings::print_settings;
+
+mod generate_vertex_data;
+use generate_vertex_data::generate_vertex_data;
+
+mod calculate_projection_matrix;
+use calculate_projection_matrix::calculate_projection_matrix;
+
+mod flatten_matrix;
+use flatten_matrix::flatten_matrix;
+
+mod high_scores_state;
+use high_scores_state::HighScoresState;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -644,12 +677,6 @@ fn main() -> Result<(), String> {
   Ok(())
 }
 
-enum MapValidation {
-  Valid,
-  Won,
-  Lost
-}
-
 fn validate_map(map: &Map) -> MapValidation {
   if map.player_location.array_index() == map.goal_location.array_index() {
     return MapValidation::Won;
@@ -665,36 +692,6 @@ fn validate_map(map: &Map) -> MapValidation {
 fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
   handle_playfield_input(message_queue, playfield_state);
   handle_map_validation(playfield_state, message_queue);
-}
-
-fn print_playfield(playfield_state: &PlayfieldState) {
-  if playfield_state.is_interacting { println!("Is Marking"); }
-  println!("Score: {}/{}", playfield_state.map.score.current(), playfield_state.map.score.maximum());
-  for index in 0..playfield_state.map.size.array_length() {
-    if index == playfield_state.map.player_location.array_index() {
-      print!("P");
-    } else if index == playfield_state.map.goal_location.array_index() {
-      print!("G");
-    } else if playfield_state.map.is_marked[index] {
-      print!("X");
-    } else if playfield_state.map.is_explored[index] {
-      if playfield_state.map.is_path[index] {
-        print!("*");
-      } else {
-        print!("{}", playfield_state.map.hint[index]);
-      }
-    } else {
-      print!("_");
-    }
-
-    if index % playfield_state.map.size.width() == playfield_state.map.size.width() - 1 {
-      println!();
-    } else {
-      print!(" ");
-    }
-  }
-  println!();
-  println!();
 }
 
 fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
@@ -916,11 +913,6 @@ fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &Pla
   Ok(())
 }
 
-fn print_add_high_score() {
-  println!("You win!");
-  println!("Enter your name:");
-}
-
 fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState) -> Result<(), String> {
   let mut path_buffer = std::path::PathBuf::new();
   path_buffer.push("./saves/");
@@ -973,33 +965,6 @@ fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut 
   Ok(())
 }
 
-fn print_high_scores(high_scores_state: &HighScoresState) {
-  println!("High Scores");
-
-  for listing in &high_scores_state.listings {
-    println!("{}: {}", listing.name, listing.score);
-  }
-}
-
-struct HighScoresState {
-  is_loaded: bool,
-  listings: Vec<HighScoresListing>
-}
-
-impl HighScoresState {
-  fn new() -> Self {
-    Self {
-      is_loaded: false,
-      listings: Vec::new()
-    }
-  }
-}
-
-struct HighScoresListing {
-  name: String,
-  score: usize
-}
-
 fn load_high_scores() -> Result<Vec<HighScoresListing>, String> {
   let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").map_err(| error | error.to_string())?;
 
@@ -1020,10 +985,9 @@ fn load_high_scores() -> Result<Vec<HighScoresListing>, String> {
   
   let num_listings = raw_values.len() / 2;
   for index in 0..num_listings {
-    listings.push(HighScoresListing {
-      name: raw_values[index * 2].clone(),
-      score: raw_values[index * 2 + 1].parse().map_err(| error: ParseIntError | error.to_string())?
-    });
+    let name = raw_values[index * 2].clone();
+    let score: usize = raw_values[index * 2 + 1].parse().map_err(| error: ParseIntError | error.to_string())?;
+    listings.push(HighScoresListing::from(name, score));
   }
 
   Ok(listings)
@@ -1067,15 +1031,6 @@ fn update_load_game(message_queue: &mut MessageQueue, load_game_state: &mut Load
   Ok(())
 }
 
-fn print_load_game(load_game_state: &LoadGameState) {
-  println!("Load Game:");
-
-  for (index, name) in load_game_state.saves.iter().enumerate() {
-    if load_game_state.selected_menu_item_index == index { print!("  * ") } else { print!("    ") }
-    println!("{}", name);
-  }
-}
-
 fn load_saves_list() -> Result<Vec<String>, String> {
   let files = std::fs::read_dir("./saves").map_err(| error | error.to_string())?;
   let mut filenames = Vec::new();
@@ -1091,40 +1046,6 @@ fn load_saves_list() -> Result<Vec<String>, String> {
   Ok(filenames)
 }
 
-fn flatten_matrix(matrix: &Matrix4) -> Vec<f32> {
-  vec![
-    matrix.x.x, matrix.y.x, matrix.z.x, matrix.w.x,
-    matrix.x.y, matrix.y.y, matrix.z.y, matrix.w.y,
-    matrix.x.z, matrix.y.z, matrix.z.z, matrix.w.z,
-    matrix.x.w, matrix.y.w, matrix.z.w, matrix.w.w
-  ]
-}
-
-fn calculate_projection_matrix(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) -> Matrix4 {
-  let rml = right - left;
-  let rpl = right + left;
-  let tmb = top - bottom;
-  let tpb = top + bottom;
-  let fmn = far - near;
-  let fpn = far + near;
-
-  Matrix4 {
-    x: Vector4::new(2.0 / rml, 0.0, 0.0, -(rpl / rml)),
-    y: Vector4::new(0.0, 2.0 / tmb, 0.0, -(tpb / tmb)),
-    z: Vector4::new(0.0, 0.0, -2.0 / fmn, -(fpn / fmn)),
-    w: Vector4::new(0.0, 0.0, 0.0, 1.0)
-  }
-}
-
-fn generate_vertex_data(width: u32, height: u32) -> Vec<f32> {
-  vec![
-    -(width as f32 / 2.0),  (height as f32 / 2.0), 0.0, 0.0,
-     (width as f32 / 2.0),  (height as f32 / 2.0), 1.0, 0.0,
-     (width as f32 / 2.0), -(height as f32 / 2.0), 1.0, 1.0,
-    -(width as f32 / 2.0), -(height as f32 / 2.0), 0.0, 1.0
-  ]
-}
-
 fn update_settings(message_queue: &mut MessageQueue) {
   let mut cancelled = false;
 
@@ -1135,8 +1056,4 @@ fn update_settings(message_queue: &mut MessageQueue) {
   }
 
   if cancelled { message_queue.post(Message::RequestScene(Scenes::MainMenu)) }
-}
-
-fn print_settings() {
-  println!("Settings");
 }
