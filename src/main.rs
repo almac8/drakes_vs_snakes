@@ -143,6 +143,9 @@ use high_scores_state::HighScoresState;
 mod update_settings;
 use update_settings::update_settings;
 
+mod validate_map;
+use validate_map::validate_map;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -521,7 +524,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::Playfield => {
-        update_playfield(&mut message_queue, &mut playfield_state);
+        update_playfield(&mut message_queue, &mut playfield_state)?;
         print_playfield(&playfield_state);
 
         unsafe {
@@ -676,25 +679,14 @@ fn main() -> Result<(), String> {
     }
   }
 
-
   Ok(())
 }
 
-fn validate_map(map: &Map) -> MapValidation {
-  if map.player_location.array_index() == map.goal_location.array_index() {
-    return MapValidation::Won;
-  }
-  
-  if map.is_snake[map.player_location.array_index()] {
-    return MapValidation::Lost;
-  }
-
-  return MapValidation::Valid;
-}
-
-fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
+fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) -> Result<(), String> {
   handle_playfield_input(message_queue, playfield_state);
-  handle_map_validation(playfield_state, message_queue);
+  handle_map_validation(playfield_state, message_queue)?;
+
+  Ok(())
 }
 
 fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
@@ -760,12 +752,14 @@ fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mu
   if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
 }
 
-fn handle_map_validation(playfield_state: &PlayfieldState, message_queue: &mut MessageQueue) {
-  match validate_map(&playfield_state.map) {
+fn handle_map_validation(playfield_state: &PlayfieldState, message_queue: &mut MessageQueue) -> Result<(), String> {
+  match validate_map(&playfield_state.map)? {
     MapValidation::Valid => {},
     MapValidation::Won => message_queue.post(Message::RequestScene(Scenes::AddHighScore)),
     MapValidation::Lost => message_queue.post(Message::RequestScene(Scenes::MainMenu))
   }
+
+  return Ok(());
 }
 
 fn serialize_map(map: &Map) -> String {
