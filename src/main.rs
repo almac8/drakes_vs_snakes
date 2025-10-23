@@ -146,6 +146,9 @@ use update_settings::update_settings;
 mod validate_map;
 use validate_map::validate_map;
 
+mod validate_saves_directory;
+use validate_saves_directory::validate_saves_directory;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -684,7 +687,12 @@ fn main() -> Result<(), String> {
 
 fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) -> Result<(), String> {
   handle_playfield_input(message_queue, playfield_state);
-  handle_map_validation(playfield_state, message_queue)?;
+
+  match validate_map(&playfield_state.map)? {
+    MapValidation::Valid => {},
+    MapValidation::Won => message_queue.post(Message::RequestScene(Scenes::AddHighScore)),
+    MapValidation::Lost => message_queue.post(Message::RequestScene(Scenes::MainMenu))
+  }
 
   Ok(())
 }
@@ -750,16 +758,6 @@ fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mu
   }
 
   if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
-}
-
-fn handle_map_validation(playfield_state: &PlayfieldState, message_queue: &mut MessageQueue) -> Result<(), String> {
-  match validate_map(&playfield_state.map)? {
-    MapValidation::Valid => {},
-    MapValidation::Won => message_queue.post(Message::RequestScene(Scenes::AddHighScore)),
-    MapValidation::Lost => message_queue.post(Message::RequestScene(Scenes::MainMenu))
-  }
-
-  return Ok(());
 }
 
 fn serialize_map(map: &Map) -> String {
@@ -917,15 +915,8 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   let mut text_input = read_text_input()?;
   text_input.push_str(".txt");
   path_buffer.push(text_input);
-  
-  let mut saves_exist = false;
-  let paths = std::fs::read_dir("./").map_err(| error | error.to_string())?;
-  for path in paths {
-    let path_string = path.map_err(| error | error.to_string())?.path().display().to_string();
-    if path_string == "./saves" { saves_exist = true }
-  }
-  
-  if !saves_exist { std::fs::create_dir("./saves").map_err(| error | error.to_string())? }
+
+  validate_saves_directory(Path::new("./saves"))?;
   
   let contents = serialize_map(&playfield_state.map);
   
@@ -1029,6 +1020,7 @@ fn update_load_game(message_queue: &mut MessageQueue, load_game_state: &mut Load
 }
 
 fn load_saves_list() -> Result<Vec<String>, String> {
+  validate_saves_directory(Path::new("./saves"))?;
   let files = std::fs::read_dir("./saves").map_err(| error | error.to_string())?;
   let mut filenames = Vec::new();
 
