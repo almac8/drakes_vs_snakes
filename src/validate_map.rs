@@ -5,7 +5,7 @@ use crate::{
 
 pub fn validate_map(map: &Map) -> Result<MapValidation, String> {
   if map.goal_location.array_index() == 0 { return Err("Uninitialized goal".to_string()) }
-  if map.is_snake.len() == 0 { return Err("Uninitialized snakes".to_string()) }
+  if map.is_snake.is_empty() { return Err("Uninitialized snakes".to_string()) }
 
   if map.player_location.array_index() == map.goal_location.array_index() {
     return Ok(MapValidation::Won);
@@ -14,8 +14,8 @@ pub fn validate_map(map: &Map) -> Result<MapValidation, String> {
   if map.is_snake[map.player_location.array_index()] {
     return Ok(MapValidation::Lost);
   }
-
-  return Ok(MapValidation::Valid);
+  
+  Ok(MapValidation::Valid)
 }
 
 #[cfg(test)]
