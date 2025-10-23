@@ -152,6 +152,9 @@ use validate_saves_directory::validate_saves_directory;
 mod load_saves_list;
 use load_saves_list::load_saves_list;
 
+mod print_save_game;
+use print_save_game::print_save_game;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -928,11 +931,6 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   message_queue.post(Message::RequestScene(Scenes::Pause));
   
   Ok(())
-}
-
-fn print_save_game() {
-  println!("Save Game");
-  println!("File name?");
 }
 
 fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut HighScoresState) -> Result<(), String> {
