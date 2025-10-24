@@ -158,6 +158,9 @@ use print_save_game::print_save_game;
 mod validate_high_scores_file;
 use validate_high_scores_file::validate_high_scores_file;
 
+mod save_high_score;
+use save_high_score::save_high_score;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -652,7 +655,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::HighScores => {
-        update_high_scores(&mut message_queue, &mut high_scores_state)?;
+        update_high_scores(&mut message_queue, &mut high_scores_state, Path::new("./high_scores.txt"))?;
         print_high_scores(&high_scores_state);
 
         unsafe {
@@ -662,7 +665,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::AddHighScore => {
-        update_add_high_score(&mut message_queue, &playfield_state)?;
+        update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"))?;
         print_add_high_score();
 
         unsafe {
@@ -900,18 +903,11 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
   )
 }
 
-fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState) -> Result<(), String> {
-  let text_input = read_text_input().unwrap();
+fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path) -> Result<(), String> {
+  let text_input = read_text_input()?;
+  let new_score = HighScoresListing::from(text_input, playfield_state.map.score.current());
+  save_high_score(high_scores_file_path, &new_score)?;
 
-  let mut high_scores_string = std::fs::read_to_string("high_scores.txt").map_err(| error | error.to_string())?;
-  
-  high_scores_string.push_str(&text_input);
-  high_scores_string.push_str(",");
-  high_scores_string.push_str(&playfield_state.map.score.current().to_string());
-  high_scores_string.push_str(",");
-  
-  std::fs::write("high_scores.txt", high_scores_string).map_err(| error | error.to_string())?;
-  
   message_queue.post(Message::RequestScene(Scenes::MainMenu));
 
   Ok(())
@@ -936,9 +932,9 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   Ok(())
 }
 
-fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut HighScoresState) -> Result<(), String> {
+fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut HighScoresState, high_scores_file_path: &Path) -> Result<(), String> {
   if !high_scores_state.is_loaded {
-    high_scores_state.listings = load_high_scores()?;
+    high_scores_state.listings = load_high_scores(high_scores_file_path)?;
   }
 
   let mut should_return = false;
@@ -957,8 +953,9 @@ fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut 
   Ok(())
 }
 
-fn load_high_scores() -> Result<Vec<HighScoresListing>, String> {
-  let mut unparsed_high_scores_string = std::fs::read_to_string("high_scores.txt").map_err(| error | error.to_string())?;
+fn load_high_scores(high_scores_file_path: &Path) -> Result<Vec<HighScoresListing>, String> {
+  validate_high_scores_file(high_scores_file_path)?;
+  let mut unparsed_high_scores_string = std::fs::read_to_string(high_scores_file_path).map_err(| error | error.to_string())?;
 
   let mut is_parsing = true;
   let mut raw_values = Vec::new();
