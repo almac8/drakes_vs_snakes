@@ -164,6 +164,9 @@ use save_high_score::save_high_score;
 mod update_high_scores;
 use update_high_scores::update_high_scores;
 
+mod serialize_map;
+use serialize_map::serialize_map;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -773,54 +776,6 @@ fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mu
   }
 
   if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
-}
-
-fn serialize_map(map: &Map) -> String {
-  let mut contents = String::new().to_owned();
-
-  contents.push_str(&map.size.width().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.size.height().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.player_location.x().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.player_location.y().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.goal_location.x().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.goal_location.y().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.score.current().to_string());
-  contents.push_str(",");
-  contents.push_str(&map.score.maximum().to_string());
-  contents.push_str(",");
-        
-  for hint in map.hint.iter() {
-    contents.push_str(&hint.to_string());
-    contents.push_str(",");
-  }
-      
-  for is_snake in map.is_snake.iter() {
-    contents.push_str(if *is_snake { "1" } else { "0" });
-    contents.push_str(",");
-  }
-      
-  for is_marked in map.is_marked.iter() {
-    contents.push_str(if *is_marked { "1" } else { "0" });
-    contents.push_str(",");
-  }
-      
-  for is_explored in map.is_explored.iter() {
-    contents.push_str(if *is_explored { "1" } else { "0" });
-    contents.push_str(",");
-  }
-      
-  for is_path in map.is_path.iter() {
-    contents.push_str(if *is_path { "1" } else { "0" });
-    contents.push_str(",");
-  }
-
-  contents
 }
 
 fn deserialize_map(map_string: String) -> Result<Map, String> {
