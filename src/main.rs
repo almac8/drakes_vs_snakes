@@ -161,6 +161,9 @@ use validate_high_scores_file::validate_high_scores_file;
 mod save_high_score;
 use save_high_score::save_high_score;
 
+mod update_high_scores;
+use update_high_scores::update_high_scores;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -929,27 +932,6 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   
   message_queue.post(Message::RequestScene(Scenes::Pause));
   
-  Ok(())
-}
-
-fn update_high_scores(message_queue: &mut MessageQueue, high_scores_state: &mut HighScoresState, high_scores_file_path: &Path) -> Result<(), String> {
-  if !high_scores_state.is_loaded {
-    high_scores_state.listings = load_high_scores(high_scores_file_path)?;
-  }
-
-  let mut should_return = false;
-  
-  for message in message_queue.messages() {
-    match message {
-      Message::PlayerInput(_) => should_return = true,
-      _ => {}
-    }
-  }
-
-  if should_return {
-    message_queue.post(Message::RequestScene(Scenes::MainMenu));
-  }
-
   Ok(())
 }
 
