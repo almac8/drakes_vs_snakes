@@ -1,6 +1,6 @@
 mod score;
 
-use std::{ffi::CString, num::ParseIntError, path::Path, time::{Duration, Instant}};
+use std::{ffi::CString, path::Path, time::{Duration, Instant}};
 
 use rand::SeedableRng;
 use score::Score;
@@ -707,7 +707,7 @@ fn main() -> Result<(), String> {
 }
 
 fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) -> Result<(), String> {
-  handle_playfield_input(message_queue, playfield_state);
+  handle_playfield_input(message_queue, playfield_state)?;
 
   match validate_map(&playfield_state.map)? {
     MapValidation::Valid => {},
@@ -718,56 +718,16 @@ fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut Play
   Ok(())
 }
 
-fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) {
+fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) -> Result<(), String> {
   let mut canceled = false;
 
   for message in message_queue.messages() {
     match message {
       Message::PlayerInput(input) => match input {
-        Input::Up => {
-          if playfield_state.is_interacting {
-            match interact(playfield_state, Direction::North) {
-              Ok(()) => println!("Interaction"),
-              Err(error) => println!("Interaction failed: {}", error)
-            }
-          } else {
-            move_player(&mut playfield_state.map, Direction::North)
-          }
-        },
-        
-        Input::Left => {
-          if playfield_state.is_interacting {
-            match interact(playfield_state, Direction::West) {
-              Ok(()) => println!("Interaction"),
-              Err(error) => println!("Interaction failed: {}", error)
-            }
-          } else {
-            move_player(&mut playfield_state.map, Direction::West)
-          }
-        },
-        
-        Input::Right => {
-          if playfield_state.is_interacting {
-            match interact(playfield_state, Direction::East) {
-              Ok(()) => println!("Interaction"),
-              Err(error) => println!("Interaction failed: {}", error)
-            }
-          } else {
-            move_player(&mut playfield_state.map, Direction::East)
-          }
-        },
-        
-        Input::Down => {
-          if playfield_state.is_interacting {
-            match interact(playfield_state, Direction::South) {
-              Ok(()) => println!("Interaction"),
-              Err(error) => println!("Interaction failed: {}", error)
-            }
-          } else {
-            move_player(&mut playfield_state.map, Direction::South)
-          }
-        },
-        
+        Input::Up => handle_directional_input(playfield_state, Direction::North)?,
+        Input::Left => handle_directional_input(playfield_state, Direction::West)?,
+        Input::Right => handle_directional_input(playfield_state, Direction::East)?,
+        Input::Down => handle_directional_input(playfield_state, Direction::South)?,
         Input::Cancel => canceled = true,
         Input::Action => playfield_state.is_interacting = !playfield_state.is_interacting,
         
@@ -779,6 +739,18 @@ fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mu
   }
 
   if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
+
+  Ok(())
+}
+
+fn handle_directional_input(playfield_state: &mut PlayfieldState, direction: Direction) -> Result<(), String> {
+  if playfield_state.is_interacting {
+    interact(playfield_state, direction)?;
+  } else {
+    move_player(&mut playfield_state.map, direction);
+  }
+
+  Ok(())
 }
 
 fn deserialize_map(map_string: String) -> Result<Map, String> {
