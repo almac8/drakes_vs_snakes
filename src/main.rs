@@ -167,6 +167,9 @@ use update_high_scores::update_high_scores;
 mod serialize_map;
 use serialize_map::serialize_map;
 
+mod load_high_scores;
+use load_high_scores::load_high_scores;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -888,35 +891,6 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   message_queue.post(Message::RequestScene(Scenes::Pause));
   
   Ok(())
-}
-
-fn load_high_scores(high_scores_file_path: &Path) -> Result<Vec<HighScoresListing>, String> {
-  validate_high_scores_file(high_scores_file_path)?;
-  let mut unparsed_high_scores_string = std::fs::read_to_string(high_scores_file_path).map_err(| error | error.to_string())?;
-
-  let mut is_parsing = true;
-  let mut raw_values = Vec::new();
-  let mut listings = Vec::new();
-  
-  while is_parsing {
-    match unparsed_high_scores_string.find(",") {
-      Some(index) => {
-        raw_values.push(unparsed_high_scores_string[0..index].to_string());
-        unparsed_high_scores_string = unparsed_high_scores_string[(index + 1)..].to_string();
-      },
-      
-      None => is_parsing = false
-    }
-  }
-  
-  let num_listings = raw_values.len() / 2;
-  for index in 0..num_listings {
-    let name = raw_values[index * 2].clone();
-    let score: usize = raw_values[index * 2 + 1].parse().map_err(| error: ParseIntError | error.to_string())?;
-    listings.push(HighScoresListing::from(name, score));
-  }
-
-  Ok(listings)
 }
 
 fn update_load_game(message_queue: &mut MessageQueue, load_game_state: &mut LoadGameState, playfield_state: &mut PlayfieldState) -> Result<(), String> {
