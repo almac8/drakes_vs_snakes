@@ -1,6 +1,6 @@
 mod score;
 
-use std::{ffi::CString, num::ParseIntError, path::Path, time::{Duration, Instant}};
+use std::{ffi::CString, path::Path, time::{Duration, Instant}};
 
 use rand::SeedableRng;
 use score::Score;
@@ -172,6 +172,9 @@ use load_high_scores::load_high_scores;
 
 mod vectorize_map_string;
 use vectorize_map_string::vectorize_map_string;
+
+mod parse_usize;
+use parse_usize::parse_usize;
 
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
@@ -803,14 +806,6 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
   Ok(
     map
   )
-}
-
-fn parse_usize(unparsed: &String) -> Result<usize, String> {
-  let parsed = unparsed
-    .parse()
-    .map_err(| error: ParseIntError | error.to_string())?;
-
-  Ok(parsed)
 }
 
 fn parse_usize_vec(map_values: &Vec<String>, start: usize, map_array_length: usize) -> Result<Vec<usize>, String> {
