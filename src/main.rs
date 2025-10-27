@@ -191,6 +191,9 @@ use update_playfield::update_playfield;
 mod handle_directional_input;
 use handle_directional_input::handle_directional_input;
 
+mod handle_playfield_input;
+use handle_playfield_input::handle_playfield_input;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -723,31 +726,6 @@ fn main() -> Result<(), String> {
       std::thread::sleep(sleep_duration);
     }
   }
-
-  Ok(())
-}
-
-fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) -> Result<(), String> {
-  let mut canceled = false;
-
-  for message in message_queue.messages() {
-    match message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => handle_directional_input(playfield_state, Direction::North)?,
-        Input::Left => handle_directional_input(playfield_state, Direction::West)?,
-        Input::Right => handle_directional_input(playfield_state, Direction::East)?,
-        Input::Down => handle_directional_input(playfield_state, Direction::South)?,
-        Input::Cancel => canceled = true,
-        Input::Action => playfield_state.is_interacting = !playfield_state.is_interacting,
-        
-        _ => {}
-      },
-      
-      _ => {}
-    }
-  }
-
-  if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
 
   Ok(())
 }
