@@ -182,6 +182,9 @@ use parse_usize_vec::parse_usize_vec;
 mod parse_bool_vec;
 use parse_bool_vec::parse_bool_vec;
 
+mod deserialize_map;
+use deserialize_map::deserialize_map;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -763,55 +766,6 @@ fn handle_directional_input(playfield_state: &mut PlayfieldState, direction: Dir
   }
 
   Ok(())
-}
-
-fn deserialize_map(map_string: String) -> Result<Map, String> {
-  let map_values = vectorize_map_string(map_string);
-  
-  let width = parse_usize(&map_values[0])?;
-  let height = parse_usize(&map_values[1])?;
-  let player_x = parse_usize(&map_values[2])?;
-  let player_y = parse_usize(&map_values[3])?;
-  let goal_x = parse_usize(&map_values[4])?;
-  let goal_y = parse_usize(&map_values[5])?;
-  let current_score = parse_usize(&map_values[6])?;
-  let maximum_score = parse_usize(&map_values[7])?;
-
-  let map_array_length = width * height;
-  let hint_offset = 8;
-  let is_snake_offset = hint_offset + map_array_length;
-  let is_marked_offset = is_snake_offset + map_array_length;
-  let is_explored_offset = is_marked_offset + map_array_length;
-  let is_path_offset = is_explored_offset + map_array_length;
-
-  let hint = parse_usize_vec(&map_values, hint_offset, map_array_length)?;
-  let is_snake = parse_bool_vec(&map_values, is_snake_offset, map_array_length)?;
-  let is_marked = parse_bool_vec(&map_values, is_marked_offset, map_array_length)?;
-  let is_explored = parse_bool_vec(&map_values, is_explored_offset, map_array_length)?;
-  let is_path = parse_bool_vec(&map_values, is_path_offset, map_array_length)?;
-
-  let mut map = Map::new();
-  map.size.set_width(width)?;
-  map.size.set_height(height)?;
-
-  map.player_location.set_x(player_x, &MapSize::from(width, height)?);
-  map.player_location.set_y(player_y, &MapSize::from(width, height)?);
-
-  map.goal_location.set_x(goal_x, &MapSize::from(width, height)?);
-  map.goal_location.set_y(goal_y, &MapSize::from(width, height)?);
-
-  *map.score.mut_current() = current_score;
-  *map.score.mut_maximum() = maximum_score;
-
-  map.hint = hint;
-  map.is_snake = is_snake;
-  map.is_marked = is_marked;
-  map.is_explored = is_explored;
-  map.is_path = is_path;
-
-  Ok(
-    map
-  )
 }
 
 fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path) -> Result<(), String> {
