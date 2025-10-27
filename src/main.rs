@@ -170,6 +170,9 @@ use serialize_map::serialize_map;
 mod load_high_scores;
 use load_high_scores::load_high_scores;
 
+mod vectorize_map_string;
+use vectorize_map_string::vectorize_map_string;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -834,28 +837,6 @@ fn parse_bool_vec(map_values: &Vec<String>, start: usize, map_array_length: usiz
   Ok(
     values
   )
-}
-
-fn vectorize_map_string(map_string: String) -> Vec<String> {
-  let mut save_values = Vec::new();
-  let mut save_string = String::from(map_string);
-  
-  let mut is_reading = true;
-  while is_reading {
-    let comma_index = save_string.find(",");
-    match comma_index {
-      Some(comma_index) => {
-        let value = &save_string[..comma_index].to_owned();
-        save_values.push(value.to_string());
-        let save_string_buffer = &save_string[comma_index + 1..].to_owned();
-        save_string = save_string_buffer.to_string();
-      },
-      
-      None => is_reading = false
-    }
-  }
-  
-  save_values
 }
 
 fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path) -> Result<(), String> {
