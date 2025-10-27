@@ -1,6 +1,6 @@
 mod score;
 
-use std::{ffi::CString, path::Path, time::{Duration, Instant}};
+use std::{ffi::CString, num::ParseIntError, path::Path, time::{Duration, Instant}};
 
 use rand::SeedableRng;
 use score::Score;
@@ -754,6 +754,89 @@ fn handle_directional_input(playfield_state: &mut PlayfieldState, direction: Dir
 }
 
 fn deserialize_map(map_string: String) -> Result<Map, String> {
+  let map_values = vectorize_map_string(map_string);
+  
+  let width = parse_usize(&map_values[0])?;
+  let height = parse_usize(&map_values[1])?;
+  let player_x = parse_usize(&map_values[2])?;
+  let player_y = parse_usize(&map_values[3])?;
+  let goal_x = parse_usize(&map_values[4])?;
+  let goal_y = parse_usize(&map_values[5])?;
+  let current_score = parse_usize(&map_values[6])?;
+  let maximum_score = parse_usize(&map_values[7])?;
+
+  let map_array_length = width * height;
+  let hint_offset = 8;
+  let is_snake_offset = hint_offset + map_array_length;
+  let is_marked_offset = is_snake_offset + map_array_length;
+  let is_explored_offset = is_marked_offset + map_array_length;
+  let is_path_offset = is_explored_offset + map_array_length;
+
+  let hint = parse_usize_vec(&map_values, hint_offset, map_array_length)?;
+  let is_snake = parse_bool_vec(&map_values, is_snake_offset, map_array_length)?;
+  let is_marked = parse_bool_vec(&map_values, is_marked_offset, map_array_length)?;
+  let is_explored = parse_bool_vec(&map_values, is_explored_offset, map_array_length)?;
+  let is_path = parse_bool_vec(&map_values, is_path_offset, map_array_length)?;
+
+  let mut map = Map::new();
+  map.size.set_width(width)?;
+  map.size.set_height(height)?;
+
+  map.player_location.set_x(player_x, &MapSize::from(width, height)?);
+  map.player_location.set_y(player_y, &MapSize::from(width, height)?);
+
+  map.goal_location.set_x(goal_x, &MapSize::from(width, height)?);
+  map.goal_location.set_y(goal_y, &MapSize::from(width, height)?);
+
+  *map.score.mut_current() = current_score;
+  *map.score.mut_maximum() = maximum_score;
+
+  map.hint = hint;
+  map.is_snake = is_snake;
+  map.is_marked = is_marked;
+  map.is_explored = is_explored;
+  map.is_path = is_path;
+
+  Ok(
+    map
+  )
+}
+
+fn parse_usize(unparsed: &String) -> Result<usize, String> {
+  let parsed = unparsed
+    .parse()
+    .map_err(| error: ParseIntError | error.to_string())?;
+
+  Ok(parsed)
+}
+
+fn parse_usize_vec(map_values: &Vec<String>, start: usize, map_array_length: usize) -> Result<Vec<usize>, String> {
+  let mut values = Vec::new();
+
+  for index in 0..map_array_length {
+    let new_value = parse_usize(&map_values[start + index])?;
+    values.push(new_value);
+  }
+
+  Ok(
+    values
+  )
+}
+
+fn parse_bool_vec(map_values: &Vec<String>, start: usize, map_array_length: usize) -> Result<Vec<bool>, String> {
+  let mut values = Vec::new();
+
+  for index in 0..map_array_length {
+    let new_value = parse_usize(&map_values[start + index])?;
+    values.push(if new_value == 1 { true } else { false });
+  }
+
+  Ok(
+    values
+  )
+}
+
+fn vectorize_map_string(map_string: String) -> Vec<String> {
   let mut save_values = Vec::new();
   let mut save_string = String::from(map_string);
   
@@ -771,69 +854,8 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
       None => is_reading = false
     }
   }
-
-  let mut map = Map::new();
-
-  map.size.set_width(save_values[0].parse().unwrap())?;
-  map.size.set_height(save_values[1].parse().unwrap())?;
-  let num_map_cells = map.size.width() * map.size.height();
-
-  let mut size_buffer = MapSize::new();
-  size_buffer.set_width(map.size.width())?;
-  size_buffer.set_height(map.size.height())?;
-
-  map.player_location.set_x(save_values[2].parse().unwrap(), &size_buffer);
-  map.player_location.set_y(save_values[3].parse().unwrap(), &size_buffer);
-
-  map.goal_location.set_x(save_values[4].parse().unwrap(), &size_buffer);
-  map.goal_location.set_y(save_values[5].parse().unwrap(), &size_buffer);
-
-  *map.score.mut_current() = save_values[6].parse().unwrap();
-  *map.score.mut_maximum() = save_values[7].parse().unwrap();
-            
-  let hints_offset = 8;
-  map.hint = vec![0; num_map_cells];
-  for hint_index in 0..(num_map_cells) {
-    let hint_offset = hints_offset + hint_index;
-    let new_value = save_values[hint_offset].parse().unwrap();
-    map.hint[hint_index] = new_value;
-  }
-            
-  let is_snakes_offset = hints_offset + num_map_cells;
-  map.is_snake = vec![false; num_map_cells];
-  for is_snake_index in 0..num_map_cells {
-    let is_snake_offset = is_snakes_offset + is_snake_index;
-    let new_value: usize = save_values[is_snake_offset].parse().unwrap();
-    map.is_snake[is_snake_index] = if new_value == 1 { true } else { false };
-  }
-          
-  let is_markeds_offset = is_snakes_offset + num_map_cells;
-  map.is_marked = vec![false; num_map_cells];
-  for is_marked_index in 0..num_map_cells {
-    let is_marked_offset = is_markeds_offset + is_marked_index;
-    let new_value: usize = save_values[is_marked_offset].parse().unwrap();
-    map.is_marked[is_marked_index] = if new_value == 1 { true } else { false };
-  }
-            
-  let is_exploreds_offset = is_markeds_offset + num_map_cells;
-  map.is_explored = vec![false; num_map_cells];
-  for is_explored_index in 0..num_map_cells {
-    let is_explored_offset = is_exploreds_offset + is_explored_index;
-    let new_value: usize = save_values[is_explored_offset].parse().unwrap();
-    map.is_explored[is_explored_index] = if new_value == 1 { true } else { false };
-  }
-            
-  let is_paths_offset = is_exploreds_offset + num_map_cells;
-  map.is_path = vec![false; num_map_cells];
-  for is_path_index in 0..num_map_cells {
-    let is_path_offset = is_paths_offset + is_path_index;
-    let new_value: usize = save_values[is_path_offset].parse().unwrap();
-    map.is_path[is_path_index] = if new_value == 1 { true } else { false };
-  }
-
-  Ok(
-    map
-  )
+  
+  save_values
 }
 
 fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path) -> Result<(), String> {
