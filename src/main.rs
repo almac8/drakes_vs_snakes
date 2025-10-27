@@ -188,6 +188,9 @@ use deserialize_map::deserialize_map;
 mod update_playfield;
 use update_playfield::update_playfield;
 
+mod handle_directional_input;
+use handle_directional_input::handle_directional_input;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -745,16 +748,6 @@ fn handle_playfield_input(message_queue: &mut MessageQueue, playfield_state: &mu
   }
 
   if canceled { message_queue.post(Message::RequestScene(Scenes::Pause)) }
-
-  Ok(())
-}
-
-fn handle_directional_input(playfield_state: &mut PlayfieldState, direction: Direction) -> Result<(), String> {
-  if playfield_state.is_interacting {
-    interact(playfield_state, direction)?;
-  } else {
-    move_player(&mut playfield_state.map, direction);
-  }
 
   Ok(())
 }
