@@ -176,6 +176,9 @@ use vectorize_map_string::vectorize_map_string;
 mod parse_usize;
 use parse_usize::parse_usize;
 
+mod parse_usize_vec;
+use parse_usize_vec::parse_usize_vec;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -805,19 +808,6 @@ fn deserialize_map(map_string: String) -> Result<Map, String> {
 
   Ok(
     map
-  )
-}
-
-fn parse_usize_vec(map_values: &Vec<String>, start: usize, map_array_length: usize) -> Result<Vec<usize>, String> {
-  let mut values = Vec::new();
-
-  for index in 0..map_array_length {
-    let new_value = parse_usize(&map_values[start + index])?;
-    values.push(new_value);
-  }
-
-  Ok(
-    values
   )
 }
 
