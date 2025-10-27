@@ -185,6 +185,9 @@ use parse_bool_vec::parse_bool_vec;
 mod deserialize_map;
 use deserialize_map::deserialize_map;
 
+mod update_playfield;
+use update_playfield::update_playfield;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -716,18 +719,6 @@ fn main() -> Result<(), String> {
       let sleep_duration = frame_duration_cap - frame_duration;
       std::thread::sleep(sleep_duration);
     }
-  }
-
-  Ok(())
-}
-
-fn update_playfield(message_queue: &mut MessageQueue, playfield_state: &mut PlayfieldState) -> Result<(), String> {
-  handle_playfield_input(message_queue, playfield_state)?;
-
-  match validate_map(&playfield_state.map)? {
-    MapValidation::Valid => {},
-    MapValidation::Won => message_queue.post(Message::RequestScene(Scenes::AddHighScore)),
-    MapValidation::Lost => message_queue.post(Message::RequestScene(Scenes::MainMenu))
   }
 
   Ok(())
