@@ -203,6 +203,9 @@ use vertex_buffer::VertexBuffer;
 mod element_buffer;
 use element_buffer::ElementBuffer;
 
+mod vertex_array;
+use vertex_array::VertexArray;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -253,107 +256,20 @@ fn main() -> Result<(), String> {
   ];
 
   let quad_element_buffer = ElementBuffer::new(quad_element_data);
+
+  let menu_option_vertex_array = VertexArray::new(&quad_vertex_buffer, &quad_element_buffer);
   
-  let mut menu_option_vertex_array: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenVertexArrays(1, &mut menu_option_vertex_array);
-    gl::BindVertexArray(menu_option_vertex_array);
-    gl::BindBuffer(gl::ARRAY_BUFFER, quad_vertex_buffer.id());
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer.id());
-
-    gl::EnableVertexAttribArray(0);
-    gl::VertexAttribPointer(
-      0,
-      2,
-      gl::FLOAT,
-      gl::FALSE,
-      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
-      std::ptr::null()
-    );
-
-    gl::EnableVertexAttribArray(1);
-    gl::VertexAttribPointer(
-      1,
-      2,
-      gl::FLOAT,
-      gl::FALSE,
-      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
-      (2 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
-    );
-
-    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-    gl::BindVertexArray(0);
-  }
-
   let emblem_vertex_data = generate_vertex_data(32, 32);
 
   let emblem_vertex_buffer = VertexBuffer::new(emblem_vertex_data);
+
+  let emblem_vertex_array = VertexArray::new(&emblem_vertex_buffer, &quad_element_buffer);
   
-  let mut emblem_vertex_array: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenVertexArrays(1, &mut emblem_vertex_array);
-    gl::BindVertexArray(emblem_vertex_array);
-    gl::BindBuffer(gl::ARRAY_BUFFER, emblem_vertex_buffer.id());
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer.id());
-
-    gl::EnableVertexAttribArray(0);
-    gl::VertexAttribPointer(
-      0,
-      2,
-      gl::FLOAT,
-      gl::FALSE,
-      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
-      std::ptr::null()
-    );
-
-    gl::EnableVertexAttribArray(1);
-    gl::VertexAttribPointer(
-      1,
-      2,
-      gl::FLOAT,
-      gl::FALSE,
-      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
-      (2 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
-    );
-
-    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-    gl::BindVertexArray(0);
-  }
-
   let tile_vertex_data = generate_vertex_data(tile_width, tile_height);
   let tile_vertex_buffer = VertexBuffer::new(tile_vertex_data);
+
+  let tile_vertex_array = VertexArray::new(&tile_vertex_buffer, &quad_element_buffer);
   
-  let mut tile_vertex_array: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenVertexArrays(1, &mut tile_vertex_array);
-    gl::BindVertexArray(tile_vertex_array);
-    gl::BindBuffer(gl::ARRAY_BUFFER, tile_vertex_buffer.id());
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer.id());
-
-    gl::EnableVertexAttribArray(0);
-    gl::VertexAttribPointer(
-      0,
-      2,
-      gl::FLOAT,
-      gl::FALSE,
-      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
-      std::ptr::null()
-    );
-
-    gl::EnableVertexAttribArray(1);
-    gl::VertexAttribPointer(
-      1,
-      2,
-      gl::FLOAT,
-      gl::FALSE,
-      (4 * std::mem::size_of::<f32>()) as gl::types::GLint,
-      (2 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
-    );
-
-    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-    gl::BindVertexArray(0);
-  }
-
   let quad_vertex_shader_source = CString::new(
     include_str!("quad_vertex_shader.glsl")
   ).map_err(| error | error.to_string())?;
@@ -480,7 +396,7 @@ fn main() -> Result<(), String> {
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
           
-          gl::BindVertexArray(menu_option_vertex_array);
+          gl::BindVertexArray(menu_option_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_model_matrix).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
@@ -505,7 +421,7 @@ fn main() -> Result<(), String> {
           emblem_0_model_matrix.y.w = main_menu_state.selected_menu_item_index as f32 * 32.0;
           emblem_1_model_matrix.y.w = main_menu_state.selected_menu_item_index as f32 * 32.0;
           
-          gl::BindVertexArray(emblem_vertex_array);
+          gl::BindVertexArray(emblem_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_0_model_matrix).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
@@ -539,7 +455,7 @@ fn main() -> Result<(), String> {
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
 
-          gl::BindVertexArray(tile_vertex_array);
+          gl::BindVertexArray(tile_vertex_array.id());
 
           for index in 0..playfield_state.map.size.array_length() {
             let mut tile_model_matrix = Matrix4::identity();
