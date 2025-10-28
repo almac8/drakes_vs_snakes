@@ -305,21 +305,25 @@ fn main() -> Result<(), String> {
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
   
-  let new_game_model_matrix = Matrix4::identity();
-  let mut load_game_model_matrix = Matrix4::identity();
-  load_game_model_matrix.y.w = 32.0;
-  let mut high_scores_model_matrix = Matrix4::identity();
-  high_scores_model_matrix.y.w = 64.0;
-  let mut settings_model_matrix = Matrix4::identity();
-  settings_model_matrix.y.w = 96.0;
-  let mut quit_model_matrix = Matrix4::identity();
-  quit_model_matrix.y.w = 128.0;
+  let new_game_transform = Transform::new();
 
-  let mut emblem_0_model_matrix = Matrix4::identity();
-  emblem_0_model_matrix.x.w = -100.0;
+  let mut load_game_transform = Transform::new();
+  load_game_transform.translate_y(32.0);
 
-  let mut emblem_1_model_matrix = Matrix4::identity();
-  emblem_1_model_matrix.x.w = 100.0;
+  let mut high_scores_transform = Transform::new();
+  high_scores_transform.translate_y(64.0);
+  
+  let mut settings_transform = Transform::new();
+  settings_transform.translate_y(96.0);
+
+  let mut quit_transform = Transform::new();
+  quit_transform.translate_y(128.0);
+
+  let mut emblem_0_transform = Transform::new();
+  emblem_0_transform.translate_x(-100.0);
+
+  let mut emblem_1_transform = Transform::new();
+  emblem_1_transform.translate_x(100.0);
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
   let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), view_matrix_name.as_ptr()) };
@@ -384,36 +388,36 @@ fn main() -> Result<(), String> {
           
           gl::BindVertexArray(menu_option_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, settings_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
 
-          emblem_0_model_matrix.y.w = main_menu_state.selected_menu_item_index as f32 * 32.0;
-          emblem_1_model_matrix.y.w = main_menu_state.selected_menu_item_index as f32 * 32.0;
+          emblem_0_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+          emblem_1_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
           
           gl::BindVertexArray(emblem_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_0_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_0_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_1_model_matrix).as_ptr());
+          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_1_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
         }
@@ -444,14 +448,15 @@ fn main() -> Result<(), String> {
           gl::BindVertexArray(tile_vertex_array.id());
 
           for index in 0..playfield_state.map.size.array_length() {
-            let mut tile_model_matrix = Matrix4::identity();
-            let tile_location = Coordinate::from_index(index, &playfield_state.map.size);
-            tile_model_matrix.x.w = tile_location.x() as f32 * tile_width as f32;
-            tile_model_matrix.x.w -= playfield_state.map.size.width() as f32 * tile_width as f32 / 2.0;
-            tile_model_matrix.y.w = tile_location.y() as f32 * tile_height as f32;
-            tile_model_matrix.y.w -= playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0;
-
-            gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_model_matrix).as_ptr());
+            let tile_coordinates = Coordinate::from_index(index, &playfield_state.map.size);
+            
+            let mut tile_transform = Transform::new();
+            tile_transform.translate_x_to(tile_coordinates.x() as f32 * tile_width as f32);
+            tile_transform.translate_x(-(playfield_state.map.size.width() as f32 * tile_width as f32 / 2.0));
+            tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
+            tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
+            
+            gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_transform.matrix()).as_ptr());
             
             gl::BindTexture(gl::TEXTURE_2D, grass_texture.id());
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
@@ -503,8 +508,8 @@ fn main() -> Result<(), String> {
             if playfield_state.map.player_location.array_index() == index {
               gl::BindTexture(gl::TEXTURE_2D, drake_texture.id());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              view_matrix.x.w = -tile_model_matrix.x.w;
-              view_matrix.y.w = -tile_model_matrix.y.w;
+              view_matrix.x.w = -tile_transform.location.x;
+              view_matrix.y.w = -tile_transform.location.y;
             }
 
             if playfield_state.map.is_snake[index] {
@@ -615,4 +620,55 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   message_queue.post(Message::RequestScene(Scenes::Pause));
   
   Ok(())
+}
+
+struct Transform {
+  location: Vector2
+}
+
+impl Transform {
+  fn new() -> Self {
+    Self {
+      location: Vector2::new()
+    }
+  }
+
+  fn matrix(&self) -> Matrix4 {
+    let mut transform_matrix = Matrix4::identity();
+
+    transform_matrix.x.w = self.location.x;
+    transform_matrix.y.w = self.location.y;
+
+    transform_matrix
+  }
+
+  fn translate_x(&mut self, translation: f32) {
+    self.location.x += translation;
+  }
+
+  fn translate_y(&mut self, translation: f32) {
+    self.location.y += translation;
+  }
+
+  fn translate_x_to(&mut self, location: f32) {
+    self.location.x = location;
+  }
+
+  fn translate_y_to(&mut self, location: f32) {
+    self.location.y = location;
+  }
+}
+
+struct Vector2 {
+  x: f32,
+  y: f32
+}
+
+impl Vector2 {
+  fn new() -> Self {
+    Self {
+      x: 0.0,
+      y: 0.0
+    }
+  }
 }
