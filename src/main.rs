@@ -200,6 +200,9 @@ use update_load_game::update_load_game;
 mod vertex_buffer;
 use vertex_buffer::VertexBuffer;
 
+mod element_buffer;
+use element_buffer::ElementBuffer;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -249,27 +252,14 @@ fn main() -> Result<(), String> {
     0, 2, 3
   ];
 
-  let mut quad_element_buffer: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenBuffers(1, &mut quad_element_buffer);
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
-
-    gl::BufferData(
-      gl::ELEMENT_ARRAY_BUFFER,
-      (quad_element_data.len() * std::mem::size_of::<u32>()) as gl::types::GLsizeiptr,
-      quad_element_data.as_ptr() as *const gl::types::GLvoid,
-      gl::STATIC_DRAW
-    );
-
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-  }
+  let quad_element_buffer = ElementBuffer::new(quad_element_data);
   
   let mut menu_option_vertex_array: gl::types::GLuint = 0;
   unsafe {
     gl::GenVertexArrays(1, &mut menu_option_vertex_array);
     gl::BindVertexArray(menu_option_vertex_array);
     gl::BindBuffer(gl::ARRAY_BUFFER, quad_vertex_buffer.id());
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer.id());
 
     gl::EnableVertexAttribArray(0);
     gl::VertexAttribPointer(
@@ -304,7 +294,7 @@ fn main() -> Result<(), String> {
     gl::GenVertexArrays(1, &mut emblem_vertex_array);
     gl::BindVertexArray(emblem_vertex_array);
     gl::BindBuffer(gl::ARRAY_BUFFER, emblem_vertex_buffer.id());
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer.id());
 
     gl::EnableVertexAttribArray(0);
     gl::VertexAttribPointer(
@@ -331,28 +321,14 @@ fn main() -> Result<(), String> {
   }
 
   let tile_vertex_data = generate_vertex_data(tile_width, tile_height);
-  
-  let mut tile_vertex_buffer: gl::types::GLuint = 0;
-  unsafe {
-    gl::GenBuffers(1, &mut tile_vertex_buffer);
-    gl::BindBuffer(gl::ARRAY_BUFFER, tile_vertex_buffer);
-
-    gl::BufferData(
-      gl::ARRAY_BUFFER,
-      (tile_vertex_data.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
-      tile_vertex_data.as_ptr() as *const gl::types::GLvoid,
-      gl::STATIC_DRAW
-    );
-
-    gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-  }
+  let tile_vertex_buffer = VertexBuffer::new(tile_vertex_data);
   
   let mut tile_vertex_array: gl::types::GLuint = 0;
   unsafe {
     gl::GenVertexArrays(1, &mut tile_vertex_array);
     gl::BindVertexArray(tile_vertex_array);
-    gl::BindBuffer(gl::ARRAY_BUFFER, tile_vertex_buffer);
-    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer);
+    gl::BindBuffer(gl::ARRAY_BUFFER, tile_vertex_buffer.id());
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, quad_element_buffer.id());
 
     gl::EnableVertexAttribArray(0);
     gl::VertexAttribPointer(
