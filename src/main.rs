@@ -194,6 +194,9 @@ use handle_directional_input::handle_directional_input;
 mod handle_playfield_input;
 use handle_playfield_input::handle_playfield_input;
 
+mod update_load_game;
+use update_load_game::update_load_game;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -678,7 +681,7 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::LoadGame => {
-        update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state)?;
+        update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state, Path::new("./saves"))?;
         print_load_game(&load_game_state);
 
         unsafe {
@@ -756,43 +759,5 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
   
   message_queue.post(Message::RequestScene(Scenes::Pause));
   
-  Ok(())
-}
-
-fn update_load_game(message_queue: &mut MessageQueue, load_game_state: &mut LoadGameState, playfield_state: &mut PlayfieldState) -> Result<(), String> {
-  if !load_game_state.saves_list_loaded {
-    load_game_state.saves = load_saves_list(Path::new("./saves"))?;
-  }
-
-  let mut cancelled = false;
-  let mut confirmed = false;
-
-  for message in message_queue.messages() {
-    match message {
-      Message::PlayerInput(input) => match input {
-        Input::Up => if load_game_state.selected_menu_item_index > 0 { load_game_state.selected_menu_item_index -= 1 },
-        Input::Down => if load_game_state.selected_menu_item_index < load_game_state.saves.len() - 1 { load_game_state.selected_menu_item_index += 1 },
-        Input::Cancel => cancelled = true,
-        Input::Confirm => confirmed = true,
-        Input::Action => confirmed = true,
-        _ => {}
-      },
-
-      _ => {}
-    }
-  }
-
-  if cancelled { message_queue.post(Message::RequestScene(Scenes::MainMenu)) }
-
-  if confirmed {
-    let mut path_buffer = std::path::PathBuf::new();
-    path_buffer.push("./saves/");
-    path_buffer.push(load_game_state.saves[load_game_state.selected_menu_item_index].clone());
-    
-    let save_string = std::fs::read_to_string(path_buffer).map_err(| error | error.to_string())?;
-    playfield_state.map = deserialize_map(save_string)?;
-    message_queue.post(Message::RequestScene(Scenes::Playfield));
-  }
-
   Ok(())
 }
