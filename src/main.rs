@@ -212,6 +212,9 @@ use vertex_shader::VertexShader;
 mod fragment_shader;
 use fragment_shader::FragmentShader;
 
+mod shader_program;
+use shader_program::ShaderProgram;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -278,14 +281,8 @@ fn main() -> Result<(), String> {
   
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
+  let quad_shader_program = ShaderProgram::new(quad_vertex_shader, quad_fragment_shader)?;
   
-  let quad_shader_program = unsafe { gl::CreateProgram() };
-  unsafe {
-    gl::AttachShader(quad_shader_program, quad_vertex_shader.id());
-    gl::AttachShader(quad_shader_program, quad_fragment_shader.id());
-    gl::LinkProgram(quad_shader_program);
-  }
-
   let new_game_texture = Texture::load(Path::new("res/main_menu/new_game.png"))?;
   let load_game_texture = Texture::load(Path::new("res/main_menu/load_game.png"))?;
   let high_scores_texture = Texture::load(Path::new("res/main_menu/high_scores.png"))?;
@@ -306,7 +303,7 @@ fn main() -> Result<(), String> {
   let grass_8_texture = Texture::load(Path::new("res/playfield/grass_8.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
-  let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, model_matrix_name.as_ptr()) };
+  let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
   
   let new_game_model_matrix = Matrix4::identity();
   let mut load_game_model_matrix = Matrix4::identity();
@@ -325,11 +322,11 @@ fn main() -> Result<(), String> {
   emblem_1_model_matrix.x.w = 100.0;
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
-  let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, view_matrix_name.as_ptr()) };
+  let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), view_matrix_name.as_ptr()) };
   let mut view_matrix = Matrix4::identity();
 
   let projection_matrix_name = CString::new("projection").map_err(| error | error.to_string())?;
-  let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program, projection_matrix_name.as_ptr()) };
+  let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), projection_matrix_name.as_ptr()) };
   let projection_matrix = calculate_projection_matrix(
     -(640.0 / 2.0),
     640.0 / 2.0,
@@ -381,7 +378,7 @@ fn main() -> Result<(), String> {
           gl::ClearColor(0.5, 0.25, 0.25, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
-          gl::UseProgram(quad_shader_program);
+          gl::UseProgram(quad_shader_program.id());
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
           
@@ -440,7 +437,7 @@ fn main() -> Result<(), String> {
           gl::ClearColor(0.25, 0.25, 0.5, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
-          gl::UseProgram(quad_shader_program);
+          gl::UseProgram(quad_shader_program.id());
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
 
