@@ -209,6 +209,9 @@ use vertex_array::VertexArray;
 mod vertex_shader;
 use vertex_shader::VertexShader;
 
+mod fragment_shader;
+use fragment_shader::FragmentShader;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -274,21 +277,12 @@ fn main() -> Result<(), String> {
   let tile_vertex_array = VertexArray::new(&tile_vertex_buffer, &quad_element_buffer);
   
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
+  let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
   
-  let quad_fragment_shader_source = CString::new(
-    include_str!("quad_fragment_shader.glsl")
-  ).map_err(| error | error.to_string())?;
-
-  let quad_fragment_shader = unsafe { gl::CreateShader(gl::FRAGMENT_SHADER) };
-  unsafe {
-    gl::ShaderSource(quad_fragment_shader, 1, &quad_fragment_shader_source.as_ptr(), std::ptr::null());
-    gl::CompileShader(quad_fragment_shader);
-  }
-
   let quad_shader_program = unsafe { gl::CreateProgram() };
   unsafe {
     gl::AttachShader(quad_shader_program, quad_vertex_shader.id());
-    gl::AttachShader(quad_shader_program, quad_fragment_shader);
+    gl::AttachShader(quad_shader_program, quad_fragment_shader.id());
     gl::LinkProgram(quad_shader_program);
   }
 
