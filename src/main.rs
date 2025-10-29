@@ -223,8 +223,12 @@ fn main() -> Result<(), String> {
   gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
   gl_attr.set_context_version(3, 3);
 
+  let resolution_x = 1600;
+  let resolution_y = 900;
+
   let window = video_subsystem
-    .window("Drakes VS Snakes", 640, 480)
+    .window("Drakes VS Snakes", resolution_x, resolution_y)
+    .fullscreen()
     .opengl()
     .build()
     .map_err(| error | error.to_string())?;
@@ -233,7 +237,7 @@ fn main() -> Result<(), String> {
   let _gl_context = window.gl_create_context();
 
   unsafe {
-    gl::Viewport(0, 0, 640, 480);
+    gl::Viewport(0, 0, resolution_x as gl::types::GLint, resolution_y as gl::types::GLint);
     gl::Enable(gl::BLEND);
     gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
   }
@@ -338,14 +342,14 @@ fn main() -> Result<(), String> {
   let projection_matrix_name = CString::new("projection").map_err(| error | error.to_string())?;
   let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), projection_matrix_name.as_ptr()) };
   let projection_matrix = calculate_projection_matrix(
-    -(640.0 / 2.0),
-    640.0 / 2.0,
-    480.0 / 2.0,
-    -(480.0 / 2.0),
+    -(resolution_x as f32 / 2.0),
+    resolution_x as f32 / 2.0,
+    resolution_y as f32 / 2.0,
+    -(resolution_y as f32 / 2.0),
     1.0, -1.0
   );
 
-  let fps_cap = 4;
+  let fps_cap = 60;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
   
   while is_running {
