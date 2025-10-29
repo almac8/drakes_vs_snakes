@@ -311,6 +311,7 @@ fn main() -> Result<(), String> {
   let shadow_3_texture = Texture::load(Path::new("res/playfield/shadows/shadow_3.png"))?;
   let shadow_4_texture = Texture::load(Path::new("res/playfield/shadows/shadow_4.png"))?;
   let shadow_5_texture = Texture::load(Path::new("res/playfield/shadows/shadow_5.png"))?;
+  let stars_texture = Texture::load(Path::new("res/playfield/stars.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
@@ -524,6 +525,11 @@ fn main() -> Result<(), String> {
 
             if playfield_state.map.is_snake[index] {
               gl::BindTexture(gl::TEXTURE_2D, snake_texture.id());
+              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            }
+
+            if playfield_state.map.is_path[index] {
+              gl::BindTexture(gl::TEXTURE_2D, stars_texture.id());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
             
