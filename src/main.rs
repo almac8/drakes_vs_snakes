@@ -612,6 +612,11 @@ fn main() -> Result<(), String> {
               gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_transform.matrix()).as_ptr());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
+
+            if playfield_state.map.is_marked[tile_coordinates.array_index()] {
+              gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
+              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            }
           }
         }
       },
