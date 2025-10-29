@@ -312,6 +312,7 @@ fn main() -> Result<(), String> {
   let shadow_4_texture = Texture::load(Path::new("res/playfield/shadows/shadow_4.png"))?;
   let shadow_5_texture = Texture::load(Path::new("res/playfield/shadows/shadow_5.png"))?;
   let stars_texture = Texture::load(Path::new("res/playfield/stars.png"))?;
+  let nest_texture = Texture::load(Path::new("res/playfield/nest.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
@@ -625,6 +626,12 @@ fn main() -> Result<(), String> {
 
             if playfield_state.map.is_marked[tile_coordinates.array_index()] {
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
+              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            }
+
+            if playfield_state.map.goal_location == tile_coordinates {
+              gl::BindTexture(gl::TEXTURE_2D, nest_texture.id());
+              tile_transform.rotate_to(0.0);
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
           }

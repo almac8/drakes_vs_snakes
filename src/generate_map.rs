@@ -38,7 +38,7 @@ pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdR
         map_is_valid = true;
       },
   
-      Err(error) => if error == "Unable to find a next step".to_string() {
+      Err(error) => if error == *"Unable to find a next step" {
         map_is_valid = false;
       }
     }
@@ -48,6 +48,8 @@ pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdR
     map.is_explored = vec![false; map.size.array_length()];
     let player_index_buffer = map.player_location.array_index();
     map.is_explored[player_index_buffer] = true;
+    let goal_index_buffer = map.goal_location.array_index();
+    map.is_explored[goal_index_buffer] = true;
   }
 
   Ok(map)
@@ -109,7 +111,7 @@ use crate::MapSize;
         assert_eq!(map.is_explored, vec![
           true, false, false, false,
           false, false, false, false,
-          false, false, false, false,
+          false, false, true, false,
           false, false, false, false
         ]);
       },
@@ -138,7 +140,7 @@ use crate::MapSize;
           false, false, false, false, false, false, false, false,
           false, false, false, false, false, false, false, false,
           false, false, false, false, false, false, false, false,
-          false, false, false, false, false, false, false, false,
+          false, false, false, false,  true, false, false, false,
           false, false, false, false, false, false, false, false,
           false, false, false, false, false, false, false, false,
           false, false, false, false, false, false, false, false
