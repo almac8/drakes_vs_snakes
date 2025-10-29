@@ -301,6 +301,12 @@ fn main() -> Result<(), String> {
   let grass_6_texture = Texture::load(Path::new("res/playfield/grass_6.png"))?;
   let grass_7_texture = Texture::load(Path::new("res/playfield/grass_7.png"))?;
   let grass_8_texture = Texture::load(Path::new("res/playfield/grass_8.png"))?;
+  let shadow_0_texture = Texture::load(Path::new("res/playfield/shadows/shadow_0.png"))?;
+  let shadow_1_texture = Texture::load(Path::new("res/playfield/shadows/shadow_1.png"))?;
+  let shadow_2_texture = Texture::load(Path::new("res/playfield/shadows/shadow_2.png"))?;
+  let shadow_3_texture = Texture::load(Path::new("res/playfield/shadows/shadow_3.png"))?;
+  let shadow_4_texture = Texture::load(Path::new("res/playfield/shadows/shadow_4.png"))?;
+  let shadow_5_texture = Texture::load(Path::new("res/playfield/shadows/shadow_5.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
@@ -516,6 +522,96 @@ fn main() -> Result<(), String> {
               gl::BindTexture(gl::TEXTURE_2D, snake_texture.id());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
+            
+            if !playfield_state.map.is_explored[index] {
+              let mut shadow_bits = [false, false, false, false];
+              let neighbors = get_direct_neighbors(&tile_coordinates, &playfield_state.map.size);
+              for neighbor_coordinate in neighbors {
+                if neighbor_coordinate.y() < tile_coordinates.y() && playfield_state.map.is_explored[neighbor_coordinate.array_index()] { shadow_bits[0] = true };
+                if neighbor_coordinate.x() < tile_coordinates.x() && playfield_state.map.is_explored[neighbor_coordinate.array_index()] { shadow_bits[1] = true };
+                if neighbor_coordinate.x() > tile_coordinates.x() && playfield_state.map.is_explored[neighbor_coordinate.array_index()] { shadow_bits[2] = true };
+                if neighbor_coordinate.y() > tile_coordinates.y() && playfield_state.map.is_explored[neighbor_coordinate.array_index()] { shadow_bits[3] = true };
+              }
+
+              match shadow_bits {
+                [false, false, false, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_0_texture.id());
+                },
+
+                [false, false, false,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
+                  tile_transform.rotate_to(180.0);
+                },
+
+                [false, false,  true, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
+                  tile_transform.rotate_to(90.0);
+                },
+
+                [false, false,  true,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
+                  tile_transform.rotate_to(90.0);
+                },
+
+                [false, true, false, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
+                  tile_transform.rotate_to(270.0);
+                },
+
+                [false, true, false,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
+                  tile_transform.rotate_to(180.0);
+                },
+
+                [false, true,  true, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_2_texture.id());
+                  tile_transform.rotate_to(90.0);
+                },
+
+                [false, true,  true,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
+                  tile_transform.rotate_to(180.0);
+                },
+
+                [true, false, false, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
+                },
+
+                [true, false, false,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_2_texture.id());
+                },
+
+                [true, false,  true, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
+                },
+
+                [true, false,  true,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
+                  tile_transform.rotate_to(90.0);
+                },
+
+                [true, true, false, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
+                  tile_transform.rotate_to(270.0);
+                },
+
+                [true, true, false,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
+                  tile_transform.rotate_to(270.0);
+                },
+
+                [true, true,  true, false] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
+                },
+
+                [true, true,  true,  true] => {
+                  gl::BindTexture(gl::TEXTURE_2D, shadow_5_texture.id());
+                }
+              }
+
+              gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_transform.matrix()).as_ptr());
+              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            }
           }
         }
       },
@@ -623,21 +719,30 @@ fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &Playfiel
 }
 
 struct Transform {
-  location: Vector2
+  location: Vector2,
+  rotation: f32
 }
 
 impl Transform {
   fn new() -> Self {
     Self {
-      location: Vector2::new()
+      location: Vector2::new(),
+      rotation: 0.0
     }
   }
 
   fn matrix(&self) -> Matrix4 {
     let mut transform_matrix = Matrix4::identity();
 
-    transform_matrix.x.w = self.location.x;
-    transform_matrix.y.w = self.location.y;
+    let rotation_radians = std::f32::consts::PI / 180.0 * self.rotation;
+
+    transform_matrix.x.x = f32::cos(rotation_radians);
+    transform_matrix.x.y = -f32::sin(rotation_radians);
+    transform_matrix.y.x = f32::sin(rotation_radians);
+    transform_matrix.y.y = f32::cos(rotation_radians);
+
+    transform_matrix.x.w += self.location.x;
+    transform_matrix.y.w += self.location.y;
 
     transform_matrix
   }
@@ -656,6 +761,10 @@ impl Transform {
 
   fn translate_y_to(&mut self, location: f32) {
     self.location.y = location;
+  }
+
+  fn rotate_to(&mut self, degrees: f32) {
+    self.rotation = degrees;
   }
 }
 
