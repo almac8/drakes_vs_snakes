@@ -223,11 +223,10 @@ fn main() -> Result<(), String> {
   gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
   gl_attr.set_context_version(3, 3);
 
-  let resolution_x = 1600;
-  let resolution_y = 900;
+  let resolution = Resolution::new(1600, 900);
 
   let window = video_subsystem
-    .window("Drakes VS Snakes", resolution_x, resolution_y)
+    .window("Drakes VS Snakes", resolution.width as u32, resolution.height as u32)
     .fullscreen()
     .opengl()
     .build()
@@ -237,7 +236,7 @@ fn main() -> Result<(), String> {
   let _gl_context = window.gl_create_context();
 
   unsafe {
-    gl::Viewport(0, 0, resolution_x as gl::types::GLint, resolution_y as gl::types::GLint);
+    gl::Viewport(0, 0, resolution.width as gl::types::GLint, resolution.height as gl::types::GLint);
     gl::Enable(gl::BLEND);
     gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
   }
@@ -339,18 +338,12 @@ fn main() -> Result<(), String> {
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
   let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), view_matrix_name.as_ptr()) };
-  let mut view_matrix = Matrix4::identity();
 
   let projection_matrix_name = CString::new("projection").map_err(| error | error.to_string())?;
   let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), projection_matrix_name.as_ptr()) };
-  let projection_matrix = calculate_projection_matrix(
-    -(resolution_x as f32 / 2.0),
-    resolution_x as f32 / 2.0,
-    resolution_y as f32 / 2.0,
-    -(resolution_y as f32 / 2.0),
-    1.0, -1.0
-  );
 
+  let mut camera = Camera::new(resolution);
+  
   let fps_cap = 60;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
   
@@ -395,8 +388,8 @@ fn main() -> Result<(), String> {
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
           gl::UseProgram(quad_shader_program.id());
-          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
-          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
+          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&camera.view_matrix()).as_ptr());
+          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(camera.projection_matrix()).as_ptr());
           
           gl::BindVertexArray(menu_option_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
@@ -454,8 +447,8 @@ fn main() -> Result<(), String> {
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
           gl::UseProgram(quad_shader_program.id());
-          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&view_matrix).as_ptr());
-          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(&projection_matrix).as_ptr());
+          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&camera.view_matrix()).as_ptr());
+          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(camera.projection_matrix()).as_ptr());
 
           gl::BindVertexArray(tile_vertex_array.id());
 
@@ -520,8 +513,7 @@ fn main() -> Result<(), String> {
             if playfield_state.map.player_location.array_index() == index {
               gl::BindTexture(gl::TEXTURE_2D, drake_texture.id());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              view_matrix.x.w = -tile_transform.location.x;
-              view_matrix.y.w = -tile_transform.location.y;
+              camera.transform.translate_to(tile_transform.location);
             }
 
             if playfield_state.map.is_snake[index] {
@@ -788,8 +780,13 @@ impl Transform {
   fn rotate_to(&mut self, degrees: f32) {
     self.rotation = degrees;
   }
+
+  fn translate_to(&mut self, location: Vector2) {
+    self.location = location;
+  }
 }
 
+#[derive(Clone, Copy)]
 struct Vector2 {
   x: f32,
   y: f32
@@ -800,6 +797,65 @@ impl Vector2 {
     Self {
       x: 0.0,
       y: 0.0
+    }
+  }
+}
+
+impl std::ops::Neg for Vector2 {
+  type Output = Self;
+
+  fn neg(self) -> Self::Output {
+    Self::Output {
+      x: -self.x,
+      y: -self.y
+    }
+  }
+}
+
+struct Camera {
+  transform: Transform,
+  projection_matrix: Matrix4
+}
+
+impl Camera {
+  fn new(resolution: Resolution) -> Self {
+    let transform = Transform::new();
+    let projection_matrix = calculate_projection_matrix(
+      -(resolution.width as f32 / 2.0),
+      resolution.width as f32 / 2.0,
+      resolution.height as f32 / 2.0,
+      -(resolution.height as f32 / 2.0),
+      1.0, -1.0
+    );
+
+    Self {
+      transform,
+      projection_matrix
+    }
+  }
+  
+  fn view_matrix(&self) -> Matrix4 {
+    let mut reversed_transform = Transform::new();
+    reversed_transform.translate_to(-self.transform.location);
+
+    reversed_transform.matrix()
+  }
+
+  fn projection_matrix(&self) -> &Matrix4 {
+    &self.projection_matrix
+  }
+}
+
+struct Resolution {
+  width: usize,
+  height: usize
+}
+
+impl Resolution {
+  fn new(width: usize, height: usize) -> Self {
+    Self {
+      width,
+      height
     }
   }
 }
