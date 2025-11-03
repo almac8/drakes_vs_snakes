@@ -17,7 +17,7 @@ use map::{
 };
 
 mod text_input;
-use sdl2::{event::Event, keyboard::Keycode};
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
 use text_input::read_text_input;
 
 mod input;
@@ -235,6 +235,9 @@ fn main() -> Result<(), String> {
   let _gl = gl::load_with(| procname | video_subsystem.gl_get_proc_address(procname) as *const gl::types::GLvoid);
   let _gl_context = window.gl_create_context();
 
+  let ttf_context = sdl2::ttf::init()?;
+  let font = ttf_context.load_font(Path::new("./res/fonts/RasterForgeRegular.ttf"), 32)?;
+
   unsafe {
     gl::Viewport(0, 0, resolution.width as gl::types::GLint, resolution.height as gl::types::GLint);
     gl::Enable(gl::BLEND);
@@ -258,10 +261,6 @@ fn main() -> Result<(), String> {
   let tile_width = 32;
   let tile_height = 32;
 
-  let quad_vertex_data = generate_vertex_data(160, 32);
-
-  let quad_vertex_buffer = VertexBuffer::new(quad_vertex_data);
-  
   let quad_element_data: Vec<u32> = vec![
     0, 1, 2,
     0, 2, 3
@@ -269,7 +268,29 @@ fn main() -> Result<(), String> {
 
   let quad_element_buffer = ElementBuffer::new(quad_element_data);
 
-  let menu_option_vertex_array = VertexArray::new(&quad_vertex_buffer, &quad_element_buffer);
+  let new_game_texture = Texture::render_text("New Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let load_game_texture = Texture::render_text("Load Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let high_scores_texture = Texture::render_text("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let settings_texture = Texture::render_text("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let quit_texture = Texture::render_text("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+
+  let new_game_vertex_data = generate_vertex_data(new_game_texture.width(), new_game_texture.height());
+  let load_game_vertex_data = generate_vertex_data(load_game_texture.width(), load_game_texture.height());
+  let high_scores_vertex_data = generate_vertex_data(high_scores_texture.width(), high_scores_texture.height());
+  let settings_vertex_data = generate_vertex_data(settings_texture.width(), settings_texture.height());
+  let quit_vertex_data = generate_vertex_data(quit_texture.width(), quit_texture.height());
+
+  let new_game_vertex_buffer = VertexBuffer::new(new_game_vertex_data);
+  let load_game_vertex_buffer = VertexBuffer::new(load_game_vertex_data);
+  let high_scores_vertex_buffer = VertexBuffer::new(high_scores_vertex_data);
+  let settings_vertex_buffer = VertexBuffer::new(settings_vertex_data);
+  let quit_vertex_buffer = VertexBuffer::new(quit_vertex_data);
+  
+  let new_game_vertex_array = VertexArray::new(&new_game_vertex_buffer, &quad_element_buffer);
+  let load_game_vertex_array = VertexArray::new(&load_game_vertex_buffer, &quad_element_buffer);
+  let high_scores_vertex_array = VertexArray::new(&high_scores_vertex_buffer, &quad_element_buffer);
+  let settings_vertex_array = VertexArray::new(&settings_vertex_buffer, &quad_element_buffer);
+  let quit_vertex_array = VertexArray::new(&quit_vertex_buffer, &quad_element_buffer);
   
   let emblem_vertex_data = generate_vertex_data(32, 32);
 
@@ -285,33 +306,32 @@ fn main() -> Result<(), String> {
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
   let quad_shader_program = ShaderProgram::new(quad_vertex_shader, quad_fragment_shader)?;
+
+  let text_vertex_shader = VertexShader::load(Path::new("./res/shaders/text_vertex_shader.glsl"))?;
+  let text_fragment_shader = FragmentShader::load(Path::new("./res/shaders/text_fragment_shader.glsl"))?;
+  let text_shader_program = ShaderProgram::new(text_vertex_shader, text_fragment_shader)?;
   
-  let new_game_texture = Texture::load(Path::new("res/main_menu/new_game.png"))?;
-  let load_game_texture = Texture::load(Path::new("res/main_menu/load_game.png"))?;
-  let high_scores_texture = Texture::load(Path::new("res/main_menu/high_scores.png"))?;
-  let settings_texture = Texture::load(Path::new("res/main_menu/settings.png"))?;
-  let quit_texture = Texture::load(Path::new("res/main_menu/quit.png"))?;
-  let emblem_0_texture = Texture::load(Path::new("res/main_menu/emblem_0.png"))?;
-  let emblem_1_texture = Texture::load(Path::new("res/main_menu/emblem_1.png"))?;
-  let drake_texture = Texture::load(Path::new("res/playfield/drake.png"))?;
-  let grass_texture = Texture::load(Path::new("res/playfield/grass.png"))?;
-  let snake_texture = Texture::load(Path::new("res/playfield/snake.png"))?;
-  let grass_1_texture = Texture::load(Path::new("res/playfield/grass_1.png"))?;
-  let grass_2_texture = Texture::load(Path::new("res/playfield/grass_2.png"))?;
-  let grass_3_texture = Texture::load(Path::new("res/playfield/grass_3.png"))?;
-  let grass_4_texture = Texture::load(Path::new("res/playfield/grass_4.png"))?;
-  let grass_5_texture = Texture::load(Path::new("res/playfield/grass_5.png"))?;
-  let grass_6_texture = Texture::load(Path::new("res/playfield/grass_6.png"))?;
-  let grass_7_texture = Texture::load(Path::new("res/playfield/grass_7.png"))?;
-  let grass_8_texture = Texture::load(Path::new("res/playfield/grass_8.png"))?;
-  let shadow_0_texture = Texture::load(Path::new("res/playfield/shadows/shadow_0.png"))?;
-  let shadow_1_texture = Texture::load(Path::new("res/playfield/shadows/shadow_1.png"))?;
-  let shadow_2_texture = Texture::load(Path::new("res/playfield/shadows/shadow_2.png"))?;
-  let shadow_3_texture = Texture::load(Path::new("res/playfield/shadows/shadow_3.png"))?;
-  let shadow_4_texture = Texture::load(Path::new("res/playfield/shadows/shadow_4.png"))?;
-  let shadow_5_texture = Texture::load(Path::new("res/playfield/shadows/shadow_5.png"))?;
-  let stars_texture = Texture::load(Path::new("res/playfield/stars.png"))?;
-  let nest_texture = Texture::load(Path::new("res/playfield/nest.png"))?;
+  let emblem_0_texture = Texture::load(Path::new("res/textures/emblem_0.png"))?;
+  let emblem_1_texture = Texture::load(Path::new("res/textures/emblem_1.png"))?;
+  let drake_texture = Texture::load(Path::new("res/textures/drake.png"))?;
+  let grass_texture = Texture::load(Path::new("res/textures/grass.png"))?;
+  let snake_texture = Texture::load(Path::new("res/textures/snake.png"))?;
+  let grass_1_texture = Texture::load(Path::new("res/textures/hints/grass_1.png"))?;
+  let grass_2_texture = Texture::load(Path::new("res/textures/hints/grass_2.png"))?;
+  let grass_3_texture = Texture::load(Path::new("res/textures/hints/grass_3.png"))?;
+  let grass_4_texture = Texture::load(Path::new("res/textures/hints/grass_4.png"))?;
+  let grass_5_texture = Texture::load(Path::new("res/textures/hints/grass_5.png"))?;
+  let grass_6_texture = Texture::load(Path::new("res/textures/hints/grass_6.png"))?;
+  let grass_7_texture = Texture::load(Path::new("res/textures/hints/grass_7.png"))?;
+  let grass_8_texture = Texture::load(Path::new("res/textures/hints/grass_8.png"))?;
+  let shadow_0_texture = Texture::load(Path::new("res/textures/shadows/shadow_0.png"))?;
+  let shadow_1_texture = Texture::load(Path::new("res/textures/shadows/shadow_1.png"))?;
+  let shadow_2_texture = Texture::load(Path::new("res/textures/shadows/shadow_2.png"))?;
+  let shadow_3_texture = Texture::load(Path::new("res/textures/shadows/shadow_3.png"))?;
+  let shadow_4_texture = Texture::load(Path::new("res/textures/shadows/shadow_4.png"))?;
+  let shadow_5_texture = Texture::load(Path::new("res/textures/shadows/shadow_5.png"))?;
+  let stars_texture = Texture::load(Path::new("res/textures/stars.png"))?;
+  let nest_texture = Texture::load(Path::new("res/textures/nest.png"))?;
 
   let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
   let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
@@ -331,10 +351,10 @@ fn main() -> Result<(), String> {
   quit_transform.translate_y(128.0);
 
   let mut emblem_0_transform = Transform::new();
-  emblem_0_transform.translate_x(-100.0);
+  emblem_0_transform.translate_x(-128.0);
 
   let mut emblem_1_transform = Transform::new();
-  emblem_1_transform.translate_x(100.0);
+  emblem_1_transform.translate_x(128.0);
 
   let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
   let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), view_matrix_name.as_ptr()) };
@@ -387,32 +407,35 @@ fn main() -> Result<(), String> {
           gl::ClearColor(0.5, 0.25, 0.25, 1.0);
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
-          gl::UseProgram(quad_shader_program.id());
+          gl::UseProgram(text_shader_program.id());
           gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&camera.view_matrix()).as_ptr());
           gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(camera.projection_matrix()).as_ptr());
           
-          gl::BindVertexArray(menu_option_vertex_array.id());
+          gl::BindVertexArray(new_game_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          
+
+          gl::BindVertexArray(load_game_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          
+
+          gl::BindVertexArray(high_scores_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          
+
+          gl::BindVertexArray(settings_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, settings_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          
+
+          gl::BindVertexArray(quit_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
           gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_transform.matrix()).as_ptr());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          gl::BindVertexArray(0);
-
+          
           emblem_0_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
           emblem_1_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
           
