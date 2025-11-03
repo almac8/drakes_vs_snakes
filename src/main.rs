@@ -242,6 +242,7 @@ fn main() -> Result<(), String> {
     gl::Viewport(0, 0, resolution.width as gl::types::GLint, resolution.height as gl::types::GLint);
     gl::Enable(gl::BLEND);
     gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    gl::ClearColor(0.5, 0.25, 0.25, 1.0);
   }
   
   let mut event_pump = sdl_context.event_pump()?;
@@ -398,15 +399,14 @@ fn main() -> Result<(), String> {
       }
     }
 
+    unsafe { gl::Clear(gl::COLOR_BUFFER_BIT) };
+
     match current_scene {
       Scenes::MainMenu => {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
 
         unsafe {
-          gl::ClearColor(0.5, 0.25, 0.25, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-
           gl::UseProgram(text_shader_program.id());
           text_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
           text_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
@@ -454,11 +454,6 @@ fn main() -> Result<(), String> {
       Scenes::NewGame => {
         update_new_game(&mut new_game_state, &mut playfield_state.map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
-
-        unsafe {
-          gl::ClearColor(0.25, 0.5, 0.25, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       },
 
       Scenes::Playfield => {
@@ -466,9 +461,6 @@ fn main() -> Result<(), String> {
         print_playfield(&playfield_state);
 
         unsafe {
-          gl::ClearColor(0.25, 0.25, 0.5, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-
           gl::UseProgram(quad_shader_program.id());
           quad_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
           quad_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
@@ -656,61 +648,31 @@ fn main() -> Result<(), String> {
       Scenes::Pause => {
         update_pause_menu(&mut message_queue, &mut pause_menu_state);
         print_pause_menu(&pause_menu_state);
-
-        unsafe {
-          gl::ClearColor(0.5, 0.5, 0.25, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       },
 
       Scenes::SaveGame => {
         print_save_game();
         update_save_game(&mut message_queue, &playfield_state)?;
-
-        unsafe {
-          gl::ClearColor(0.5, 0.25, 0.5, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       },
 
       Scenes::LoadGame => {
         update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state, Path::new("./saves"))?;
         print_load_game(&load_game_state);
-
-        unsafe {
-          gl::ClearColor(0.25, 0.5, 0.5, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       },
 
       Scenes::HighScores => {
         update_high_scores(&mut message_queue, &mut high_scores_state, Path::new("./high_scores.txt"))?;
         print_high_scores(&high_scores_state);
-
-        unsafe {
-          gl::ClearColor(0.75, 0.5, 0.5, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       },
 
       Scenes::AddHighScore => {
         update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"))?;
         print_add_high_score();
-
-        unsafe {
-          gl::ClearColor(0.75, 0.75, 0.5, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       },
 
       Scenes::Settings => {
         update_settings(&mut message_queue);
         print_settings();
-
-        unsafe {
-          gl::ClearColor(0.5, 0.75, 0.75, 1.0);
-          gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
       }
     }
   
