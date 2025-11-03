@@ -65,6 +65,17 @@ impl ShaderProgram {
   pub fn id(&self) -> gl::types::GLuint {
     self.id
   }
+
+  pub fn get_uniform_location(&self, uniform_name: String) -> Result<gl::types::GLint, String> {
+    let uniform_name = CString::new(uniform_name)
+      .map_err(| error | error.to_string())?;
+
+    let location = unsafe { gl::GetUniformLocation(self.id, uniform_name.as_ptr()) };
+
+    Ok(
+      location
+    )
+  }
   
   pub fn set_uniform_matrix(&self, matrix_location: gl::types::GLint, matrix: &Matrix4) {
     unsafe {

@@ -1,6 +1,12 @@
 mod score;
 
-use std::{ffi::CString, path::Path, time::{Duration, Instant}};
+use std::{
+  path::Path,
+  time::{
+    Duration,
+    Instant
+  }
+};
 
 use rand::SeedableRng;
 use score::Score;
@@ -334,8 +340,7 @@ fn main() -> Result<(), String> {
   let stars_texture = Texture::load(Path::new("res/textures/stars.png"))?;
   let nest_texture = Texture::load(Path::new("res/textures/nest.png"))?;
 
-  let model_matrix_name = CString::new("model").map_err(| error | error.to_string())?;
-  let model_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), model_matrix_name.as_ptr()) };
+  let model_matrix_location = quad_shader_program.get_uniform_location("model".to_string())?;
   
   let new_game_transform = Transform::new();
 
@@ -357,11 +362,8 @@ fn main() -> Result<(), String> {
   let mut emblem_1_transform = Transform::new();
   emblem_1_transform.translate_x(128.0);
 
-  let view_matrix_name = CString::new("view").map_err(| error | error.to_string())?;
-  let view_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), view_matrix_name.as_ptr()) };
-
-  let projection_matrix_name = CString::new("projection").map_err(| error | error.to_string())?;
-  let projection_matrix_location = unsafe { gl::GetUniformLocation(quad_shader_program.id(), projection_matrix_name.as_ptr()) };
+  let view_matrix_location = quad_shader_program.get_uniform_location("view".to_string())?;
+  let projection_matrix_location = quad_shader_program.get_uniform_location("projection".to_string())?;
 
   let mut camera = Camera::new(resolution);
   
