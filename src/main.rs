@@ -408,32 +408,32 @@ fn main() -> Result<(), String> {
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
           gl::UseProgram(text_shader_program.id());
-          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&camera.view_matrix()).as_ptr());
-          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(camera.projection_matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
+          text_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
           
           gl::BindVertexArray(new_game_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&new_game_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &new_game_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(load_game_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&load_game_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &load_game_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(high_scores_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&high_scores_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &high_scores_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(settings_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, settings_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&settings_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &settings_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(quit_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&quit_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &quit_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           emblem_0_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
@@ -441,11 +441,11 @@ fn main() -> Result<(), String> {
           
           gl::BindVertexArray(emblem_vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_0_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-          gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&emblem_1_transform.matrix()).as_ptr());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
         }
@@ -470,8 +470,8 @@ fn main() -> Result<(), String> {
           gl::Clear(gl::COLOR_BUFFER_BIT);
 
           gl::UseProgram(quad_shader_program.id());
-          gl::UniformMatrix4fv(view_matrix_location, 1, gl::FALSE, flatten_matrix(&camera.view_matrix()).as_ptr());
-          gl::UniformMatrix4fv(projection_matrix_location, 1, gl::FALSE, flatten_matrix(camera.projection_matrix()).as_ptr());
+          quad_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
+          quad_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
 
           gl::BindVertexArray(tile_vertex_array.id());
 
@@ -483,8 +483,8 @@ fn main() -> Result<(), String> {
             tile_transform.translate_x(-(playfield_state.map.size.width() as f32 * tile_width as f32 / 2.0));
             tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
             tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
-            
-            gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_transform.matrix()).as_ptr());
+
+            quad_shader_program.set_uniform_matrix(model_matrix_location, &tile_transform.matrix());
             
             gl::BindTexture(gl::TEXTURE_2D, grass_texture.id());
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
@@ -635,7 +635,7 @@ fn main() -> Result<(), String> {
                 }
               }
 
-              gl::UniformMatrix4fv(model_matrix_location, 1, gl::FALSE, flatten_matrix(&tile_transform.matrix()).as_ptr());
+              quad_shader_program.set_uniform_matrix(model_matrix_location, &tile_transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
 

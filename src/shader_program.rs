@@ -2,7 +2,9 @@ use std::ffi::CString;
 
 use crate::{
   VertexShader,
-  FragmentShader
+  FragmentShader,
+  Matrix4,
+  flatten_matrix
 };
 
 pub struct ShaderProgram {
@@ -62,6 +64,12 @@ impl ShaderProgram {
 
   pub fn id(&self) -> gl::types::GLuint {
     self.id
+  }
+  
+  pub fn set_uniform_matrix(&self, matrix_location: gl::types::GLint, matrix: &Matrix4) {
+    unsafe {
+      gl::UniformMatrix4fv(matrix_location, 1, gl::FALSE, flatten_matrix(matrix).as_ptr());
+    }
   }
 }
 
