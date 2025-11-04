@@ -23,7 +23,7 @@ use map::{
 };
 
 mod text_input;
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color, ttf::Font};
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
 use text_input::read_text_input;
 
 mod input;
@@ -227,6 +227,9 @@ use generate_texture::generate_texture;
 mod render_sprite;
 use render_sprite::render_sprite;
 
+mod sprite;
+use sprite::Sprite;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -274,55 +277,42 @@ fn main() -> Result<(), String> {
   let tile_width = 32;
   let tile_height = 32;
 
-  let quad_element_data: Vec<u32> = vec![
-    0, 1, 2,
-    0, 2, 3
-  ];
-
-  let quad_element_buffer = ElementBuffer::new(quad_element_data);
-
-  let new_game_sprite = Sprite::new("New Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut load_game_sprite = Sprite::new("Load Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut high_scores_sprite = Sprite::new("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut settings_sprite = Sprite::new("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut quit_sprite = Sprite::new("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let new_game_sprite = Sprite::print("New Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut load_game_sprite = Sprite::print("Load Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut high_scores_sprite = Sprite::print("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut settings_sprite = Sprite::print("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut quit_sprite = Sprite::print("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
 
   let mut emblem_0_sprite = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
   let mut emblem_1_sprite = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
   
-  load_game_sprite.transform.translate_y(32.0);
-  high_scores_sprite.transform.translate_y(64.0);
-  settings_sprite.transform.translate_y(96.0);
-  quit_sprite.transform.translate_y(128.0);
-  emblem_0_sprite.transform.translate_x(-128.0);
-  emblem_1_sprite.transform.translate_x(128.0);
+  load_game_sprite.mut_transform().translate_y(32.0);
+  high_scores_sprite.mut_transform().translate_y(64.0);
+  settings_sprite.mut_transform().translate_y(96.0);
+  quit_sprite.mut_transform().translate_y(128.0);
+  emblem_0_sprite.mut_transform().translate_x(-128.0);
+  emblem_1_sprite.mut_transform().translate_x(128.0);
 
-  let mut map_width_sprite = Sprite::new("Map Width".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut map_height_sprite = Sprite::new("Map Height".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut num_snakes_sprite = Sprite::new("Number of Snakes".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut map_width_sprite = Sprite::print("Map Width".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut map_height_sprite = Sprite::print("Map Height".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut num_snakes_sprite = Sprite::print("Number of Snakes".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
 
-  let mut eight_sprite = Sprite::new("8".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut sixteen_sprite = Sprite::new("16".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut thirty_two_sprite = Sprite::new("32".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut sixty_four_sprite = Sprite::new("64".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut one_two_eight_sprite = Sprite::new("128".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut eight_sprite = Sprite::print("8".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut sixteen_sprite = Sprite::print("16".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut thirty_two_sprite = Sprite::print("32".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut sixty_four_sprite = Sprite::print("64".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut one_two_eight_sprite = Sprite::print("128".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
 
-  map_width_sprite.transform.translate_y_to(-32.0);
-  map_height_sprite.transform.translate_y_to(-32.0);
-  num_snakes_sprite.transform.translate_y_to(-32.0);
+  map_width_sprite.mut_transform().translate_y_to(-32.0);
+  map_height_sprite.mut_transform().translate_y_to(-32.0);
+  num_snakes_sprite.mut_transform().translate_y_to(-32.0);
 
-  eight_sprite.transform.translate_y_to(0.0);
-  sixteen_sprite.transform.translate_y_to(32.0);
-  thirty_two_sprite.transform.translate_y_to(64.0);
-  sixty_four_sprite.transform.translate_y_to(96.0);
-  one_two_eight_sprite.transform.translate_y_to(128.0);
+  eight_sprite.mut_transform().translate_y_to(0.0);
+  sixteen_sprite.mut_transform().translate_y_to(32.0);
+  thirty_two_sprite.mut_transform().translate_y_to(64.0);
+  sixty_four_sprite.mut_transform().translate_y_to(96.0);
+  one_two_eight_sprite.mut_transform().translate_y_to(128.0);
 
-
-  let tile_vertex_data = generate_vertex_data(tile_width, tile_height);
-  let tile_vertex_buffer = VertexBuffer::new(tile_vertex_data);
-
-  let tile_vertex_array = VertexArray::new(&tile_vertex_buffer, &quad_element_buffer);
-  
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
   let quad_shader_program = ShaderProgram::new(quad_vertex_shader, quad_fragment_shader)?;
@@ -437,8 +427,8 @@ fn main() -> Result<(), String> {
         render_sprite(&settings_sprite, &camera, &text_shader_program)?;
         render_sprite(&quit_sprite, &camera, &text_shader_program)?;
           
-        emblem_0_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-        emblem_1_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_0_sprite.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_1_sprite.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
 
         render_sprite(&emblem_0_sprite, &camera, &text_shader_program)?;
         render_sprite(&emblem_1_sprite, &camera, &text_shader_program)?;
@@ -456,8 +446,8 @@ fn main() -> Result<(), String> {
             render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
             render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
 
-            emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_0_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_1_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
             render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
             render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
@@ -470,8 +460,8 @@ fn main() -> Result<(), String> {
             render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
             render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
 
-            emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_0_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_1_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
             render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
             render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
@@ -484,8 +474,8 @@ fn main() -> Result<(), String> {
             render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
             render_sprite(&one_two_eight_sprite, &camera, &text_shader_program)?;
 
-            emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_0_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_1_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
             render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
             render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
@@ -498,8 +488,6 @@ fn main() -> Result<(), String> {
         print_playfield(&playfield_state);
 
         unsafe {
-          gl::BindVertexArray(tile_vertex_array.id());
-
           for index in 0..playfield_state.map.size.array_length() {
             let tile_coordinates = Coordinate::from_index(index, &playfield_state.map.size);
             
@@ -875,61 +863,5 @@ impl Resolution {
       width,
       height
     }
-  }
-}
-
-struct Sprite {
-  vertex_array: VertexArray,
-  texture: Texture,
-  transform: Transform
-}
-
-impl Sprite {
-  fn new(text: String, font: &Font, color: Color) -> Result<Self, String> {
-    let texture = Texture::render_text(text, font, color)?;
-    let vertex_data = generate_vertex_data(texture.width(), texture.height());
-
-    let element_data = vec![
-      0, 1, 2,
-      0, 2, 3
-    ];
-
-    let vertex_buffer = VertexBuffer::new(vertex_data);
-    let element_buffer = ElementBuffer::new(element_data);
-    let vertex_array = VertexArray::new(&vertex_buffer, &element_buffer);
-
-    let transform = Transform::new();
-
-    Ok(
-      Self {
-        vertex_array,
-        texture,
-        transform
-      }
-    )
-  }
-
-  fn load(file_path: &Path) -> Result<Self, String> {
-    let texture = Texture::load(file_path)?;
-    let vertex_data = generate_vertex_data(texture.width(), texture.height());
-
-    let element_data = vec![
-      0, 1, 2,
-      0, 2, 3
-    ];
-
-    let vertex_buffer = VertexBuffer::new(vertex_data);
-    let element_buffer = ElementBuffer::new(element_data);
-    let vertex_array = VertexArray::new(&vertex_buffer, &element_buffer);
-
-    let transform = Transform::new();
-
-    Ok(
-      Self {
-        vertex_array,
-        texture,
-        transform
-      }
-    )
   }
 }
