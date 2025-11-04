@@ -313,6 +313,28 @@ fn main() -> Result<(), String> {
   sixty_four_sprite.mut_transform().translate_y_to(96.0);
   one_two_eight_sprite.mut_transform().translate_y_to(128.0);
 
+  let mut grass_sprite = Sprite::load(Path::new("res/textures/grass.png"))?;
+  let mut grass_1_sprite = Sprite::load(Path::new("res/textures/hints/grass_1.png"))?;
+  let mut grass_2_sprite = Sprite::load(Path::new("res/textures/hints/grass_2.png"))?;
+  let mut grass_3_sprite = Sprite::load(Path::new("res/textures/hints/grass_3.png"))?;
+  let mut grass_4_sprite = Sprite::load(Path::new("res/textures/hints/grass_4.png"))?;
+  let mut grass_5_sprite = Sprite::load(Path::new("res/textures/hints/grass_5.png"))?;
+  let mut grass_6_sprite = Sprite::load(Path::new("res/textures/hints/grass_6.png"))?;
+  let mut grass_7_sprite = Sprite::load(Path::new("res/textures/hints/grass_7.png"))?;
+  let mut grass_8_sprite = Sprite::load(Path::new("res/textures/hints/grass_8.png"))?;
+
+  let mut drake_sprite = Sprite::load(Path::new("res/textures/drake.png"))?;
+  let mut snake_sprite = Sprite::load(Path::new("res/textures/snake.png"))?;
+  let mut stars_sprite = Sprite::load(Path::new("res/textures/stars.png"))?;
+  let mut nest_sprite = Sprite::load(Path::new("res/textures/nest.png"))?;
+
+  let mut shadow_0_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_0.png"))?;
+  let mut shadow_1_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_1.png"))?;
+  let mut shadow_2_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_2.png"))?;
+  let mut shadow_3_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_3.png"))?;
+  let mut shadow_4_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_4.png"))?;
+  let mut shadow_5_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_5.png"))?;
+
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
   let quad_shader_program = ShaderProgram::new(quad_vertex_shader, quad_fragment_shader)?;
@@ -321,27 +343,6 @@ fn main() -> Result<(), String> {
   let text_fragment_shader = FragmentShader::load(Path::new("./res/shaders/text_fragment_shader.glsl"))?;
   let text_shader_program = ShaderProgram::new(text_vertex_shader, text_fragment_shader)?;
   
-  let emblem_0_texture = Texture::load(Path::new("res/textures/emblem_0.png"))?;
-  let drake_texture = Texture::load(Path::new("res/textures/drake.png"))?;
-  let grass_texture = Texture::load(Path::new("res/textures/grass.png"))?;
-  let snake_texture = Texture::load(Path::new("res/textures/snake.png"))?;
-  let grass_1_texture = Texture::load(Path::new("res/textures/hints/grass_1.png"))?;
-  let grass_2_texture = Texture::load(Path::new("res/textures/hints/grass_2.png"))?;
-  let grass_3_texture = Texture::load(Path::new("res/textures/hints/grass_3.png"))?;
-  let grass_4_texture = Texture::load(Path::new("res/textures/hints/grass_4.png"))?;
-  let grass_5_texture = Texture::load(Path::new("res/textures/hints/grass_5.png"))?;
-  let grass_6_texture = Texture::load(Path::new("res/textures/hints/grass_6.png"))?;
-  let grass_7_texture = Texture::load(Path::new("res/textures/hints/grass_7.png"))?;
-  let grass_8_texture = Texture::load(Path::new("res/textures/hints/grass_8.png"))?;
-  let shadow_0_texture = Texture::load(Path::new("res/textures/shadows/shadow_0.png"))?;
-  let shadow_1_texture = Texture::load(Path::new("res/textures/shadows/shadow_1.png"))?;
-  let shadow_2_texture = Texture::load(Path::new("res/textures/shadows/shadow_2.png"))?;
-  let shadow_3_texture = Texture::load(Path::new("res/textures/shadows/shadow_3.png"))?;
-  let shadow_4_texture = Texture::load(Path::new("res/textures/shadows/shadow_4.png"))?;
-  let shadow_5_texture = Texture::load(Path::new("res/textures/shadows/shadow_5.png"))?;
-  let stars_texture = Texture::load(Path::new("res/textures/stars.png"))?;
-  let nest_texture = Texture::load(Path::new("res/textures/nest.png"))?;
-
   let mut load_game_transform = Transform::new();
   load_game_transform.translate_y(32.0);
 
@@ -487,7 +488,6 @@ fn main() -> Result<(), String> {
         update_playfield(&mut message_queue, &mut playfield_state)?;
         print_playfield(&playfield_state);
 
-        unsafe {
           for index in 0..playfield_state.map.size.array_length() {
             let tile_coordinates = Coordinate::from_index(index, &playfield_state.map.size);
             
@@ -497,69 +497,51 @@ fn main() -> Result<(), String> {
             tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
             tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
 
-            quad_shader_program.set_model_matrix(&tile_transform.matrix())?;
-            
-            gl::BindTexture(gl::TEXTURE_2D, grass_texture.id());
-            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            grass_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_1_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_2_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_3_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_4_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_5_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_6_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_7_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_8_sprite.mut_transform().translate_to(tile_transform.location);
+
+            shadow_0_sprite.mut_transform().translate_to(tile_transform.location);
+            shadow_1_sprite.mut_transform().translate_to(tile_transform.location);
+            shadow_2_sprite.mut_transform().translate_to(tile_transform.location);
+            shadow_3_sprite.mut_transform().translate_to(tile_transform.location);
+            shadow_4_sprite.mut_transform().translate_to(tile_transform.location);
+            shadow_5_sprite.mut_transform().translate_to(tile_transform.location);
+
+            render_sprite(&grass_sprite, &camera, &quad_shader_program)?;
 
             match playfield_state.map.hint[index] {
-              1 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_1_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              2 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_2_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              3 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_3_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              4 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_4_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              5 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_5_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              6 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_6_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              7 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_7_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
-              8 => {
-                gl::BindTexture(gl::TEXTURE_2D, grass_8_texture.id());
-                gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              }
-
+              1 => render_sprite(&grass_1_sprite, &camera, &quad_shader_program)?,
+              2 => render_sprite(&grass_2_sprite, &camera, &quad_shader_program)?,
+              3 => render_sprite(&grass_3_sprite, &camera, &quad_shader_program)?,
+              4 => render_sprite(&grass_4_sprite, &camera, &quad_shader_program)?,
+              5 => render_sprite(&grass_5_sprite, &camera, &quad_shader_program)?,
+              6 => render_sprite(&grass_6_sprite, &camera, &quad_shader_program)?,
+              7 => render_sprite(&grass_7_sprite, &camera, &quad_shader_program)?,
+              8 => render_sprite(&grass_8_sprite, &camera, &quad_shader_program)?,
               _ => {}
             }
 
             if playfield_state.map.player_location.array_index() == index {
-              gl::BindTexture(gl::TEXTURE_2D, drake_texture.id());
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               camera.transform.translate_to(tile_transform.location);
+              drake_sprite.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&drake_sprite, &camera, &quad_shader_program)?;
             }
 
             if playfield_state.map.is_snake[index] {
-              gl::BindTexture(gl::TEXTURE_2D, snake_texture.id());
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              snake_sprite.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&snake_sprite, &camera, &quad_shader_program)?;
             }
 
             if playfield_state.map.is_path[index] {
-              gl::BindTexture(gl::TEXTURE_2D, stars_texture.id());
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              stars_sprite.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&stars_sprite, &camera, &quad_shader_program)?;
             }
             
             if !playfield_state.map.is_explored[index] {
@@ -574,96 +556,96 @@ fn main() -> Result<(), String> {
 
               match shadow_bits {
                 [false, false, false, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_0_texture.id());
+                  render_sprite(&shadow_0_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, false, false,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
-                  tile_transform.rotate_to(180.0);
+                  shadow_1_sprite.mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, false,  true, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
-                  tile_transform.rotate_to(90.0);
+                  shadow_1_sprite.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, false,  true,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
-                  tile_transform.rotate_to(90.0);
+                  shadow_3_sprite.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, true, false, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
-                  tile_transform.rotate_to(270.0);
+                  shadow_1_sprite.mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, true, false,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
-                  tile_transform.rotate_to(180.0);
+                  shadow_3_sprite.mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, true,  true, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_2_texture.id());
-                  tile_transform.rotate_to(90.0);
+                  shadow_2_sprite.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_2_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [false, true,  true,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
-                  tile_transform.rotate_to(180.0);
+                  shadow_4_sprite.mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, false, false, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_1_texture.id());
+                  shadow_1_sprite.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, false, false,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_2_texture.id());
+                  shadow_2_sprite.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_2_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, false,  true, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
+                  shadow_3_sprite.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, false,  true,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
-                  tile_transform.rotate_to(90.0);
+                  shadow_4_sprite.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, true, false, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_3_texture.id());
-                  tile_transform.rotate_to(270.0);
+                  shadow_3_sprite.mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, true, false,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
-                  tile_transform.rotate_to(270.0);
+                  shadow_4_sprite.mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, true,  true, false] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_4_texture.id());
+                  shadow_4_sprite.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
                 },
 
                 [true, true,  true,  true] => {
-                  gl::BindTexture(gl::TEXTURE_2D, shadow_5_texture.id());
+                  shadow_5_sprite.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_5_sprite, &camera, &quad_shader_program)?;
                 }
               }
-
-              quad_shader_program.set_model_matrix(&tile_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
 
             if playfield_state.map.is_marked[tile_coordinates.array_index()] {
-              gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              emblem_0_sprite.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
             }
 
             if playfield_state.map.goal_location == tile_coordinates {
-              gl::BindTexture(gl::TEXTURE_2D, nest_texture.id());
-              tile_transform.rotate_to(0.0);
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+              nest_sprite.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&nest_sprite, &camera, &quad_shader_program)?;
             }
           }
-        }
       },
 
       Scenes::Pause => {
