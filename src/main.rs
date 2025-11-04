@@ -221,6 +221,9 @@ use fragment_shader::FragmentShader;
 mod shader_program;
 use shader_program::ShaderProgram;
 
+mod generate_texture;
+use generate_texture::generate_texture;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;

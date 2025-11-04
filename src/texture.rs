@@ -1,4 +1,9 @@
-use sdl2::{pixels::Color, ttf::Font};
+use sdl2::{
+  pixels::Color,
+  ttf::Font
+};
+
+use crate::generate_texture;
 
 pub struct Texture {
   id: gl::types::GLuint,
@@ -13,27 +18,7 @@ impl Texture {
     let width = texture_image.width();
     let height = texture_image.height();
     let texture_image_data = texture_image.as_bytes();
-    let mut id: gl::types::GLuint = 0;
-
-    unsafe {
-      gl::GenTextures(1, &mut id);
-      gl::BindTexture(gl::TEXTURE_2D, id);
-      
-      gl::TexImage2D(
-        gl::TEXTURE_2D,
-        0,
-        gl::RGBA as gl::types::GLint,
-        texture_image.width() as gl::types::GLint,
-        texture_image.height() as gl::types::GLint,
-        0,
-        gl::RGBA,
-        gl::UNSIGNED_BYTE,
-        texture_image_data.as_ptr() as *const gl::types::GLvoid
-      );
-      
-      gl::GenerateMipmap(gl::TEXTURE_2D);
-      gl::BindTexture(gl::TEXTURE_2D, 0);
-    }
+    let id = generate_texture(width as gl::types::GLint, height as gl::types::GLint, texture_image_data);
     
     Ok(
       Self {
@@ -59,26 +44,7 @@ impl Texture {
       None => return Err("Text rendering error".to_string())
     };
 
-    let mut id: gl::types::GLuint = 0;
-    unsafe {
-      gl::GenTextures(1, &mut id);
-      gl::BindTexture(gl::TEXTURE_2D, id);
-    
-      gl::TexImage2D(
-        gl::TEXTURE_2D,
-        0,
-        gl::RGBA as gl::types::GLint,
-        image_surface.width() as gl::types::GLint,
-        image_surface.height() as gl::types::GLint,
-        0,
-        gl::RGBA,
-        gl::UNSIGNED_BYTE,
-        image_data.as_ptr() as *const gl::types::GLvoid
-      );
-    
-      gl::GenerateMipmap(gl::TEXTURE_2D);
-      gl::BindTexture(gl::TEXTURE_2D, 0);
-    }
+    let id = generate_texture(width as gl::types::GLint, height as gl::types::GLint, image_data);
     
     Ok(
       Self {
