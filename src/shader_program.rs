@@ -61,12 +61,14 @@ impl ShaderProgram {
       }
     )
   }
-
-  pub fn id(&self) -> gl::types::GLuint {
-    self.id
+  
+  pub fn activate(&self) {
+    unsafe {
+      gl::UseProgram(self.id);
+    }
   }
 
-  pub fn get_uniform_location(&self, uniform_name: String) -> Result<gl::types::GLint, String> {
+  fn get_uniform_location(&self, uniform_name: String) -> Result<gl::types::GLint, String> {
     let uniform_name = CString::new(uniform_name)
       .map_err(| error | error.to_string())?;
 
@@ -77,10 +79,31 @@ impl ShaderProgram {
     )
   }
   
-  pub fn set_uniform_matrix(&self, matrix_location: gl::types::GLint, matrix: &Matrix4) {
+  fn set_uniform_matrix(&self, matrix_location: gl::types::GLint, matrix: &Matrix4) {
     unsafe {
       gl::UniformMatrix4fv(matrix_location, 1, gl::FALSE, flatten_matrix(matrix).as_ptr());
     }
+  }
+
+  pub fn set_model_matrix(&self, model_matrix: &Matrix4) -> Result<(), String> {
+    let model_matrix_location = self.get_uniform_location("model".to_string())?;
+    self.set_uniform_matrix(model_matrix_location, model_matrix);
+
+    Ok(())
+  }
+
+  pub fn set_view_matrix(&self, view_matrix: &Matrix4) -> Result<(), String> {
+    let view_matrix_location = self.get_uniform_location("view".to_string())?;
+    self.set_uniform_matrix(view_matrix_location, view_matrix);
+
+    Ok(())
+  }
+
+  pub fn set_projection_matrix(&self, projection_matrix: &Matrix4) -> Result<(), String> {
+    let projection_matrix_location = self.get_uniform_location("projection".to_string())?;
+    self.set_uniform_matrix(projection_matrix_location, projection_matrix);
+
+    Ok(())
   }
 }
 

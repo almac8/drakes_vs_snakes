@@ -368,8 +368,6 @@ fn main() -> Result<(), String> {
   let stars_texture = Texture::load(Path::new("res/textures/stars.png"))?;
   let nest_texture = Texture::load(Path::new("res/textures/nest.png"))?;
 
-  let model_matrix_location = quad_shader_program.get_uniform_location("model".to_string())?;
-  
   let mut load_game_transform = Transform::new();
   load_game_transform.translate_y(32.0);
 
@@ -405,9 +403,6 @@ fn main() -> Result<(), String> {
 
   let mut one_two_eight_transform = Transform::new();
   one_two_eight_transform.translate_y(128.0);
-
-  let view_matrix_location = quad_shader_program.get_uniform_location("view".to_string())?;
-  let projection_matrix_location = quad_shader_program.get_uniform_location("projection".to_string())?;
 
   let mut camera = Camera::new(resolution);
   
@@ -453,33 +448,33 @@ fn main() -> Result<(), String> {
         print_main_menu(&main_menu_state);
 
         unsafe {
-          gl::UseProgram(text_shader_program.id());
-          text_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
-          text_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
+          text_shader_program.activate();
+          text_shader_program.set_view_matrix(&camera.view_matrix())?;
+          text_shader_program.set_projection_matrix(&camera.projection_matrix)?;
           
           gl::BindVertexArray(new_game_sprite.vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, new_game_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &new_game_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&new_game_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(load_game_sprite.vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, load_game_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &load_game_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&load_game_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(high_scores_sprite.vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, high_scores_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &high_scores_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&high_scores_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(settings_sprite.vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, settings_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &settings_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&settings_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
           gl::BindVertexArray(quit_sprite.vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, quit_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &quit_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&quit_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           emblem_0_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
@@ -487,11 +482,11 @@ fn main() -> Result<(), String> {
           
           gl::BindVertexArray(emblem_0_sprite.vertex_array.id());
           gl::BindTexture(gl::TEXTURE_2D, emblem_0_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
           gl::BindTexture(gl::TEXTURE_2D, emblem_1_sprite.texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
+          text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
         }
@@ -501,38 +496,36 @@ fn main() -> Result<(), String> {
         update_new_game(&mut new_game_state, &mut playfield_state.map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
 
-        unsafe {
-          gl::UseProgram(text_shader_program.id());
-          text_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
-          text_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
-        }
+        text_shader_program.activate();
+        text_shader_program.set_view_matrix(&camera.view_matrix())?;
+        text_shader_program.set_projection_matrix(&camera.projection_matrix())?;
 
         match new_game_state.step {
           NewGameStep::Width => {
             unsafe {
               gl::BindVertexArray(map_width_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, map_width_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &map_width_transform.matrix());
+              text_shader_program.set_model_matrix(&map_width_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(eight_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, eight_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &eight_transform.matrix());
+              text_shader_program.set_model_matrix(&eight_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(sixteen_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, sixteen_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &sixteen_transform.matrix());
+              text_shader_program.set_model_matrix(&sixteen_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(thirty_two_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, thirty_two_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &thirty_two_transform.matrix());
+              text_shader_program.set_model_matrix(&thirty_two_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(sixty_four_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, sixty_four_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &sixty_four_transform.matrix());
+              text_shader_program.set_model_matrix(&sixty_four_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
@@ -540,11 +533,11 @@ fn main() -> Result<(), String> {
               
               gl::BindVertexArray(emblem_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
+              text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               
               gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
+              text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               gl::BindVertexArray(0);
             }
@@ -554,27 +547,27 @@ fn main() -> Result<(), String> {
             unsafe {
               gl::BindVertexArray(map_height_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, map_height_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &map_height_transform.matrix());
+              text_shader_program.set_model_matrix(&map_height_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(eight_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, eight_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &eight_transform.matrix());
+              text_shader_program.set_model_matrix(&eight_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(sixteen_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, sixteen_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &sixteen_transform.matrix());
+              text_shader_program.set_model_matrix(&sixteen_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(thirty_two_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, thirty_two_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &thirty_two_transform.matrix());
+              text_shader_program.set_model_matrix(&thirty_two_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(sixty_four_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, sixty_four_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &sixty_four_transform.matrix());
+              text_shader_program.set_model_matrix(&sixty_four_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
@@ -582,11 +575,11 @@ fn main() -> Result<(), String> {
               
               gl::BindVertexArray(emblem_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
+              text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               
               gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
+              text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               gl::BindVertexArray(0);
             }
@@ -596,27 +589,27 @@ fn main() -> Result<(), String> {
             unsafe {
               gl::BindVertexArray(num_snakes_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, num_snakes_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &num_snakes_transform.matrix());
+              text_shader_program.set_model_matrix(&num_snakes_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(sixteen_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, sixteen_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &sixteen_transform.matrix());
+              text_shader_program.set_model_matrix(&sixteen_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(thirty_two_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, thirty_two_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &thirty_two_transform.matrix());
+              text_shader_program.set_model_matrix(&thirty_two_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(sixty_four_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, sixty_four_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &sixty_four_transform.matrix());
+              text_shader_program.set_model_matrix(&sixty_four_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               gl::BindVertexArray(one_two_eight_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, one_two_eight_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &one_two_eight_transform.matrix());
+              text_shader_program.set_model_matrix(&one_two_eight_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
               emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
@@ -624,11 +617,11 @@ fn main() -> Result<(), String> {
               
               gl::BindVertexArray(emblem_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
+              text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               
               gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
+              text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               gl::BindVertexArray(0);
             }
@@ -641,9 +634,9 @@ fn main() -> Result<(), String> {
         print_playfield(&playfield_state);
 
         unsafe {
-          gl::UseProgram(quad_shader_program.id());
-          quad_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
-          quad_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
+          quad_shader_program.activate();
+          quad_shader_program.set_view_matrix(&camera.view_matrix())?;
+          quad_shader_program.set_projection_matrix(&camera.projection_matrix())?;
 
           gl::BindVertexArray(tile_vertex_array.id());
 
@@ -656,7 +649,7 @@ fn main() -> Result<(), String> {
             tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
             tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
 
-            quad_shader_program.set_uniform_matrix(model_matrix_location, &tile_transform.matrix());
+            quad_shader_program.set_model_matrix(&tile_transform.matrix())?;
             
             gl::BindTexture(gl::TEXTURE_2D, grass_texture.id());
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
@@ -807,7 +800,7 @@ fn main() -> Result<(), String> {
                 }
               }
 
-              quad_shader_program.set_uniform_matrix(model_matrix_location, &tile_transform.matrix());
+              quad_shader_program.set_model_matrix(&tile_transform.matrix())?;
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
             }
 
