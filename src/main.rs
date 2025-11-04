@@ -23,7 +23,7 @@ use map::{
 };
 
 mod text_input;
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color, ttf::Font};
 use text_input::read_text_input;
 
 mod input;
@@ -275,29 +275,20 @@ fn main() -> Result<(), String> {
 
   let quad_element_buffer = ElementBuffer::new(quad_element_data);
 
-  let new_game_texture = Texture::render_text("New Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let load_game_texture = Texture::render_text("Load Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let high_scores_texture = Texture::render_text("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let settings_texture = Texture::render_text("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let quit_texture = Texture::render_text("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let new_game_sprite = Sprite::new("New Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut load_game_sprite = Sprite::new("Load Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut high_scores_sprite = Sprite::new("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut settings_sprite = Sprite::new("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut quit_sprite = Sprite::new("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut emblem_0_sprite = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
+  let mut emblem_1_sprite = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
 
-  let new_game_vertex_data = generate_vertex_data(new_game_texture.width(), new_game_texture.height());
-  let load_game_vertex_data = generate_vertex_data(load_game_texture.width(), load_game_texture.height());
-  let high_scores_vertex_data = generate_vertex_data(high_scores_texture.width(), high_scores_texture.height());
-  let settings_vertex_data = generate_vertex_data(settings_texture.width(), settings_texture.height());
-  let quit_vertex_data = generate_vertex_data(quit_texture.width(), quit_texture.height());
-
-  let new_game_vertex_buffer = VertexBuffer::new(new_game_vertex_data);
-  let load_game_vertex_buffer = VertexBuffer::new(load_game_vertex_data);
-  let high_scores_vertex_buffer = VertexBuffer::new(high_scores_vertex_data);
-  let settings_vertex_buffer = VertexBuffer::new(settings_vertex_data);
-  let quit_vertex_buffer = VertexBuffer::new(quit_vertex_data);
-  
-  let new_game_vertex_array = VertexArray::new(&new_game_vertex_buffer, &quad_element_buffer);
-  let load_game_vertex_array = VertexArray::new(&load_game_vertex_buffer, &quad_element_buffer);
-  let high_scores_vertex_array = VertexArray::new(&high_scores_vertex_buffer, &quad_element_buffer);
-  let settings_vertex_array = VertexArray::new(&settings_vertex_buffer, &quad_element_buffer);
-  let quit_vertex_array = VertexArray::new(&quit_vertex_buffer, &quad_element_buffer);
+  load_game_sprite.transform.translate_y(32.0);
+  high_scores_sprite.transform.translate_y(64.0);
+  settings_sprite.transform.translate_y(96.0);
+  quit_sprite.transform.translate_y(128.0);
+  emblem_0_sprite.transform.translate_x(-128.0);
+  emblem_1_sprite.transform.translate_x(128.0);
 
   let map_width_texture = Texture::render_text("Map Width".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
   let map_height_texture = Texture::render_text("Map Height".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
@@ -376,8 +367,6 @@ fn main() -> Result<(), String> {
 
   let model_matrix_location = quad_shader_program.get_uniform_location("model".to_string())?;
   
-  let new_game_transform = Transform::new();
-
   let mut load_game_transform = Transform::new();
   load_game_transform.translate_y(32.0);
 
@@ -389,13 +378,7 @@ fn main() -> Result<(), String> {
 
   let mut quit_transform = Transform::new();
   quit_transform.translate_y(128.0);
-
-  let mut emblem_0_transform = Transform::new();
-  emblem_0_transform.translate_x(-128.0);
-
-  let mut emblem_1_transform = Transform::new();
-  emblem_1_transform.translate_x(128.0);
-
+  
   let mut map_width_transform = Transform::new();
   map_width_transform.translate_y(-32.0);
 
@@ -471,41 +454,41 @@ fn main() -> Result<(), String> {
           text_shader_program.set_uniform_matrix(view_matrix_location, &camera.view_matrix());
           text_shader_program.set_uniform_matrix(projection_matrix_location, &camera.projection_matrix());
           
-          gl::BindVertexArray(new_game_vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, new_game_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &new_game_transform.matrix());
+          gl::BindVertexArray(new_game_sprite.vertex_array.id());
+          gl::BindTexture(gl::TEXTURE_2D, new_game_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &new_game_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-          gl::BindVertexArray(load_game_vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, load_game_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &load_game_transform.matrix());
+          gl::BindVertexArray(load_game_sprite.vertex_array.id());
+          gl::BindTexture(gl::TEXTURE_2D, load_game_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &load_game_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-          gl::BindVertexArray(high_scores_vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, high_scores_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &high_scores_transform.matrix());
+          gl::BindVertexArray(high_scores_sprite.vertex_array.id());
+          gl::BindTexture(gl::TEXTURE_2D, high_scores_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &high_scores_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-          gl::BindVertexArray(settings_vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, settings_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &settings_transform.matrix());
+          gl::BindVertexArray(settings_sprite.vertex_array.id());
+          gl::BindTexture(gl::TEXTURE_2D, settings_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &settings_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-          gl::BindVertexArray(quit_vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, quit_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &quit_transform.matrix());
+          gl::BindVertexArray(quit_sprite.vertex_array.id());
+          gl::BindTexture(gl::TEXTURE_2D, quit_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &quit_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
-          emblem_0_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-          emblem_1_transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+          emblem_0_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+          emblem_1_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
           
-          gl::BindVertexArray(emblem_vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_transform.matrix());
+          gl::BindVertexArray(emblem_0_sprite.vertex_array.id());
+          gl::BindTexture(gl::TEXTURE_2D, emblem_0_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           
-          gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_transform.matrix());
+          gl::BindTexture(gl::TEXTURE_2D, emblem_1_sprite.texture.id());
+          text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
           gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
           gl::BindVertexArray(0);
         }
@@ -549,16 +532,16 @@ fn main() -> Result<(), String> {
               text_shader_program.set_uniform_matrix(model_matrix_location, &sixty_four_transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-              emblem_0_transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              emblem_1_transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+              emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+              emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
               
               gl::BindVertexArray(emblem_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_transform.matrix());
+              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               
               gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_transform.matrix());
+              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               gl::BindVertexArray(0);
             }
@@ -591,16 +574,16 @@ fn main() -> Result<(), String> {
               text_shader_program.set_uniform_matrix(model_matrix_location, &sixty_four_transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-              emblem_0_transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              emblem_1_transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+              emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+              emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
               
               gl::BindVertexArray(emblem_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_transform.matrix());
+              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               
               gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_transform.matrix());
+              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               gl::BindVertexArray(0);
             }
@@ -633,16 +616,16 @@ fn main() -> Result<(), String> {
               text_shader_program.set_uniform_matrix(model_matrix_location, &one_two_eight_transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
 
-              emblem_0_transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              emblem_1_transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+              emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+              emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
               
               gl::BindVertexArray(emblem_vertex_array.id());
               gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_transform.matrix());
+              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_0_sprite.transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               
               gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_transform.matrix());
+              text_shader_program.set_uniform_matrix(model_matrix_location, &emblem_1_sprite.transform.matrix());
               gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
               gl::BindVertexArray(0);
             }
@@ -1036,5 +1019,61 @@ impl Resolution {
       width,
       height
     }
+  }
+}
+
+struct Sprite {
+  vertex_array: VertexArray,
+  texture: Texture,
+  transform: Transform
+}
+
+impl Sprite {
+  fn new(text: String, font: &Font, color: Color) -> Result<Self, String> {
+    let texture = Texture::render_text(text, font, color)?;
+    let vertex_data = generate_vertex_data(texture.width(), texture.height());
+
+    let element_data = vec![
+      0, 1, 2,
+      0, 2, 3
+    ];
+
+    let vertex_buffer = VertexBuffer::new(vertex_data);
+    let element_buffer = ElementBuffer::new(element_data);
+    let vertex_array = VertexArray::new(&vertex_buffer, &element_buffer);
+
+    let transform = Transform::new();
+
+    Ok(
+      Self {
+        vertex_array,
+        texture,
+        transform
+      }
+    )
+  }
+
+  fn load(file_path: &Path) -> Result<Self, String> {
+    let texture = Texture::load(file_path)?;
+    let vertex_data = generate_vertex_data(texture.width(), texture.height());
+
+    let element_data = vec![
+      0, 1, 2,
+      0, 2, 3
+    ];
+
+    let vertex_buffer = VertexBuffer::new(vertex_data);
+    let element_buffer = ElementBuffer::new(element_data);
+    let vertex_array = VertexArray::new(&vertex_buffer, &element_buffer);
+
+    let transform = Transform::new();
+
+    Ok(
+      Self {
+        vertex_array,
+        texture,
+        transform
+      }
+    )
   }
 }
