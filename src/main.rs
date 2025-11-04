@@ -224,6 +224,9 @@ use shader_program::ShaderProgram;
 mod generate_texture;
 use generate_texture::generate_texture;
 
+mod render_sprite;
+use render_sprite::render_sprite;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -283,9 +286,10 @@ fn main() -> Result<(), String> {
   let mut high_scores_sprite = Sprite::new("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
   let mut settings_sprite = Sprite::new("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
   let mut quit_sprite = Sprite::new("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+
   let mut emblem_0_sprite = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
   let mut emblem_1_sprite = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
-
+  
   load_game_sprite.transform.translate_y(32.0);
   high_scores_sprite.transform.translate_y(64.0);
   settings_sprite.transform.translate_y(96.0);
@@ -293,46 +297,27 @@ fn main() -> Result<(), String> {
   emblem_0_sprite.transform.translate_x(-128.0);
   emblem_1_sprite.transform.translate_x(128.0);
 
-  let map_width_texture = Texture::render_text("Map Width".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let map_height_texture = Texture::render_text("Map Height".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let num_snakes_texture = Texture::render_text("Number of Snakes".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let eight_texture = Texture::render_text("8".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let sixteen_texture = Texture::render_text("16".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let thirty_two_texture = Texture::render_text("32".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let sixty_four_texture = Texture::render_text("64".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let one_two_eight_texture = Texture::render_text("128".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut map_width_sprite = Sprite::new("Map Width".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut map_height_sprite = Sprite::new("Map Height".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut num_snakes_sprite = Sprite::new("Number of Snakes".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
 
-  let map_width_vertex_data = generate_vertex_data(map_width_texture.width(), map_width_texture.height());
-  let map_height_vertex_data = generate_vertex_data(map_height_texture.width(), map_height_texture.height());
-  let num_snakes_vertex_data = generate_vertex_data(num_snakes_texture.width(), num_snakes_texture.height());
-  let eight_vertex_data = generate_vertex_data(eight_texture.width(), eight_texture.height());
-  let sixteen_vertex_data = generate_vertex_data(sixteen_texture.width(), sixteen_texture.height());
-  let thirty_two_vertex_data = generate_vertex_data(thirty_two_texture.width(), thirty_two_texture.height());
-  let sixty_four_vertex_data = generate_vertex_data(sixty_four_texture.width(), sixty_four_texture.height());
-  let one_two_eight_vertex_data = generate_vertex_data(one_two_eight_texture.width(), one_two_eight_texture.height());
+  let mut eight_sprite = Sprite::new("8".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut sixteen_sprite = Sprite::new("16".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut thirty_two_sprite = Sprite::new("32".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut sixty_four_sprite = Sprite::new("64".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut one_two_eight_sprite = Sprite::new("128".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
 
-  let map_width_vertex_buffer = VertexBuffer::new(map_width_vertex_data);
-  let map_height_vertex_buffer = VertexBuffer::new(map_height_vertex_data);
-  let num_snakes_vertex_buffer = VertexBuffer::new(num_snakes_vertex_data);
-  let eight_vertex_buffer = VertexBuffer::new(eight_vertex_data);
-  let sixteen_vertex_buffer = VertexBuffer::new(sixteen_vertex_data);
-  let thirty_two_vertex_buffer = VertexBuffer::new(thirty_two_vertex_data);
-  let sixty_four_vertex_buffer = VertexBuffer::new(sixty_four_vertex_data);
-  let one_two_eight_vertex_buffer = VertexBuffer::new(one_two_eight_vertex_data);
+  map_width_sprite.transform.translate_y_to(-32.0);
+  map_height_sprite.transform.translate_y_to(-32.0);
+  num_snakes_sprite.transform.translate_y_to(-32.0);
 
-  let map_width_vertex_array = VertexArray::new(&map_width_vertex_buffer, &quad_element_buffer);
-  let map_height_vertex_array = VertexArray::new(&map_height_vertex_buffer, &quad_element_buffer);
-  let num_snakes_vertex_array = VertexArray::new(&num_snakes_vertex_buffer, &quad_element_buffer);
-  let eight_vertex_array = VertexArray::new(&eight_vertex_buffer, &quad_element_buffer);
-  let sixteen_vertex_array = VertexArray::new(&sixteen_vertex_buffer, &quad_element_buffer);
-  let thirty_two_vertex_array = VertexArray::new(&thirty_two_vertex_buffer, &quad_element_buffer);
-  let sixty_four_vertex_array = VertexArray::new(&sixty_four_vertex_buffer, &quad_element_buffer);
-  let one_two_eight_vertex_array = VertexArray::new(&one_two_eight_vertex_buffer, &quad_element_buffer);
-  
-  let emblem_vertex_data = generate_vertex_data(32, 32);
-  let emblem_vertex_buffer = VertexBuffer::new(emblem_vertex_data);
-  let emblem_vertex_array = VertexArray::new(&emblem_vertex_buffer, &quad_element_buffer);
-  
+  eight_sprite.transform.translate_y_to(0.0);
+  sixteen_sprite.transform.translate_y_to(32.0);
+  thirty_two_sprite.transform.translate_y_to(64.0);
+  sixty_four_sprite.transform.translate_y_to(96.0);
+  one_two_eight_sprite.transform.translate_y_to(128.0);
+
+
   let tile_vertex_data = generate_vertex_data(tile_width, tile_height);
   let tile_vertex_buffer = VertexBuffer::new(tile_vertex_data);
 
@@ -347,7 +332,6 @@ fn main() -> Result<(), String> {
   let text_shader_program = ShaderProgram::new(text_vertex_shader, text_fragment_shader)?;
   
   let emblem_0_texture = Texture::load(Path::new("res/textures/emblem_0.png"))?;
-  let emblem_1_texture = Texture::load(Path::new("res/textures/emblem_1.png"))?;
   let drake_texture = Texture::load(Path::new("res/textures/drake.png"))?;
   let grass_texture = Texture::load(Path::new("res/textures/grass.png"))?;
   let snake_texture = Texture::load(Path::new("res/textures/snake.png"))?;
@@ -447,184 +431,64 @@ fn main() -> Result<(), String> {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
 
-        unsafe {
-          text_shader_program.activate();
-          text_shader_program.set_view_matrix(&camera.view_matrix())?;
-          text_shader_program.set_projection_matrix(&camera.projection_matrix)?;
+        render_sprite(&new_game_sprite, &camera, &text_shader_program)?;
+        render_sprite(&load_game_sprite, &camera, &text_shader_program)?;
+        render_sprite(&high_scores_sprite, &camera, &text_shader_program)?;
+        render_sprite(&settings_sprite, &camera, &text_shader_program)?;
+        render_sprite(&quit_sprite, &camera, &text_shader_program)?;
           
-          gl::BindVertexArray(new_game_sprite.vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, new_game_sprite.texture.id());
-          text_shader_program.set_model_matrix(&new_game_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+        emblem_0_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_1_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
 
-          gl::BindVertexArray(load_game_sprite.vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, load_game_sprite.texture.id());
-          text_shader_program.set_model_matrix(&load_game_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-          gl::BindVertexArray(high_scores_sprite.vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, high_scores_sprite.texture.id());
-          text_shader_program.set_model_matrix(&high_scores_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-          gl::BindVertexArray(settings_sprite.vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, settings_sprite.texture.id());
-          text_shader_program.set_model_matrix(&settings_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-          gl::BindVertexArray(quit_sprite.vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, quit_sprite.texture.id());
-          text_shader_program.set_model_matrix(&quit_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          
-          emblem_0_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-          emblem_1_sprite.transform.translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-          
-          gl::BindVertexArray(emblem_0_sprite.vertex_array.id());
-          gl::BindTexture(gl::TEXTURE_2D, emblem_0_sprite.texture.id());
-          text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          
-          gl::BindTexture(gl::TEXTURE_2D, emblem_1_sprite.texture.id());
-          text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
-          gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-          gl::BindVertexArray(0);
-        }
+        render_sprite(&emblem_0_sprite, &camera, &text_shader_program)?;
+        render_sprite(&emblem_1_sprite, &camera, &text_shader_program)?;
       },
 
       Scenes::NewGame => {
         update_new_game(&mut new_game_state, &mut playfield_state.map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
 
-        text_shader_program.activate();
-        text_shader_program.set_view_matrix(&camera.view_matrix())?;
-        text_shader_program.set_projection_matrix(&camera.projection_matrix())?;
-
         match new_game_state.step {
           NewGameStep::Width => {
-            unsafe {
-              gl::BindVertexArray(map_width_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, map_width_texture.id());
-              text_shader_program.set_model_matrix(&map_width_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            render_sprite(&map_width_sprite, &camera, &text_shader_program)?;
+            render_sprite(&eight_sprite, &camera, &text_shader_program)?;
+            render_sprite(&sixteen_sprite, &camera, &text_shader_program)?;
+            render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
+            render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
 
-              gl::BindVertexArray(eight_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, eight_texture.id());
-              text_shader_program.set_model_matrix(&eight_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-              gl::BindVertexArray(sixteen_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, sixteen_texture.id());
-              text_shader_program.set_model_matrix(&sixteen_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              gl::BindVertexArray(thirty_two_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, thirty_two_texture.id());
-              text_shader_program.set_model_matrix(&thirty_two_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              gl::BindVertexArray(sixty_four_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, sixty_four_texture.id());
-              text_shader_program.set_model_matrix(&sixty_four_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              
-              gl::BindVertexArray(emblem_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              
-              gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              gl::BindVertexArray(0);
-            }
+            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
           },
 
           NewGameStep::Height => {
-            unsafe {
-              gl::BindVertexArray(map_height_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, map_height_texture.id());
-              text_shader_program.set_model_matrix(&map_height_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            render_sprite(&map_height_sprite, &camera, &text_shader_program)?;
+            render_sprite(&eight_sprite, &camera, &text_shader_program)?;
+            render_sprite(&sixteen_sprite, &camera, &text_shader_program)?;
+            render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
+            render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
 
-              gl::BindVertexArray(eight_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, eight_texture.id());
-              text_shader_program.set_model_matrix(&eight_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-              gl::BindVertexArray(sixteen_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, sixteen_texture.id());
-              text_shader_program.set_model_matrix(&sixteen_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              gl::BindVertexArray(thirty_two_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, thirty_two_texture.id());
-              text_shader_program.set_model_matrix(&thirty_two_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              gl::BindVertexArray(sixty_four_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, sixty_four_texture.id());
-              text_shader_program.set_model_matrix(&sixty_four_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              
-              gl::BindVertexArray(emblem_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              
-              gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              gl::BindVertexArray(0);
-            }
+            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
           },
 
           NewGameStep::NumSnakes => {
-            unsafe {
-              gl::BindVertexArray(num_snakes_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, num_snakes_texture.id());
-              text_shader_program.set_model_matrix(&num_snakes_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            render_sprite(&num_snakes_sprite, &camera, &text_shader_program)?;
+            render_sprite(&sixteen_sprite, &camera, &text_shader_program)?;
+            render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
+            render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
+            render_sprite(&one_two_eight_sprite, &camera, &text_shader_program)?;
 
-              gl::BindVertexArray(sixteen_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, sixteen_texture.id());
-              text_shader_program.set_model_matrix(&sixteen_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-              gl::BindVertexArray(thirty_two_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, thirty_two_texture.id());
-              text_shader_program.set_model_matrix(&thirty_two_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              gl::BindVertexArray(sixty_four_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, sixty_four_texture.id());
-              text_shader_program.set_model_matrix(&sixty_four_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              gl::BindVertexArray(one_two_eight_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, one_two_eight_texture.id());
-              text_shader_program.set_model_matrix(&one_two_eight_transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-
-              emblem_0_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              emblem_1_sprite.transform.translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-              
-              gl::BindVertexArray(emblem_vertex_array.id());
-              gl::BindTexture(gl::TEXTURE_2D, emblem_0_texture.id());
-              text_shader_program.set_model_matrix(&emblem_0_sprite.transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              
-              gl::BindTexture(gl::TEXTURE_2D, emblem_1_texture.id());
-              text_shader_program.set_model_matrix(&emblem_1_sprite.transform.matrix())?;
-              gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-              gl::BindVertexArray(0);
-            }
+            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
           }
         }
       },
@@ -634,10 +498,6 @@ fn main() -> Result<(), String> {
         print_playfield(&playfield_state);
 
         unsafe {
-          quad_shader_program.activate();
-          quad_shader_program.set_view_matrix(&camera.view_matrix())?;
-          quad_shader_program.set_projection_matrix(&camera.projection_matrix())?;
-
           gl::BindVertexArray(tile_vertex_array.id());
 
           for index in 0..playfield_state.map.size.array_length() {
