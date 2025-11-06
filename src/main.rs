@@ -261,6 +261,9 @@ fn main() -> Result<(), String> {
   }
   
   let mut event_pump = sdl_context.event_pump()?;
+  let mut typing_status = TypingStatus::NotTyping;
+  let mut typing_buffer = String::new();
+  let mut displayed_text = String::new();
 
   let mut current_scene = Scenes::MainMenu;
   let mut is_running = true;
@@ -276,12 +279,13 @@ fn main() -> Result<(), String> {
 
   let tile_width = 32;
   let tile_height = 32;
+  let text_color = Color::RGBA(16, 32, 32, 255);
 
-  let new_game_sprite = Sprite::print("New Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut load_game_sprite = Sprite::print("Load Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut high_scores_sprite = Sprite::print("High Scores".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut settings_sprite = Sprite::print("Settings".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut quit_sprite = Sprite::print("Quit".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let new_game_sprite = Sprite::print(&"New Game".to_string(), &font, &text_color)?;
+  let mut load_game_sprite = Sprite::print(&"Load Game".to_string(), &font, &text_color)?;
+  let mut high_scores_sprite = Sprite::print(&"High Scores".to_string(), &font, &text_color)?;
+  let mut settings_sprite = Sprite::print(&"Settings".to_string(), &font, &text_color)?;
+  let mut quit_sprite = Sprite::print(&"Quit".to_string(), &font, &text_color)?;
 
   let mut emblem_0_sprite = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
   let mut emblem_1_sprite = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
@@ -293,15 +297,15 @@ fn main() -> Result<(), String> {
   emblem_0_sprite.mut_transform().translate_x(-128.0);
   emblem_1_sprite.mut_transform().translate_x(128.0);
 
-  let mut map_width_sprite = Sprite::print("Map Width".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut map_height_sprite = Sprite::print("Map Height".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut num_snakes_sprite = Sprite::print("Number of Snakes".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut map_width_sprite = Sprite::print(&"Map Width".to_string(), &font, &text_color)?;
+  let mut map_height_sprite = Sprite::print(&"Map Height".to_string(), &font, &text_color)?;
+  let mut num_snakes_sprite = Sprite::print(&"Number of Snakes".to_string(), &font, &text_color)?;
 
-  let mut eight_sprite = Sprite::print("8".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut sixteen_sprite = Sprite::print("16".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut thirty_two_sprite = Sprite::print("32".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut sixty_four_sprite = Sprite::print("64".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut one_two_eight_sprite = Sprite::print("128".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut eight_sprite = Sprite::print(&"8".to_string(), &font, &text_color)?;
+  let mut sixteen_sprite = Sprite::print(&"16".to_string(), &font, &text_color)?;
+  let mut thirty_two_sprite = Sprite::print(&"32".to_string(), &font, &text_color)?;
+  let mut sixty_four_sprite = Sprite::print(&"64".to_string(), &font, &text_color)?;
+  let mut one_two_eight_sprite = Sprite::print(&"128".to_string(), &font, &text_color)?;
 
   map_width_sprite.mut_transform().translate_y_to(-32.0);
   map_height_sprite.mut_transform().translate_y_to(-32.0);
@@ -335,12 +339,13 @@ fn main() -> Result<(), String> {
   let mut shadow_4_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_4.png"))?;
   let mut shadow_5_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_5.png"))?;
 
-  let mut paused_sprite = Sprite::print("Paused".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut resume_sprite = Sprite::print("Resume".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut save_game_sprite = Sprite::print("Save Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
-  let mut main_menu_sprite = Sprite::print("Main Menu".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut paused_sprite = Sprite::print(&"Paused".to_string(), &font, &text_color)?;
+  let mut resume_sprite = Sprite::print(&"Resume".to_string(), &font, &text_color)?;
+  let mut save_game_sprite = Sprite::print(&"Save Game".to_string(), &font, &text_color)?;
+  let mut main_menu_sprite = Sprite::print(&"Main Menu".to_string(), &font, &text_color)?;
 
   let mut save_sprites = Vec::new();
+  let mut displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
 
   paused_sprite.mut_transform().translate_y_to(-32.0);
   resume_sprite.mut_transform().translate_y_to(0.0);
@@ -402,17 +407,50 @@ fn main() -> Result<(), String> {
     for event in event_pump.poll_iter() {
       match event {
         Event::Quit { .. } => message_queue.post(Message::RequestShutdown),
+        
+        Event::KeyDown { keycode: Some(keycode), repeat, .. } => if !repeat {
+          match typing_status {
+            TypingStatus::Typing => {
+              println!("Typing");
+              match keycode {
+                Keycode::A | Keycode::B | Keycode::C | Keycode::D |
+                Keycode::E | Keycode::F | Keycode::G | Keycode::H |
+                Keycode::I | Keycode::J | Keycode::K | Keycode::L |
+                Keycode::M | Keycode::N | Keycode::O | Keycode::P |
+                Keycode::Q | Keycode::R | Keycode::S | Keycode::T |
+                Keycode::U | Keycode::V | Keycode::W | Keycode::X |
+                Keycode::Y | Keycode::Z => typing_buffer.push_str(&keycode.to_string()),
+                
+                Keycode::Return => typing_status = TypingStatus::TypingEnded,
+                Keycode::Backspace => { typing_buffer.pop(); },
 
-        Event::KeyDown { keycode: Some(keycode), repeat, .. } => if !repeat { match keycode {
-          Keycode::W => message_queue.post(Message::PlayerInput(Input::Up)),
-          Keycode::A => message_queue.post(Message::PlayerInput(Input::Left)),
-          Keycode::D => message_queue.post(Message::PlayerInput(Input::Right)),
-          Keycode::S => message_queue.post(Message::PlayerInput(Input::Down)),
-          Keycode::Return => message_queue.post(Message::PlayerInput(Input::Confirm)),
-          Keycode::Escape => message_queue.post(Message::PlayerInput(Input::Cancel)),
-          Keycode::Space => message_queue.post(Message::PlayerInput(Input::Action)),
-          _ => {}
-        }},
+                _ => {}
+              }
+            },
+
+            TypingStatus::NotTyping => {
+              println!("Not Typing");
+              match keycode {
+                Keycode::W => message_queue.post(Message::PlayerInput(Input::Up)),
+                Keycode::A => message_queue.post(Message::PlayerInput(Input::Left)),
+                Keycode::D => message_queue.post(Message::PlayerInput(Input::Right)),
+                Keycode::S => message_queue.post(Message::PlayerInput(Input::Down)),
+                Keycode::Return => message_queue.post(Message::PlayerInput(Input::Confirm)),
+                Keycode::Escape => message_queue.post(Message::PlayerInput(Input::Cancel)),
+                Keycode::Space => message_queue.post(Message::PlayerInput(Input::Action)),
+                _ => {}
+              }
+            },
+
+            TypingStatus::TypingStarted => {
+              println!("Typing Started");
+              typing_buffer = String::new();
+              typing_status = TypingStatus::Typing;
+            },
+
+            TypingStatus::TypingEnded => { println!("Typing Ended") }
+          }
+        }
 
         _ => {}
       }
@@ -433,7 +471,7 @@ fn main() -> Result<(), String> {
       Scenes::MainMenu => {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
-
+        
         render_sprite(&new_game_sprite, &camera, &text_shader_program)?;
         render_sprite(&load_game_sprite, &camera, &text_shader_program)?;
         render_sprite(&high_scores_sprite, &camera, &text_shader_program)?;
@@ -677,8 +715,21 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::SaveGame => {
+        update_save_game(&mut message_queue, &playfield_state, &mut typing_status, &typing_buffer)?;
         print_save_game();
-        update_save_game(&mut message_queue, &playfield_state)?;
+
+        if displayed_text != typing_buffer {
+          displayed_text = typing_buffer.clone();
+
+          if displayed_text.is_empty() {
+            displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
+          } else {
+            displayed_text_sprite = Sprite::print(&displayed_text, &font, &text_color)?;
+          }
+        }
+
+        render_sprite(&save_game_sprite, &camera, &text_shader_program)?;
+        render_sprite(&displayed_text_sprite, &camera, &text_shader_program)?;
       },
 
       Scenes::LoadGame => {
@@ -692,7 +743,7 @@ fn main() -> Result<(), String> {
           save_sprites = Vec::new();
 
           for save_string in &load_game_state.saves {
-            let save_sprite = Sprite::print(save_string.clone(), &font, Color::RGBA(16, 32, 32, 255))?;
+            let save_sprite = Sprite::print(&save_string, &font, &text_color)?;
             save_sprites.push(save_sprite);
           }
         }
@@ -749,21 +800,29 @@ fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &Pla
   Ok(())
 }
 
-fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState) -> Result<(), String> {
-  let mut path_buffer = std::path::PathBuf::new();
-  path_buffer.push("./saves/");
-  
-  let mut text_input = read_text_input()?;
-  text_input.push_str(".txt");
-  path_buffer.push(text_input);
+fn update_save_game(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, typing_status: &mut TypingStatus, typing_buffer: &String) -> Result<(), String> {
+  match typing_status {
+    TypingStatus::NotTyping => *typing_status = TypingStatus::TypingStarted,
+    TypingStatus::TypingStarted => *typing_status = TypingStatus::Typing,
 
-  validate_saves_directory(Path::new("./saves"))?;
-  
-  let contents = serialize_map(&playfield_state.map);
-  
-  std::fs::write(path_buffer.as_path(), contents).map_err(| error | error.to_string())?;
-  
-  message_queue.post(Message::RequestScene(Scenes::Pause));
+    TypingStatus::TypingEnded => {
+      let mut path_buffer = std::path::PathBuf::new();
+      path_buffer.push("./saves/");
+      
+      let mut text_input = typing_buffer.clone();
+      text_input.push_str(".txt");
+      path_buffer.push(text_input);
+      
+      validate_saves_directory(Path::new("./saves"))?;
+      let contents = serialize_map(&playfield_state.map);
+      std::fs::write(path_buffer.as_path(), contents).map_err(| error | error.to_string())?;
+
+      *typing_status = TypingStatus::NotTyping;
+      message_queue.post(Message::RequestScene(Scenes::Pause));
+    },
+
+    TypingStatus::Typing => {}
+  }
   
   Ok(())
 }
@@ -894,4 +953,12 @@ impl Resolution {
       height
     }
   }
+}
+
+#[derive(PartialEq)]
+enum TypingStatus {
+  Typing,
+  NotTyping,
+  TypingStarted,
+  TypingEnded
 }

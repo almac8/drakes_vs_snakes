@@ -21,7 +21,7 @@ pub struct Sprite {
 }
 
 impl Sprite {
-  pub fn print(text: String, font: &Font, color: Color) -> Result<Self, String> {
+  pub fn print(text: &String, font: &Font, color: &Color) -> Result<Self, String> {
     let texture = Texture::render_text(text, font, color)?;
     let vertex_data = generate_vertex_data(texture.width(), texture.height());
 

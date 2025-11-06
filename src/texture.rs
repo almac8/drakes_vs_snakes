@@ -29,10 +29,10 @@ impl Texture {
     )
   }
 
-  pub fn render_text(text: String, font: &Font, color: Color) -> Result<Self, String> {
+  pub fn render_text(text: &String, font: &Font, color: &Color) -> Result<Self, String> {
     let mut image_surface = font
       .render(&text)
-      .blended(color)
+      .blended(*color)
       .map_err(| error | error.to_string())?;
     
     image_surface = image_surface.convert_format(sdl2::pixels::PixelFormatEnum::ABGR8888)?;
