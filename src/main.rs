@@ -335,6 +335,16 @@ fn main() -> Result<(), String> {
   let mut shadow_4_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_4.png"))?;
   let mut shadow_5_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_5.png"))?;
 
+  let mut paused_sprite = Sprite::print("Paused".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut resume_sprite = Sprite::print("Resume".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut save_game_sprite = Sprite::print("Save Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+  let mut main_menu_sprite = Sprite::print("Main Menu".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
+
+  paused_sprite.mut_transform().translate_y_to(-32.0);
+  resume_sprite.mut_transform().translate_y_to(0.0);
+  save_game_sprite.mut_transform().translate_y_to(32.0);
+  main_menu_sprite.mut_transform().translate_y_to(64.0);
+
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
   let quad_shader_program = ShaderProgram::new(quad_vertex_shader, quad_fragment_shader)?;
@@ -651,6 +661,17 @@ fn main() -> Result<(), String> {
       Scenes::Pause => {
         update_pause_menu(&mut message_queue, &mut pause_menu_state);
         print_pause_menu(&pause_menu_state);
+
+        render_sprite(&paused_sprite, &camera, &text_shader_program)?;
+        render_sprite(&resume_sprite, &camera, &text_shader_program)?;
+        render_sprite(&save_game_sprite, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprite, &camera, &text_shader_program)?;
+        
+        emblem_0_sprite.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_1_sprite.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
+        
+        render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
+        render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
       },
 
       Scenes::SaveGame => {
