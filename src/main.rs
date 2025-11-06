@@ -340,6 +340,8 @@ fn main() -> Result<(), String> {
   let mut save_game_sprite = Sprite::print("Save Game".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
   let mut main_menu_sprite = Sprite::print("Main Menu".to_string(), &font, Color::RGBA(16, 32, 32, 255))?;
 
+  let mut save_sprites = Vec::new();
+
   paused_sprite.mut_transform().translate_y_to(-32.0);
   resume_sprite.mut_transform().translate_y_to(0.0);
   save_game_sprite.mut_transform().translate_y_to(32.0);
@@ -682,6 +684,31 @@ fn main() -> Result<(), String> {
       Scenes::LoadGame => {
         update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state, Path::new("./saves"))?;
         print_load_game(&load_game_state);
+
+        render_sprite(&load_game_sprite, &camera, &text_shader_program)?;
+
+        let num_saves = load_game_state.saves.len();
+        if num_saves != save_sprites.len() {
+          save_sprites = Vec::new();
+
+          for save_string in &load_game_state.saves {
+            let save_sprite = Sprite::print(save_string.clone(), &font, Color::RGBA(16, 32, 32, 255))?;
+            save_sprites.push(save_sprite);
+          }
+        }
+        
+        for (index, value) in save_sprites.iter_mut().enumerate() {
+          value.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+          render_sprite(value, &camera, &text_shader_program)?;
+
+          if index == load_game_state.selected_menu_item_index {
+            emblem_0_sprite.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+            emblem_1_sprite.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+
+            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
+          }
+        }
       },
 
       Scenes::HighScores => {
