@@ -348,6 +348,8 @@ fn main() -> Result<(), String> {
   let mut displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
   
   let mut high_scores_sprites = Vec::new();
+  
+  let enter_name_sprite = Sprite::print(&"Enter Name".to_string(), &font, &text_color)?;
 
   paused_sprite.mut_transform().translate_y_to(-32.0);
   resume_sprite.mut_transform().translate_y_to(0.0);
@@ -790,8 +792,21 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::AddHighScore => {
-        update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"))?;
+        update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"), &mut typing_status, &typing_buffer)?;
         print_add_high_score();
+
+        if displayed_text != typing_buffer {
+          displayed_text = typing_buffer.clone();
+
+          if displayed_text.is_empty() {
+            displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
+          } else {
+            displayed_text_sprite = Sprite::print(&displayed_text, &font, &text_color)?;
+          }
+        }
+
+        render_sprite(&enter_name_sprite, &camera, &text_shader_program)?;
+        render_sprite(&displayed_text_sprite, &camera, &text_shader_program)?;
       },
 
       Scenes::Settings => {
@@ -812,12 +827,19 @@ fn main() -> Result<(), String> {
   Ok(())
 }
 
-fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path) -> Result<(), String> {
-  let text_input = read_text_input()?;
-  let new_score = HighScoresListing::from(text_input, playfield_state.map.score.current());
-  save_high_score(high_scores_file_path, &new_score)?;
+fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path, typing_status: &mut TypingStatus, typing_buffer: &String) -> Result<(), String> {
+  match typing_status {
+    TypingStatus::NotTyping => { *typing_status = TypingStatus::TypingStarted },
+    TypingStatus::TypingStarted => *typing_status = TypingStatus::Typing,
+    TypingStatus::Typing => {},
 
-  message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    TypingStatus::TypingEnded => {
+      let new_score = HighScoresListing::from(typing_buffer.clone(), playfield_state.map.score.current());
+      save_high_score(high_scores_file_path, &new_score)?;
+      *typing_status = TypingStatus::NotTyping;
+      message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    }
+  }
 
   Ok(())
 }
