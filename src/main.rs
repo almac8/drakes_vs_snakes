@@ -346,6 +346,8 @@ fn main() -> Result<(), String> {
 
   let mut save_sprites = Vec::new();
   let mut displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
+  
+  let mut high_scores_sprites = Vec::new();
 
   paused_sprite.mut_transform().translate_y_to(-32.0);
   resume_sprite.mut_transform().translate_y_to(0.0);
@@ -400,7 +402,7 @@ fn main() -> Result<(), String> {
   
   let fps_cap = 60;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
-  
+
   while is_running {
     let frame_start = Instant::now();
 
@@ -765,6 +767,26 @@ fn main() -> Result<(), String> {
       Scenes::HighScores => {
         update_high_scores(&mut message_queue, &mut high_scores_state, Path::new("./high_scores.txt"))?;
         print_high_scores(&high_scores_state);
+
+        if high_scores_sprites.len() != high_scores_state.listings.len() {
+          high_scores_sprites = Vec::new();
+
+          for (index, value) in high_scores_state.listings.iter().enumerate() {
+            let mut high_score_string = value.name().clone();
+            high_score_string.push_str(" ");
+            high_score_string.push_str(&value.score().to_string());
+
+            let mut high_score_sprite = Sprite::print(&high_score_string, &font, &text_color)?;
+            high_score_sprite.mut_transform().translate_y_to(index as f32 * 32.0 + 32.0);
+            high_scores_sprites.push(high_score_sprite);
+          }
+        }
+        
+        render_sprite(&high_scores_sprite, &camera, &text_shader_program)?;
+        
+        for high_score in &high_scores_sprites {
+          render_sprite(&high_score, &camera, &text_shader_program)?;
+        }
       },
 
       Scenes::AddHighScore => {
