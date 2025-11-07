@@ -22,7 +22,7 @@ use map::{
   Direction
 };
 
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color, ttf::Font};
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
 
 mod input;
 use input::Input;
@@ -246,6 +246,9 @@ use new_game_sprites::NewGameSprites;
 mod emblem_sprites;
 use emblem_sprites::EmblemSprites;
 
+mod main_menu_sprites;
+use main_menu_sprites::MainMenuSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -401,11 +404,11 @@ fn main() -> Result<(), String> {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
         
-        render_sprite(&main_menu_sprites.new_game, &camera, &text_shader_program)?;
-        render_sprite(&main_menu_sprites.load_game, &camera, &text_shader_program)?;
-        render_sprite(&main_menu_sprites.high_scores, &camera, &text_shader_program)?;
-        render_sprite(&main_menu_sprites.settings, &camera, &text_shader_program)?;
-        render_sprite(&main_menu_sprites.quit, &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.new_game(), &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.load_game(), &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.high_scores(), &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.settings(), &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.quit(), &camera, &text_shader_program)?;
           
         emblem_sprites.mut_snakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
         emblem_sprites.mut_drakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
@@ -665,7 +668,7 @@ fn main() -> Result<(), String> {
         update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state, Path::new("./saves"))?;
         print_load_game(&load_game_state);
 
-        render_sprite(&main_menu_sprites.load_game, &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.load_game(), &camera, &text_shader_program)?;
 
         let num_saves = load_game_state.saves.len();
         if num_saves != save_sprites.len() {
@@ -709,7 +712,7 @@ fn main() -> Result<(), String> {
           }
         }
         
-        render_sprite(&main_menu_sprites.high_scores, &camera, &text_shader_program)?;
+        render_sprite(main_menu_sprites.high_scores(), &camera, &text_shader_program)?;
         
         for high_score in &high_scores_sprites {
           render_sprite(&high_score, &camera, &text_shader_program)?;
@@ -930,37 +933,4 @@ enum TypingStatus {
   NotTyping,
   TypingStarted,
   TypingEnded
-}
-
-struct MainMenuSprites {
-  new_game: Sprite,
-  load_game: Sprite,
-  high_scores: Sprite,
-  settings: Sprite,
-  quit: Sprite
-}
-
-impl MainMenuSprites {
-  fn new(font: &Font, color: &Color) -> Result<Self, String> {
-    let new_game = Sprite::print(&"New Game".to_string(), font, color)?;
-    let mut load_game = Sprite::print(&"Load Game".to_string(), font, color)?;
-    let mut high_scores = Sprite::print(&"High Scores".to_string(), font, color)?;
-    let mut settings = Sprite::print(&"Settings".to_string(), font, color)?;
-    let mut quit = Sprite::print(&"Quit".to_string(), font, color)?;
-    
-    load_game.mut_transform().translate_y(32.0);
-    high_scores.mut_transform().translate_y(64.0);
-    settings.mut_transform().translate_y(96.0);
-    quit.mut_transform().translate_y(128.0);
-
-    Ok(
-      Self {
-        new_game,
-        load_game,
-        high_scores,
-        settings,
-        quit
-      }
-    )
-  }
 }
