@@ -22,9 +22,7 @@ use map::{
   Direction
 };
 
-mod text_input;
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
-use text_input::read_text_input;
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color, ttf::Font};
 
 mod input;
 use input::Input;
@@ -281,81 +279,26 @@ fn main() -> Result<(), String> {
   let tile_height = 32;
   let text_color = Color::RGBA(16, 32, 32, 255);
 
-  let new_game_sprite = Sprite::print(&"New Game".to_string(), &font, &text_color)?;
-  let mut load_game_sprite = Sprite::print(&"Load Game".to_string(), &font, &text_color)?;
-  let mut high_scores_sprite = Sprite::print(&"High Scores".to_string(), &font, &text_color)?;
-  let mut settings_sprite = Sprite::print(&"Settings".to_string(), &font, &text_color)?;
-  let mut quit_sprite = Sprite::print(&"Quit".to_string(), &font, &text_color)?;
-
-  let mut emblem_0_sprite = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
-  let mut emblem_1_sprite = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
+  let main_menu_sprites = MainMenuSprites::new(&font, &text_color)?;
+  let mut emblem_sprites = EmblemSprites::new()?;
+  let new_game_sprites = NewGameSprites::new(&font, &text_color)?;
+  let number_sprites = NumberSprites::new(&font, &text_color)?;
+  let mut grass_sprites = GrassSprites::new()?;
+  let mut shadow_sprites = ShadowSprites::new()?;
+  let pause_menu_sprites = PauseMenuSprites::new(&font, &text_color)?;
   
-  load_game_sprite.mut_transform().translate_y(32.0);
-  high_scores_sprite.mut_transform().translate_y(64.0);
-  settings_sprite.mut_transform().translate_y(96.0);
-  quit_sprite.mut_transform().translate_y(128.0);
-  emblem_0_sprite.mut_transform().translate_x(-128.0);
-  emblem_1_sprite.mut_transform().translate_x(128.0);
-
-  let mut map_width_sprite = Sprite::print(&"Map Width".to_string(), &font, &text_color)?;
-  let mut map_height_sprite = Sprite::print(&"Map Height".to_string(), &font, &text_color)?;
-  let mut num_snakes_sprite = Sprite::print(&"Number of Snakes".to_string(), &font, &text_color)?;
-
-  let mut eight_sprite = Sprite::print(&"8".to_string(), &font, &text_color)?;
-  let mut sixteen_sprite = Sprite::print(&"16".to_string(), &font, &text_color)?;
-  let mut thirty_two_sprite = Sprite::print(&"32".to_string(), &font, &text_color)?;
-  let mut sixty_four_sprite = Sprite::print(&"64".to_string(), &font, &text_color)?;
-  let mut one_two_eight_sprite = Sprite::print(&"128".to_string(), &font, &text_color)?;
-
-  map_width_sprite.mut_transform().translate_y_to(-32.0);
-  map_height_sprite.mut_transform().translate_y_to(-32.0);
-  num_snakes_sprite.mut_transform().translate_y_to(-32.0);
-
-  eight_sprite.mut_transform().translate_y_to(0.0);
-  sixteen_sprite.mut_transform().translate_y_to(32.0);
-  thirty_two_sprite.mut_transform().translate_y_to(64.0);
-  sixty_four_sprite.mut_transform().translate_y_to(96.0);
-  one_two_eight_sprite.mut_transform().translate_y_to(128.0);
-
-  let mut grass_sprite = Sprite::load(Path::new("res/textures/grass.png"))?;
-  let mut grass_1_sprite = Sprite::load(Path::new("res/textures/hints/grass_1.png"))?;
-  let mut grass_2_sprite = Sprite::load(Path::new("res/textures/hints/grass_2.png"))?;
-  let mut grass_3_sprite = Sprite::load(Path::new("res/textures/hints/grass_3.png"))?;
-  let mut grass_4_sprite = Sprite::load(Path::new("res/textures/hints/grass_4.png"))?;
-  let mut grass_5_sprite = Sprite::load(Path::new("res/textures/hints/grass_5.png"))?;
-  let mut grass_6_sprite = Sprite::load(Path::new("res/textures/hints/grass_6.png"))?;
-  let mut grass_7_sprite = Sprite::load(Path::new("res/textures/hints/grass_7.png"))?;
-  let mut grass_8_sprite = Sprite::load(Path::new("res/textures/hints/grass_8.png"))?;
-
   let mut drake_sprite = Sprite::load(Path::new("res/textures/drake.png"))?;
   let mut snake_sprite = Sprite::load(Path::new("res/textures/snake.png"))?;
   let mut stars_sprite = Sprite::load(Path::new("res/textures/stars.png"))?;
   let mut nest_sprite = Sprite::load(Path::new("res/textures/nest.png"))?;
-
-  let mut shadow_0_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_0.png"))?;
-  let mut shadow_1_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_1.png"))?;
-  let mut shadow_2_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_2.png"))?;
-  let mut shadow_3_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_3.png"))?;
-  let mut shadow_4_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_4.png"))?;
-  let mut shadow_5_sprite = Sprite::load(Path::new("res/textures/shadows/shadow_5.png"))?;
-
-  let mut paused_sprite = Sprite::print(&"Paused".to_string(), &font, &text_color)?;
-  let mut resume_sprite = Sprite::print(&"Resume".to_string(), &font, &text_color)?;
-  let mut save_game_sprite = Sprite::print(&"Save Game".to_string(), &font, &text_color)?;
-  let mut main_menu_sprite = Sprite::print(&"Main Menu".to_string(), &font, &text_color)?;
-
+  
   let mut save_sprites = Vec::new();
   let mut displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
   
   let mut high_scores_sprites = Vec::new();
   
   let enter_name_sprite = Sprite::print(&"Enter Name".to_string(), &font, &text_color)?;
-
-  paused_sprite.mut_transform().translate_y_to(-32.0);
-  resume_sprite.mut_transform().translate_y_to(0.0);
-  save_game_sprite.mut_transform().translate_y_to(32.0);
-  main_menu_sprite.mut_transform().translate_y_to(64.0);
-
+  
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
   let quad_shader_program = ShaderProgram::new(quad_vertex_shader, quad_fragment_shader)?;
@@ -364,42 +307,6 @@ fn main() -> Result<(), String> {
   let text_fragment_shader = FragmentShader::load(Path::new("./res/shaders/text_fragment_shader.glsl"))?;
   let text_shader_program = ShaderProgram::new(text_vertex_shader, text_fragment_shader)?;
   
-  let mut load_game_transform = Transform::new();
-  load_game_transform.translate_y(32.0);
-
-  let mut high_scores_transform = Transform::new();
-  high_scores_transform.translate_y(64.0);
-  
-  let mut settings_transform = Transform::new();
-  settings_transform.translate_y(96.0);
-
-  let mut quit_transform = Transform::new();
-  quit_transform.translate_y(128.0);
-  
-  let mut map_width_transform = Transform::new();
-  map_width_transform.translate_y(-32.0);
-
-  let mut map_height_transform = Transform::new();
-  map_height_transform.translate_y(-32.0);
-
-  let mut num_snakes_transform = Transform::new();
-  num_snakes_transform.translate_y(-32.0);
-  
-  let mut eight_transform = Transform::new();
-  eight_transform.translate_y(0.0);
-
-  let mut sixteen_transform = Transform::new();
-  sixteen_transform.translate_y(32.0);
-
-  let mut thirty_two_transform = Transform::new();
-  thirty_two_transform.translate_y(64.0);
-
-  let mut sixty_four_transform = Transform::new();
-  sixty_four_transform.translate_y(96.0);
-
-  let mut one_two_eight_transform = Transform::new();
-  one_two_eight_transform.translate_y(128.0);
-
   let mut camera = Camera::new(resolution);
   
   let fps_cap = 60;
@@ -476,17 +383,17 @@ fn main() -> Result<(), String> {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
         
-        render_sprite(&new_game_sprite, &camera, &text_shader_program)?;
-        render_sprite(&load_game_sprite, &camera, &text_shader_program)?;
-        render_sprite(&high_scores_sprite, &camera, &text_shader_program)?;
-        render_sprite(&settings_sprite, &camera, &text_shader_program)?;
-        render_sprite(&quit_sprite, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.new_game, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.load_game, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.high_scores, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.settings, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.quit, &camera, &text_shader_program)?;
           
-        emblem_0_sprite.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-        emblem_1_sprite.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.snakes.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.drakes.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
 
-        render_sprite(&emblem_0_sprite, &camera, &text_shader_program)?;
-        render_sprite(&emblem_1_sprite, &camera, &text_shader_program)?;
+        render_sprite(&emblem_sprites.snakes, &camera, &text_shader_program)?;
+        render_sprite(&emblem_sprites.drakes, &camera, &text_shader_program)?;
       },
 
       Scenes::NewGame => {
@@ -495,45 +402,45 @@ fn main() -> Result<(), String> {
 
         match new_game_state.step {
           NewGameStep::Width => {
-            render_sprite(&map_width_sprite, &camera, &text_shader_program)?;
-            render_sprite(&eight_sprite, &camera, &text_shader_program)?;
-            render_sprite(&sixteen_sprite, &camera, &text_shader_program)?;
-            render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
-            render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
+            render_sprite(&new_game_sprites.map_width, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.eight, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixteen, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.thirty_two, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixty_four, &camera, &text_shader_program)?;
 
-            emblem_0_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_1_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
           },
 
           NewGameStep::Height => {
-            render_sprite(&map_height_sprite, &camera, &text_shader_program)?;
-            render_sprite(&eight_sprite, &camera, &text_shader_program)?;
-            render_sprite(&sixteen_sprite, &camera, &text_shader_program)?;
-            render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
-            render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
+            render_sprite(&new_game_sprites.map_height, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.eight, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixteen, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.thirty_two, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixty_four, &camera, &text_shader_program)?;
 
-            emblem_0_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_1_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
           },
 
           NewGameStep::NumSnakes => {
-            render_sprite(&num_snakes_sprite, &camera, &text_shader_program)?;
-            render_sprite(&sixteen_sprite, &camera, &text_shader_program)?;
-            render_sprite(&thirty_two_sprite, &camera, &text_shader_program)?;
-            render_sprite(&sixty_four_sprite, &camera, &text_shader_program)?;
-            render_sprite(&one_two_eight_sprite, &camera, &text_shader_program)?;
+            render_sprite(&new_game_sprites.num_snakes, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixteen, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.thirty_two, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixty_four, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.one_two_eight, &camera, &text_shader_program)?;
 
-            emblem_0_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_1_sprite.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
           }
         }
       },
@@ -551,34 +458,34 @@ fn main() -> Result<(), String> {
             tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
             tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
 
-            grass_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_1_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_2_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_3_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_4_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_5_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_6_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_7_sprite.mut_transform().translate_to(tile_transform.location);
-            grass_8_sprite.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.zero.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.one.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.two.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.three.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.four.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.five.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.six.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.seven.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.eight.mut_transform().translate_to(tile_transform.location);
 
-            shadow_0_sprite.mut_transform().translate_to(tile_transform.location);
-            shadow_1_sprite.mut_transform().translate_to(tile_transform.location);
-            shadow_2_sprite.mut_transform().translate_to(tile_transform.location);
-            shadow_3_sprite.mut_transform().translate_to(tile_transform.location);
-            shadow_4_sprite.mut_transform().translate_to(tile_transform.location);
-            shadow_5_sprite.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.zero.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.one.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.two.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.three.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.four.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.five.mut_transform().translate_to(tile_transform.location);
 
-            render_sprite(&grass_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&grass_sprites.zero, &camera, &quad_shader_program)?;
 
             match playfield_state.map.hint[index] {
-              1 => render_sprite(&grass_1_sprite, &camera, &quad_shader_program)?,
-              2 => render_sprite(&grass_2_sprite, &camera, &quad_shader_program)?,
-              3 => render_sprite(&grass_3_sprite, &camera, &quad_shader_program)?,
-              4 => render_sprite(&grass_4_sprite, &camera, &quad_shader_program)?,
-              5 => render_sprite(&grass_5_sprite, &camera, &quad_shader_program)?,
-              6 => render_sprite(&grass_6_sprite, &camera, &quad_shader_program)?,
-              7 => render_sprite(&grass_7_sprite, &camera, &quad_shader_program)?,
-              8 => render_sprite(&grass_8_sprite, &camera, &quad_shader_program)?,
+              1 => render_sprite(&grass_sprites.one, &camera, &quad_shader_program)?,
+              2 => render_sprite(&grass_sprites.two, &camera, &quad_shader_program)?,
+              3 => render_sprite(&grass_sprites.three, &camera, &quad_shader_program)?,
+              4 => render_sprite(&grass_sprites.four, &camera, &quad_shader_program)?,
+              5 => render_sprite(&grass_sprites.five, &camera, &quad_shader_program)?,
+              6 => render_sprite(&grass_sprites.six, &camera, &quad_shader_program)?,
+              7 => render_sprite(&grass_sprites.seven, &camera, &quad_shader_program)?,
+              8 => render_sprite(&grass_sprites.eight, &camera, &quad_shader_program)?,
               _ => {}
             }
 
@@ -610,89 +517,89 @@ fn main() -> Result<(), String> {
 
               match shadow_bits {
                 [false, false, false, false] => {
-                  render_sprite(&shadow_0_sprite, &camera, &quad_shader_program)?;
+                  render_sprite(&shadow_sprites.zero, &camera, &quad_shader_program)?;
                 },
 
                 [false, false, false,  true] => {
-                  shadow_1_sprite.mut_transform().rotate_to(180.0);
-                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.one.mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
                 },
 
                 [false, false,  true, false] => {
-                  shadow_1_sprite.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.one.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
                 },
 
                 [false, false,  true,  true] => {
-                  shadow_3_sprite.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.three.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
                 },
 
                 [false, true, false, false] => {
-                  shadow_1_sprite.mut_transform().rotate_to(270.0);
-                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.one.mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
                 },
 
                 [false, true, false,  true] => {
-                  shadow_3_sprite.mut_transform().rotate_to(180.0);
-                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.three.mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
                 },
 
                 [false, true,  true, false] => {
-                  shadow_2_sprite.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_2_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.two.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.two, &camera, &quad_shader_program)?;
                 },
 
                 [false, true,  true,  true] => {
-                  shadow_4_sprite.mut_transform().rotate_to(180.0);
-                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.four.mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
                 },
 
                 [true, false, false, false] => {
-                  shadow_1_sprite.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_1_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.one.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
                 },
 
                 [true, false, false,  true] => {
-                  shadow_2_sprite.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_2_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.two.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.two, &camera, &quad_shader_program)?;
                 },
 
                 [true, false,  true, false] => {
-                  shadow_3_sprite.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.three.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
                 },
 
                 [true, false,  true,  true] => {
-                  shadow_4_sprite.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.four.mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
                 },
 
                 [true, true, false, false] => {
-                  shadow_3_sprite.mut_transform().rotate_to(270.0);
-                  render_sprite(&shadow_3_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.three.mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
                 },
 
                 [true, true, false,  true] => {
-                  shadow_4_sprite.mut_transform().rotate_to(270.0);
-                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.four.mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
                 },
 
                 [true, true,  true, false] => {
-                  shadow_4_sprite.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_4_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.four.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
                 },
 
                 [true, true,  true,  true] => {
-                  shadow_5_sprite.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_5_sprite, &camera, &quad_shader_program)?;
+                  shadow_sprites.five.mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.five, &camera, &quad_shader_program)?;
                 }
               }
             }
 
             if playfield_state.map.is_marked[tile_coordinates.array_index()] {
-              emblem_0_sprite.mut_transform().translate_to(tile_transform.location);
-              render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
+              emblem_sprites.snakes.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
             }
 
             if playfield_state.map.goal_location == tile_coordinates {
@@ -706,16 +613,16 @@ fn main() -> Result<(), String> {
         update_pause_menu(&mut message_queue, &mut pause_menu_state);
         print_pause_menu(&pause_menu_state);
 
-        render_sprite(&paused_sprite, &camera, &text_shader_program)?;
-        render_sprite(&resume_sprite, &camera, &text_shader_program)?;
-        render_sprite(&save_game_sprite, &camera, &text_shader_program)?;
-        render_sprite(&main_menu_sprite, &camera, &text_shader_program)?;
+        render_sprite(&pause_menu_sprites.paused, &camera, &text_shader_program)?;
+        render_sprite(&pause_menu_sprites.resume, &camera, &text_shader_program)?;
+        render_sprite(&pause_menu_sprites.save_game, &camera, &text_shader_program)?;
+        render_sprite(&pause_menu_sprites.main_menu, &camera, &text_shader_program)?;
         
-        emblem_0_sprite.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
-        emblem_1_sprite.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.snakes.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.drakes.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
         
-        render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
-        render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
+        render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
+        render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
       },
 
       Scenes::SaveGame => {
@@ -732,7 +639,7 @@ fn main() -> Result<(), String> {
           }
         }
 
-        render_sprite(&save_game_sprite, &camera, &text_shader_program)?;
+        render_sprite(&pause_menu_sprites.save_game, &camera, &text_shader_program)?;
         render_sprite(&displayed_text_sprite, &camera, &text_shader_program)?;
       },
 
@@ -740,7 +647,7 @@ fn main() -> Result<(), String> {
         update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state, Path::new("./saves"))?;
         print_load_game(&load_game_state);
 
-        render_sprite(&load_game_sprite, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.load_game, &camera, &text_shader_program)?;
 
         let num_saves = load_game_state.saves.len();
         if num_saves != save_sprites.len() {
@@ -757,11 +664,11 @@ fn main() -> Result<(), String> {
           render_sprite(value, &camera, &text_shader_program)?;
 
           if index == load_game_state.selected_menu_item_index {
-            emblem_0_sprite.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
-            emblem_1_sprite.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+            emblem_sprites.snakes.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+            emblem_sprites.drakes.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
 
-            render_sprite(&emblem_0_sprite, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_1_sprite, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
+            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
           }
         }
       },
@@ -784,7 +691,7 @@ fn main() -> Result<(), String> {
           }
         }
         
-        render_sprite(&high_scores_sprite, &camera, &text_shader_program)?;
+        render_sprite(&main_menu_sprites.high_scores, &camera, &text_shader_program)?;
         
         for high_score in &high_scores_sprites {
           render_sprite(&high_score, &camera, &text_shader_program)?;
@@ -1005,4 +912,220 @@ enum TypingStatus {
   NotTyping,
   TypingStarted,
   TypingEnded
+}
+
+struct MainMenuSprites {
+  new_game: Sprite,
+  load_game: Sprite,
+  high_scores: Sprite,
+  settings: Sprite,
+  quit: Sprite
+}
+
+impl MainMenuSprites {
+  fn new(font: &Font, color: &Color) -> Result<Self, String> {
+    let new_game = Sprite::print(&"New Game".to_string(), font, color)?;
+    let mut load_game = Sprite::print(&"Load Game".to_string(), font, color)?;
+    let mut high_scores = Sprite::print(&"High Scores".to_string(), font, color)?;
+    let mut settings = Sprite::print(&"Settings".to_string(), font, color)?;
+    let mut quit = Sprite::print(&"Quit".to_string(), font, color)?;
+    
+    load_game.mut_transform().translate_y(32.0);
+    high_scores.mut_transform().translate_y(64.0);
+    settings.mut_transform().translate_y(96.0);
+    quit.mut_transform().translate_y(128.0);
+
+    Ok(
+      Self {
+        new_game,
+        load_game,
+        high_scores,
+        settings,
+        quit
+      }
+    )
+  }
+}
+
+struct EmblemSprites {
+  drakes: Sprite,
+  snakes: Sprite
+}
+
+impl EmblemSprites {
+  fn new() -> Result<Self, String> {
+    let mut snakes = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
+    let mut drakes = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
+    
+    snakes.mut_transform().translate_x(-128.0);
+    drakes.mut_transform().translate_x(128.0);
+
+    Ok(
+      Self {
+        drakes,
+        snakes
+      }
+    )
+  }
+}
+
+struct NewGameSprites {
+  map_width: Sprite,
+  map_height: Sprite,
+  num_snakes: Sprite
+}
+
+impl NewGameSprites {
+  fn new(font: &Font, color: &Color) -> Result<Self, String> {
+    let mut map_width = Sprite::print(&"Map Width".to_string(), &font, &color)?;
+    let mut map_height = Sprite::print(&"Map Height".to_string(), &font, &color)?;
+    let mut num_snakes = Sprite::print(&"Number of Snakes".to_string(), &font, &color)?;
+    
+    map_width.mut_transform().translate_y_to(-32.0);
+    map_height.mut_transform().translate_y_to(-32.0);
+    num_snakes.mut_transform().translate_y_to(-32.0);
+
+    Ok(
+      Self {
+        map_width,
+        map_height,
+        num_snakes
+      }
+    )
+  }
+}
+
+struct NumberSprites {
+  eight: Sprite,
+  sixteen: Sprite,
+  thirty_two: Sprite,
+  sixty_four: Sprite,
+  one_two_eight: Sprite
+}
+
+impl NumberSprites {
+  fn new(font: &Font, color: &Color) -> Result<Self, String> {
+    let mut eight = Sprite::print(&"8".to_string(), &font, &color)?;
+    let mut sixteen = Sprite::print(&"16".to_string(), &font, &color)?;
+    let mut thirty_two = Sprite::print(&"32".to_string(), &font, &color)?;
+    let mut sixty_four = Sprite::print(&"64".to_string(), &font, &color)?;
+    let mut one_two_eight = Sprite::print(&"128".to_string(), &font, &color)?;
+    
+    eight.mut_transform().translate_y_to(0.0);
+    sixteen.mut_transform().translate_y_to(32.0);
+    thirty_two.mut_transform().translate_y_to(64.0);
+    sixty_four.mut_transform().translate_y_to(96.0);
+    one_two_eight.mut_transform().translate_y_to(128.0);
+
+    Ok(
+      Self {
+        eight,
+        sixteen,
+        thirty_two,
+        sixty_four,
+        one_two_eight
+      }
+    )
+  }
+}
+
+struct GrassSprites {
+  zero: Sprite,
+  one: Sprite,
+  two: Sprite,
+  three: Sprite,
+  four: Sprite,
+  five: Sprite,
+  six: Sprite,
+  seven: Sprite,
+  eight: Sprite
+}
+
+impl GrassSprites {
+  fn new() -> Result<Self, String> {
+    let zero = Sprite::load(Path::new("res/textures/grass.png"))?;
+    let one = Sprite::load(Path::new("res/textures/hints/grass_1.png"))?;
+    let two = Sprite::load(Path::new("res/textures/hints/grass_2.png"))?;
+    let three = Sprite::load(Path::new("res/textures/hints/grass_3.png"))?;
+    let four = Sprite::load(Path::new("res/textures/hints/grass_4.png"))?;
+    let five = Sprite::load(Path::new("res/textures/hints/grass_5.png"))?;
+    let six = Sprite::load(Path::new("res/textures/hints/grass_6.png"))?;
+    let seven = Sprite::load(Path::new("res/textures/hints/grass_7.png"))?;
+    let eight = Sprite::load(Path::new("res/textures/hints/grass_8.png"))?;
+
+    Ok(
+      Self {
+        zero,
+        one,
+        two,
+        three,
+        four,
+        five,
+        six,
+        seven,
+        eight
+      }
+    )
+  }
+}
+
+struct ShadowSprites {
+  zero: Sprite,
+  one: Sprite,
+  two: Sprite,
+  three: Sprite,
+  four: Sprite,
+  five: Sprite
+}
+
+impl ShadowSprites {
+  fn new() -> Result<Self, String> {
+    let zero = Sprite::load(Path::new("res/textures/shadows/shadow_0.png"))?;
+    let one = Sprite::load(Path::new("res/textures/shadows/shadow_1.png"))?;
+    let two = Sprite::load(Path::new("res/textures/shadows/shadow_2.png"))?;
+    let three = Sprite::load(Path::new("res/textures/shadows/shadow_3.png"))?;
+    let four = Sprite::load(Path::new("res/textures/shadows/shadow_4.png"))?;
+    let five = Sprite::load(Path::new("res/textures/shadows/shadow_5.png"))?;
+
+    Ok(
+      Self {
+        zero,
+        one,
+        two,
+        three,
+        four,
+        five
+      }
+    )
+  }
+}
+
+struct PauseMenuSprites {
+  paused: Sprite,
+  resume: Sprite,
+  save_game: Sprite,
+  main_menu: Sprite
+}
+
+impl PauseMenuSprites {
+  fn new(font: &Font, color: &Color) -> Result<Self, String> {
+    let mut paused = Sprite::print(&"Paused".to_string(), &font, &color)?;
+    let mut resume = Sprite::print(&"Resume".to_string(), &font, &color)?;
+    let mut save_game = Sprite::print(&"Save Game".to_string(), &font, &color)?;
+    let mut main_menu = Sprite::print(&"Main Menu".to_string(), &font, &color)?;
+  
+    paused.mut_transform().translate_y_to(-32.0);
+    resume.mut_transform().translate_y_to(0.0);
+    save_game.mut_transform().translate_y_to(32.0);
+    main_menu.mut_transform().translate_y_to(64.0);
+
+    Ok(
+      Self {
+        paused,
+        resume,
+        save_game,
+        main_menu
+      }
+    )
+  }
 }
