@@ -234,6 +234,9 @@ use pause_menu_sprites::PauseMenuSprites;
 mod shadow_sprites;
 use shadow_sprites::ShadowSprites;
 
+mod grass_sprites;
+use grass_sprites::GrassSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -464,15 +467,15 @@ fn main() -> Result<(), String> {
             tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
             tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
 
-            grass_sprites.zero.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.one.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.two.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.three.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.four.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.five.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.six.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.seven.mut_transform().translate_to(tile_transform.location);
-            grass_sprites.eight.mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_zero().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_one().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_two().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_three().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_four().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_five().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_six().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_seven().mut_transform().translate_to(tile_transform.location);
+            grass_sprites.mut_eight().mut_transform().translate_to(tile_transform.location);
 
             shadow_sprites.mut_zero().mut_transform().translate_to(tile_transform.location);
             shadow_sprites.mut_one().mut_transform().translate_to(tile_transform.location);
@@ -481,17 +484,17 @@ fn main() -> Result<(), String> {
             shadow_sprites.mut_four().mut_transform().translate_to(tile_transform.location);
             shadow_sprites.mut_five().mut_transform().translate_to(tile_transform.location);
 
-            render_sprite(&grass_sprites.zero, &camera, &quad_shader_program)?;
+            render_sprite(&grass_sprites.zero(), &camera, &quad_shader_program)?;
 
             match playfield_state.map.hint[index] {
-              1 => render_sprite(&grass_sprites.one, &camera, &quad_shader_program)?,
-              2 => render_sprite(&grass_sprites.two, &camera, &quad_shader_program)?,
-              3 => render_sprite(&grass_sprites.three, &camera, &quad_shader_program)?,
-              4 => render_sprite(&grass_sprites.four, &camera, &quad_shader_program)?,
-              5 => render_sprite(&grass_sprites.five, &camera, &quad_shader_program)?,
-              6 => render_sprite(&grass_sprites.six, &camera, &quad_shader_program)?,
-              7 => render_sprite(&grass_sprites.seven, &camera, &quad_shader_program)?,
-              8 => render_sprite(&grass_sprites.eight, &camera, &quad_shader_program)?,
+              1 => render_sprite(grass_sprites.one(), &camera, &quad_shader_program)?,
+              2 => render_sprite(grass_sprites.two(), &camera, &quad_shader_program)?,
+              3 => render_sprite(grass_sprites.three(), &camera, &quad_shader_program)?,
+              4 => render_sprite(grass_sprites.four(), &camera, &quad_shader_program)?,
+              5 => render_sprite(grass_sprites.five(), &camera, &quad_shader_program)?,
+              6 => render_sprite(grass_sprites.six(), &camera, &quad_shader_program)?,
+              7 => render_sprite(grass_sprites.seven(), &camera, &quad_shader_program)?,
+              8 => render_sprite(grass_sprites.eight(), &camera, &quad_shader_program)?,
               _ => {}
             }
 
@@ -1030,46 +1033,6 @@ impl NumberSprites {
         thirty_two,
         sixty_four,
         one_two_eight
-      }
-    )
-  }
-}
-
-struct GrassSprites {
-  zero: Sprite,
-  one: Sprite,
-  two: Sprite,
-  three: Sprite,
-  four: Sprite,
-  five: Sprite,
-  six: Sprite,
-  seven: Sprite,
-  eight: Sprite
-}
-
-impl GrassSprites {
-  fn new() -> Result<Self, String> {
-    let zero = Sprite::load(Path::new("res/textures/grass.png"))?;
-    let one = Sprite::load(Path::new("res/textures/hints/grass_1.png"))?;
-    let two = Sprite::load(Path::new("res/textures/hints/grass_2.png"))?;
-    let three = Sprite::load(Path::new("res/textures/hints/grass_3.png"))?;
-    let four = Sprite::load(Path::new("res/textures/hints/grass_4.png"))?;
-    let five = Sprite::load(Path::new("res/textures/hints/grass_5.png"))?;
-    let six = Sprite::load(Path::new("res/textures/hints/grass_6.png"))?;
-    let seven = Sprite::load(Path::new("res/textures/hints/grass_7.png"))?;
-    let eight = Sprite::load(Path::new("res/textures/hints/grass_8.png"))?;
-
-    Ok(
-      Self {
-        zero,
-        one,
-        two,
-        three,
-        four,
-        five,
-        six,
-        seven,
-        eight
       }
     )
   }
