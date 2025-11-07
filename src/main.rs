@@ -237,6 +237,9 @@ use shadow_sprites::ShadowSprites;
 mod grass_sprites;
 use grass_sprites::GrassSprites;
 
+mod number_sprites;
+use number_sprites::NumberSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -412,10 +415,10 @@ fn main() -> Result<(), String> {
         match new_game_state.step {
           NewGameStep::Width => {
             render_sprite(&new_game_sprites.map_width, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.eight, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixteen, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.thirty_two, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixty_four, &camera, &text_shader_program)?;
+            render_sprite(number_sprites.eight(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.sixteen(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.thirty_two(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.sixty_four(), &camera, &text_shader_program)?;
 
             emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
             emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
@@ -426,10 +429,10 @@ fn main() -> Result<(), String> {
 
           NewGameStep::Height => {
             render_sprite(&new_game_sprites.map_height, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.eight, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixteen, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.thirty_two, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixty_four, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.eight(), &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixteen(), &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.thirty_two(), &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixty_four(), &camera, &text_shader_program)?;
 
             emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
             emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
@@ -440,10 +443,10 @@ fn main() -> Result<(), String> {
 
           NewGameStep::NumSnakes => {
             render_sprite(&new_game_sprites.num_snakes, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixteen, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.thirty_two, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixty_four, &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.one_two_eight, &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixteen(), &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.thirty_two(), &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.sixty_four(), &camera, &text_shader_program)?;
+            render_sprite(&number_sprites.one_two_eight(), &camera, &text_shader_program)?;
 
             emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
             emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
@@ -999,40 +1002,6 @@ impl NewGameSprites {
         map_width,
         map_height,
         num_snakes
-      }
-    )
-  }
-}
-
-struct NumberSprites {
-  eight: Sprite,
-  sixteen: Sprite,
-  thirty_two: Sprite,
-  sixty_four: Sprite,
-  one_two_eight: Sprite
-}
-
-impl NumberSprites {
-  fn new(font: &Font, color: &Color) -> Result<Self, String> {
-    let mut eight = Sprite::print(&"8".to_string(), &font, &color)?;
-    let mut sixteen = Sprite::print(&"16".to_string(), &font, &color)?;
-    let mut thirty_two = Sprite::print(&"32".to_string(), &font, &color)?;
-    let mut sixty_four = Sprite::print(&"64".to_string(), &font, &color)?;
-    let mut one_two_eight = Sprite::print(&"128".to_string(), &font, &color)?;
-    
-    eight.mut_transform().translate_y_to(0.0);
-    sixteen.mut_transform().translate_y_to(32.0);
-    thirty_two.mut_transform().translate_y_to(64.0);
-    sixty_four.mut_transform().translate_y_to(96.0);
-    one_two_eight.mut_transform().translate_y_to(128.0);
-
-    Ok(
-      Self {
-        eight,
-        sixteen,
-        thirty_two,
-        sixty_four,
-        one_two_eight
       }
     )
   }
