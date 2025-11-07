@@ -240,6 +240,9 @@ use grass_sprites::GrassSprites;
 mod number_sprites;
 use number_sprites::NumberSprites;
 
+mod new_game_sprites;
+use new_game_sprites::NewGameSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -414,7 +417,7 @@ fn main() -> Result<(), String> {
 
         match new_game_state.step {
           NewGameStep::Width => {
-            render_sprite(&new_game_sprites.map_width, &camera, &text_shader_program)?;
+            render_sprite(new_game_sprites.map_width(), &camera, &text_shader_program)?;
             render_sprite(number_sprites.eight(), &camera, &text_shader_program)?;
             render_sprite(number_sprites.sixteen(), &camera, &text_shader_program)?;
             render_sprite(number_sprites.thirty_two(), &camera, &text_shader_program)?;
@@ -428,7 +431,7 @@ fn main() -> Result<(), String> {
           },
 
           NewGameStep::Height => {
-            render_sprite(&new_game_sprites.map_height, &camera, &text_shader_program)?;
+            render_sprite(new_game_sprites.map_height(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.eight(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.sixteen(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.thirty_two(), &camera, &text_shader_program)?;
@@ -442,7 +445,7 @@ fn main() -> Result<(), String> {
           },
 
           NewGameStep::NumSnakes => {
-            render_sprite(&new_game_sprites.num_snakes, &camera, &text_shader_program)?;
+            render_sprite(new_game_sprites.num_snakes(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.sixteen(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.thirty_two(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.sixty_four(), &camera, &text_shader_program)?;
@@ -976,32 +979,6 @@ impl EmblemSprites {
       Self {
         drakes,
         snakes
-      }
-    )
-  }
-}
-
-struct NewGameSprites {
-  map_width: Sprite,
-  map_height: Sprite,
-  num_snakes: Sprite
-}
-
-impl NewGameSprites {
-  fn new(font: &Font, color: &Color) -> Result<Self, String> {
-    let mut map_width = Sprite::print(&"Map Width".to_string(), &font, &color)?;
-    let mut map_height = Sprite::print(&"Map Height".to_string(), &font, &color)?;
-    let mut num_snakes = Sprite::print(&"Number of Snakes".to_string(), &font, &color)?;
-    
-    map_width.mut_transform().translate_y_to(-32.0);
-    map_height.mut_transform().translate_y_to(-32.0);
-    num_snakes.mut_transform().translate_y_to(-32.0);
-
-    Ok(
-      Self {
-        map_width,
-        map_height,
-        num_snakes
       }
     )
   }
