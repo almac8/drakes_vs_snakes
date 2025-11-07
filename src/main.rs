@@ -231,6 +231,9 @@ use sprite::Sprite;
 mod pause_menu_sprites;
 use pause_menu_sprites::PauseMenuSprites;
 
+mod shadow_sprites;
+use shadow_sprites::ShadowSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -471,12 +474,12 @@ fn main() -> Result<(), String> {
             grass_sprites.seven.mut_transform().translate_to(tile_transform.location);
             grass_sprites.eight.mut_transform().translate_to(tile_transform.location);
 
-            shadow_sprites.zero.mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.one.mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.two.mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.three.mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.four.mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.five.mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.mut_zero().mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.mut_one().mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.mut_two().mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.mut_three().mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.mut_four().mut_transform().translate_to(tile_transform.location);
+            shadow_sprites.mut_five().mut_transform().translate_to(tile_transform.location);
 
             render_sprite(&grass_sprites.zero, &camera, &quad_shader_program)?;
 
@@ -520,82 +523,82 @@ fn main() -> Result<(), String> {
 
               match shadow_bits {
                 [false, false, false, false] => {
-                  render_sprite(&shadow_sprites.zero, &camera, &quad_shader_program)?;
+                  render_sprite(&shadow_sprites.zero(), &camera, &quad_shader_program)?;
                 },
 
                 [false, false, false,  true] => {
-                  shadow_sprites.one.mut_transform().rotate_to(180.0);
-                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_one().mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_sprites.one(), &camera, &quad_shader_program)?;
                 },
 
                 [false, false,  true, false] => {
-                  shadow_sprites.one.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_one().mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.one(), &camera, &quad_shader_program)?;
                 },
 
                 [false, false,  true,  true] => {
-                  shadow_sprites.three.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_three().mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.three(), &camera, &quad_shader_program)?;
                 },
 
                 [false, true, false, false] => {
-                  shadow_sprites.one.mut_transform().rotate_to(270.0);
-                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_one().mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_sprites.one(), &camera, &quad_shader_program)?;
                 },
 
                 [false, true, false,  true] => {
-                  shadow_sprites.three.mut_transform().rotate_to(180.0);
-                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_three().mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_sprites.three(), &camera, &quad_shader_program)?;
                 },
 
                 [false, true,  true, false] => {
-                  shadow_sprites.two.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_sprites.two, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_two().mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.two(), &camera, &quad_shader_program)?;
                 },
 
                 [false, true,  true,  true] => {
-                  shadow_sprites.four.mut_transform().rotate_to(180.0);
-                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_four().mut_transform().rotate_to(180.0);
+                  render_sprite(&shadow_sprites.four(), &camera, &quad_shader_program)?;
                 },
 
                 [true, false, false, false] => {
-                  shadow_sprites.one.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_sprites.one, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_one().mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.one(), &camera, &quad_shader_program)?;
                 },
 
                 [true, false, false,  true] => {
-                  shadow_sprites.two.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_sprites.two, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_two().mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.two(), &camera, &quad_shader_program)?;
                 },
 
                 [true, false,  true, false] => {
-                  shadow_sprites.three.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_three().mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.three(), &camera, &quad_shader_program)?;
                 },
 
                 [true, false,  true,  true] => {
-                  shadow_sprites.four.mut_transform().rotate_to(90.0);
-                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_four().mut_transform().rotate_to(90.0);
+                  render_sprite(&shadow_sprites.four(), &camera, &quad_shader_program)?;
                 },
 
                 [true, true, false, false] => {
-                  shadow_sprites.three.mut_transform().rotate_to(270.0);
-                  render_sprite(&shadow_sprites.three, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_three().mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_sprites.three(), &camera, &quad_shader_program)?;
                 },
 
                 [true, true, false,  true] => {
-                  shadow_sprites.four.mut_transform().rotate_to(270.0);
-                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_four().mut_transform().rotate_to(270.0);
+                  render_sprite(&shadow_sprites.four(), &camera, &quad_shader_program)?;
                 },
 
                 [true, true,  true, false] => {
-                  shadow_sprites.four.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_sprites.four, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_four().mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.four(), &camera, &quad_shader_program)?;
                 },
 
                 [true, true,  true,  true] => {
-                  shadow_sprites.five.mut_transform().rotate_to(0.0);
-                  render_sprite(&shadow_sprites.five, &camera, &quad_shader_program)?;
+                  shadow_sprites.mut_five().mut_transform().rotate_to(0.0);
+                  render_sprite(&shadow_sprites.five(), &camera, &quad_shader_program)?;
                 }
               }
             }
@@ -1067,37 +1070,6 @@ impl GrassSprites {
         six,
         seven,
         eight
-      }
-    )
-  }
-}
-
-struct ShadowSprites {
-  zero: Sprite,
-  one: Sprite,
-  two: Sprite,
-  three: Sprite,
-  four: Sprite,
-  five: Sprite
-}
-
-impl ShadowSprites {
-  fn new() -> Result<Self, String> {
-    let zero = Sprite::load(Path::new("res/textures/shadows/shadow_0.png"))?;
-    let one = Sprite::load(Path::new("res/textures/shadows/shadow_1.png"))?;
-    let two = Sprite::load(Path::new("res/textures/shadows/shadow_2.png"))?;
-    let three = Sprite::load(Path::new("res/textures/shadows/shadow_3.png"))?;
-    let four = Sprite::load(Path::new("res/textures/shadows/shadow_4.png"))?;
-    let five = Sprite::load(Path::new("res/textures/shadows/shadow_5.png"))?;
-
-    Ok(
-      Self {
-        zero,
-        one,
-        two,
-        three,
-        four,
-        five
       }
     )
   }
