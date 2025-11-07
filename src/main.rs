@@ -228,6 +228,9 @@ use render_sprite::render_sprite;
 mod sprite;
 use sprite::Sprite;
 
+mod pause_menu_sprites;
+use pause_menu_sprites::PauseMenuSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -613,10 +616,10 @@ fn main() -> Result<(), String> {
         update_pause_menu(&mut message_queue, &mut pause_menu_state);
         print_pause_menu(&pause_menu_state);
 
-        render_sprite(&pause_menu_sprites.paused, &camera, &text_shader_program)?;
-        render_sprite(&pause_menu_sprites.resume, &camera, &text_shader_program)?;
-        render_sprite(&pause_menu_sprites.save_game, &camera, &text_shader_program)?;
-        render_sprite(&pause_menu_sprites.main_menu, &camera, &text_shader_program)?;
+        render_sprite(pause_menu_sprites.paused(), &camera, &text_shader_program)?;
+        render_sprite(pause_menu_sprites.resume(), &camera, &text_shader_program)?;
+        render_sprite(pause_menu_sprites.save_game(), &camera, &text_shader_program)?;
+        render_sprite(pause_menu_sprites.main_menu(), &camera, &text_shader_program)?;
         
         emblem_sprites.snakes.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
         emblem_sprites.drakes.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
@@ -639,7 +642,7 @@ fn main() -> Result<(), String> {
           }
         }
 
-        render_sprite(&pause_menu_sprites.save_game, &camera, &text_shader_program)?;
+        render_sprite(pause_menu_sprites.save_game(), &camera, &text_shader_program)?;
         render_sprite(&displayed_text_sprite, &camera, &text_shader_program)?;
       },
 
@@ -1095,36 +1098,6 @@ impl ShadowSprites {
         three,
         four,
         five
-      }
-    )
-  }
-}
-
-struct PauseMenuSprites {
-  paused: Sprite,
-  resume: Sprite,
-  save_game: Sprite,
-  main_menu: Sprite
-}
-
-impl PauseMenuSprites {
-  fn new(font: &Font, color: &Color) -> Result<Self, String> {
-    let mut paused = Sprite::print(&"Paused".to_string(), &font, &color)?;
-    let mut resume = Sprite::print(&"Resume".to_string(), &font, &color)?;
-    let mut save_game = Sprite::print(&"Save Game".to_string(), &font, &color)?;
-    let mut main_menu = Sprite::print(&"Main Menu".to_string(), &font, &color)?;
-  
-    paused.mut_transform().translate_y_to(-32.0);
-    resume.mut_transform().translate_y_to(0.0);
-    save_game.mut_transform().translate_y_to(32.0);
-    main_menu.mut_transform().translate_y_to(64.0);
-
-    Ok(
-      Self {
-        paused,
-        resume,
-        save_game,
-        main_menu
       }
     )
   }
