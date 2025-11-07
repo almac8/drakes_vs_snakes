@@ -243,6 +243,9 @@ use number_sprites::NumberSprites;
 mod new_game_sprites;
 use new_game_sprites::NewGameSprites;
 
+mod emblem_sprites;
+use emblem_sprites::EmblemSprites;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -404,11 +407,11 @@ fn main() -> Result<(), String> {
         render_sprite(&main_menu_sprites.settings, &camera, &text_shader_program)?;
         render_sprite(&main_menu_sprites.quit, &camera, &text_shader_program)?;
           
-        emblem_sprites.snakes.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-        emblem_sprites.drakes.mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.mut_snakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.mut_drakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
 
-        render_sprite(&emblem_sprites.snakes, &camera, &text_shader_program)?;
-        render_sprite(&emblem_sprites.drakes, &camera, &text_shader_program)?;
+        render_sprite(emblem_sprites.snakes(), &camera, &text_shader_program)?;
+        render_sprite(emblem_sprites.drakes(), &camera, &text_shader_program)?;
       },
 
       Scenes::NewGame => {
@@ -423,25 +426,25 @@ fn main() -> Result<(), String> {
             render_sprite(number_sprites.thirty_two(), &camera, &text_shader_program)?;
             render_sprite(number_sprites.sixty_four(), &camera, &text_shader_program)?;
 
-            emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.mut_snakes().mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.mut_drakes().mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.snakes(), &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.drakes(), &camera, &quad_shader_program)?;
           },
 
           NewGameStep::Height => {
             render_sprite(new_game_sprites.map_height(), &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.eight(), &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixteen(), &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.thirty_two(), &camera, &text_shader_program)?;
-            render_sprite(&number_sprites.sixty_four(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.eight(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.sixteen(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.thirty_two(), &camera, &text_shader_program)?;
+            render_sprite(number_sprites.sixty_four(), &camera, &text_shader_program)?;
 
-            emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.mut_snakes().mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.mut_drakes().mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.snakes(), &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.drakes(), &camera, &quad_shader_program)?;
           },
 
           NewGameStep::NumSnakes => {
@@ -451,11 +454,11 @@ fn main() -> Result<(), String> {
             render_sprite(&number_sprites.sixty_four(), &camera, &text_shader_program)?;
             render_sprite(&number_sprites.one_two_eight(), &camera, &text_shader_program)?;
 
-            emblem_sprites.snakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
-            emblem_sprites.drakes.mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.mut_snakes().mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
+            emblem_sprites.mut_drakes().mut_transform().translate_y_to(new_game_state.selected_menu_item_index as f32 * 32.0);
 
-            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.snakes(), &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.drakes(), &camera, &quad_shader_program)?;
           }
         }
       },
@@ -613,8 +616,8 @@ fn main() -> Result<(), String> {
             }
 
             if playfield_state.map.is_marked[tile_coordinates.array_index()] {
-              emblem_sprites.snakes.mut_transform().translate_to(tile_transform.location);
-              render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
+              emblem_sprites.mut_snakes().mut_transform().translate_to(tile_transform.location);
+              render_sprite(&emblem_sprites.mut_snakes(), &camera, &quad_shader_program)?;
             }
 
             if playfield_state.map.goal_location == tile_coordinates {
@@ -633,11 +636,11 @@ fn main() -> Result<(), String> {
         render_sprite(pause_menu_sprites.save_game(), &camera, &text_shader_program)?;
         render_sprite(pause_menu_sprites.main_menu(), &camera, &text_shader_program)?;
         
-        emblem_sprites.snakes.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
-        emblem_sprites.drakes.mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.mut_snakes().mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
+        emblem_sprites.mut_drakes().mut_transform().translate_y_to(pause_menu_state.selected_menu_item_index as f32 * 32.0);
         
-        render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
-        render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
+        render_sprite(emblem_sprites.snakes(), &camera, &quad_shader_program)?;
+        render_sprite(emblem_sprites.drakes(), &camera, &quad_shader_program)?;
       },
 
       Scenes::SaveGame => {
@@ -679,11 +682,11 @@ fn main() -> Result<(), String> {
           render_sprite(value, &camera, &text_shader_program)?;
 
           if index == load_game_state.selected_menu_item_index {
-            emblem_sprites.snakes.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
-            emblem_sprites.drakes.mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+            emblem_sprites.mut_snakes().mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
+            emblem_sprites.mut_drakes().mut_transform().translate_y_to(index as f32 * 32.0 + 64.0);
 
-            render_sprite(&emblem_sprites.snakes, &camera, &quad_shader_program)?;
-            render_sprite(&emblem_sprites.drakes, &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.snakes(), &camera, &quad_shader_program)?;
+            render_sprite(emblem_sprites.drakes(), &camera, &quad_shader_program)?;
           }
         }
       },
@@ -957,28 +960,6 @@ impl MainMenuSprites {
         high_scores,
         settings,
         quit
-      }
-    )
-  }
-}
-
-struct EmblemSprites {
-  drakes: Sprite,
-  snakes: Sprite
-}
-
-impl EmblemSprites {
-  fn new() -> Result<Self, String> {
-    let mut snakes = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
-    let mut drakes = Sprite::load(Path::new("res/textures/emblem_1.png"))?;
-    
-    snakes.mut_transform().translate_x(-128.0);
-    drakes.mut_transform().translate_x(128.0);
-
-    Ok(
-      Self {
-        drakes,
-        snakes
       }
     )
   }
