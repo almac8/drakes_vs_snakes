@@ -252,6 +252,9 @@ use main_menu_sprites::MainMenuSprites;
 mod typing_status;
 use typing_status::TypingStatus;
 
+mod resolution;
+use resolution::Resolution;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -263,7 +266,7 @@ fn main() -> Result<(), String> {
   let resolution = Resolution::new(1600, 900);
 
   let window = video_subsystem
-    .window("Drakes VS Snakes", resolution.width as u32, resolution.height as u32)
+    .window("Drakes VS Snakes", resolution.width() as u32, resolution.height() as u32)
     .fullscreen()
     .opengl()
     .build()
@@ -276,7 +279,7 @@ fn main() -> Result<(), String> {
   let font = ttf_context.load_font(Path::new("./res/fonts/RasterForgeRegular.ttf"), 32)?;
 
   unsafe {
-    gl::Viewport(0, 0, resolution.width as gl::types::GLint, resolution.height as gl::types::GLint);
+    gl::Viewport(0, 0, resolution.width() as gl::types::GLint, resolution.height() as gl::types::GLint);
     gl::Enable(gl::BLEND);
     gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     gl::ClearColor(0.5, 0.25, 0.25, 1.0);
@@ -891,10 +894,10 @@ impl Camera {
   fn new(resolution: Resolution) -> Self {
     let transform = Transform::new();
     let projection_matrix = calculate_projection_matrix(
-      -(resolution.width as f32 / 2.0),
-      resolution.width as f32 / 2.0,
-      resolution.height as f32 / 2.0,
-      -(resolution.height as f32 / 2.0),
+      -(resolution.width() as f32 / 2.0),
+      resolution.width() as f32 / 2.0,
+      resolution.height() as f32 / 2.0,
+      -(resolution.height() as f32 / 2.0),
       1.0, -1.0
     );
 
@@ -913,19 +916,5 @@ impl Camera {
 
   fn projection_matrix(&self) -> &Matrix4 {
     &self.projection_matrix
-  }
-}
-
-struct Resolution {
-  width: usize,
-  height: usize
-}
-
-impl Resolution {
-  fn new(width: usize, height: usize) -> Self {
-    Self {
-      width,
-      height
-    }
   }
 }
