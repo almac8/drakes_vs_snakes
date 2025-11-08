@@ -249,6 +249,9 @@ use emblem_sprites::EmblemSprites;
 mod main_menu_sprites;
 use main_menu_sprites::MainMenuSprites;
 
+mod typing_status;
+use typing_status::TypingStatus;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -925,12 +928,4 @@ impl Resolution {
       height
     }
   }
-}
-
-#[derive(PartialEq)]
-enum TypingStatus {
-  Typing,
-  NotTyping,
-  TypingStarted,
-  TypingEnded
 }
