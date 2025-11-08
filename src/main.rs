@@ -255,6 +255,9 @@ use typing_status::TypingStatus;
 mod resolution;
 use resolution::Resolution;
 
+mod vector2;
+use vector2::Vector2;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -777,32 +780,6 @@ impl Transform {
 
   fn translate_to(&mut self, location: Vector2) {
     self.location = location;
-  }
-}
-
-#[derive(Clone, Copy)]
-struct Vector2 {
-  x: f32,
-  y: f32
-}
-
-impl Vector2 {
-  fn new() -> Self {
-    Self {
-      x: 0.0,
-      y: 0.0
-    }
-  }
-}
-
-impl std::ops::Neg for Vector2 {
-  type Output = Self;
-
-  fn neg(self) -> Self::Output {
-    Self::Output {
-      x: -self.x,
-      y: -self.y
-    }
   }
 }
 
