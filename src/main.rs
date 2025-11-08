@@ -418,6 +418,8 @@ fn main() -> Result<(), String> {
       Scenes::MainMenu => {
         update_main_menu(&mut message_queue, &mut main_menu_state);
         print_main_menu(&main_menu_state);
+
+        camera.transform.translate_to(Vector2::new());
         
         render_sprite(main_menu_sprites.new_game(), &camera, &text_shader_program)?;
         render_sprite(main_menu_sprites.load_game(), &camera, &text_shader_program)?;
@@ -435,6 +437,8 @@ fn main() -> Result<(), String> {
       Scenes::NewGame => {
         update_new_game(&mut new_game_state, &mut playfield_state.map, &mut message_queue, &mut rng)?;
         print_new_game(&new_game_state);
+
+        camera.transform.translate_to(Vector2::new());
 
         match new_game_state.step {
           NewGameStep::Width => {
@@ -541,6 +545,8 @@ fn main() -> Result<(), String> {
         update_pause_menu(&mut message_queue, &mut pause_menu_state);
         print_pause_menu(&pause_menu_state);
 
+        camera.transform.translate_to(Vector2::new());
+
         render_sprite(pause_menu_sprites.paused(), &camera, &text_shader_program)?;
         render_sprite(pause_menu_sprites.resume(), &camera, &text_shader_program)?;
         render_sprite(pause_menu_sprites.save_game(), &camera, &text_shader_program)?;
@@ -556,6 +562,8 @@ fn main() -> Result<(), String> {
       Scenes::SaveGame => {
         update_save_game(&mut message_queue, &playfield_state, &mut typing_status, &typing_buffer)?;
         print_save_game();
+
+        camera.transform.translate_to(Vector2::new());
 
         if displayed_text != typing_buffer {
           displayed_text = typing_buffer.clone();
@@ -574,6 +582,8 @@ fn main() -> Result<(), String> {
       Scenes::LoadGame => {
         update_load_game(&mut message_queue, &mut load_game_state, &mut playfield_state, Path::new("./saves"))?;
         print_load_game(&load_game_state);
+
+        camera.transform.translate_to(Vector2::new());
 
         render_sprite(main_menu_sprites.load_game(), &camera, &text_shader_program)?;
 
@@ -605,6 +615,8 @@ fn main() -> Result<(), String> {
         update_high_scores(&mut message_queue, &mut high_scores_state, Path::new("./high_scores.txt"))?;
         print_high_scores(&high_scores_state);
 
+        camera.transform.translate_to(Vector2::new());
+
         if high_scores_sprites.len() != high_scores_state.listings.len() {
           high_scores_sprites = Vec::new();
 
@@ -629,6 +641,8 @@ fn main() -> Result<(), String> {
       Scenes::AddHighScore => {
         update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"), &mut typing_status, &typing_buffer)?;
         print_add_high_score();
+
+        camera.transform.translate_to(Vector2::new());
 
         if displayed_text != typing_buffer {
           displayed_text = typing_buffer.clone();
