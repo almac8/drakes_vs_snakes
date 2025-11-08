@@ -261,6 +261,9 @@ use vector2::Vector2;
 mod render_shadow;
 use render_shadow::render_shadow;
 
+mod render_grass;
+use render_grass::render_grass;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -491,30 +494,8 @@ fn main() -> Result<(), String> {
             tile_transform.translate_y_to(tile_coordinates.y() as f32 * tile_height as f32);
             tile_transform.translate_y(-(playfield_state.map.size.height() as f32 * tile_height as f32 / 2.0));
 
-            grass_sprites.mut_zero().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_one().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_two().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_three().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_four().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_five().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_six().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_seven().mut_transform().translate_to(tile_transform.location);
-            grass_sprites.mut_eight().mut_transform().translate_to(tile_transform.location);
+            render_grass(playfield_state.map.hint[index], &mut grass_sprites, &camera, &quad_shader_program, tile_transform.location)?;
             
-            render_sprite(&grass_sprites.zero(), &camera, &quad_shader_program)?;
-
-            match playfield_state.map.hint[index] {
-              1 => render_sprite(grass_sprites.one(), &camera, &quad_shader_program)?,
-              2 => render_sprite(grass_sprites.two(), &camera, &quad_shader_program)?,
-              3 => render_sprite(grass_sprites.three(), &camera, &quad_shader_program)?,
-              4 => render_sprite(grass_sprites.four(), &camera, &quad_shader_program)?,
-              5 => render_sprite(grass_sprites.five(), &camera, &quad_shader_program)?,
-              6 => render_sprite(grass_sprites.six(), &camera, &quad_shader_program)?,
-              7 => render_sprite(grass_sprites.seven(), &camera, &quad_shader_program)?,
-              8 => render_sprite(grass_sprites.eight(), &camera, &quad_shader_program)?,
-              _ => {}
-            }
-
             if playfield_state.map.player_location.array_index() == index {
               camera.transform.translate_to(tile_transform.location);
               drake_sprite.mut_transform().translate_to(tile_transform.location);
