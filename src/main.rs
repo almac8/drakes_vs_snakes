@@ -500,14 +500,7 @@ fn main() -> Result<(), String> {
             grass_sprites.mut_six().mut_transform().translate_to(tile_transform.location);
             grass_sprites.mut_seven().mut_transform().translate_to(tile_transform.location);
             grass_sprites.mut_eight().mut_transform().translate_to(tile_transform.location);
-
-            shadow_sprites.mut_zero().mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.mut_one().mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.mut_two().mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.mut_three().mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.mut_four().mut_transform().translate_to(tile_transform.location);
-            shadow_sprites.mut_five().mut_transform().translate_to(tile_transform.location);
-
+            
             render_sprite(&grass_sprites.zero(), &camera, &quad_shader_program)?;
 
             match playfield_state.map.hint[index] {
@@ -548,7 +541,7 @@ fn main() -> Result<(), String> {
                 if neighbor_coordinate.y() > tile_coordinates.y() && playfield_state.map.is_explored[neighbor_coordinate.array_index()] { shadow_bits[3] = true };
               }
 
-              render_shadow(&shadow_bits, &mut shadow_sprites, &camera, &quad_shader_program)?;
+              render_shadow(&shadow_bits, &mut shadow_sprites, &camera, &quad_shader_program, tile_transform.location)?;
             }
 
             if playfield_state.map.is_marked[tile_coordinates.array_index()] {
