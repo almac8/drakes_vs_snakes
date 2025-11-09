@@ -325,7 +325,6 @@ fn main() -> Result<(), String> {
   
   let mut drake_sprite = Sprite::load(Path::new("res/textures/drake.png"))?;
   let mut snake_sprite = Sprite::load(Path::new("res/textures/snake.png"))?;
-  let mut stars_sprite = Sprite::load(Path::new("res/textures/stars.png"))?;
   let mut nest_sprite = Sprite::load(Path::new("res/textures/nest.png"))?;
   
   let mut save_sprites = Vec::new();
@@ -334,6 +333,31 @@ fn main() -> Result<(), String> {
   let mut high_scores_sprites = Vec::new();
   
   let enter_name_sprite = Sprite::print(&"Enter Name".to_string(), &font, &text_color)?;
+
+  let mut stars_1_sprite = Sprite::load(Path::new("./res/textures/stars/stars1.png"))?;
+  let mut stars_2_sprite = Sprite::load(Path::new("./res/textures/stars/stars2.png"))?;
+  let mut stars_3_sprite = Sprite::load(Path::new("./res/textures/stars/stars3.png"))?;
+  let mut stars_4_sprite = Sprite::load(Path::new("./res/textures/stars/stars4.png"))?;
+  let mut stars_5_sprite = Sprite::load(Path::new("./res/textures/stars/stars5.png"))?;
+  let mut stars_6_sprite = Sprite::load(Path::new("./res/textures/stars/stars6.png"))?;
+  let mut stars_7_sprite = Sprite::load(Path::new("./res/textures/stars/stars7.png"))?;
+  let mut stars_8_sprite = Sprite::load(Path::new("./res/textures/stars/stars8.png"))?;
+  let mut stars_9_sprite = Sprite::load(Path::new("./res/textures/stars/stars9.png"))?;
+  let mut stars_10_sprite = Sprite::load(Path::new("./res/textures/stars/stars10.png"))?;
+  let mut stars_11_sprite = Sprite::load(Path::new("./res/textures/stars/stars11.png"))?;
+  let mut stars_12_sprite = Sprite::load(Path::new("./res/textures/stars/stars12.png"))?;
+  let mut stars_13_sprite = Sprite::load(Path::new("./res/textures/stars/stars13.png"))?;
+  let mut stars_14_sprite = Sprite::load(Path::new("./res/textures/stars/stars14.png"))?;
+  let mut stars_15_sprite = Sprite::load(Path::new("./res/textures/stars/stars15.png"))?;
+  let mut stars_16_sprite = Sprite::load(Path::new("./res/textures/stars/stars16.png"))?;
+  let mut stars_17_sprite = Sprite::load(Path::new("./res/textures/stars/stars17.png"))?;
+  let mut stars_18_sprite = Sprite::load(Path::new("./res/textures/stars/stars18.png"))?;
+  let mut stars_19_sprite = Sprite::load(Path::new("./res/textures/stars/stars19.png"))?;
+  let mut stars_20_sprite = Sprite::load(Path::new("./res/textures/stars/stars20.png"))?;
+  let mut stars_21_sprite = Sprite::load(Path::new("./res/textures/stars/stars21.png"))?;
+  let mut stars_22_sprite = Sprite::load(Path::new("./res/textures/stars/stars22.png"))?;
+  let mut stars_23_sprite = Sprite::load(Path::new("./res/textures/stars/stars23.png"))?;
+  let mut stars_24_sprite = Sprite::load(Path::new("./res/textures/stars/stars24.png"))?;
   
   let quad_vertex_shader = VertexShader::load(Path::new("./res/shaders/quad_vertex_shader.glsl"))?;
   let quad_fragment_shader = FragmentShader::load(Path::new("./res/shaders/quad_fragment_shader.glsl"))?;
@@ -348,9 +372,16 @@ fn main() -> Result<(), String> {
   let fps_cap = 60;
   let frame_duration_cap = Duration::from_millis(1000 / fps_cap);
 
+  let mut last_frame = Instant::now();
+
+  let mut stars_animation_timer = 0;
+
   while is_running {
     let frame_start = Instant::now();
-
+    let deltatime = frame_start - last_frame;
+    last_frame = frame_start;
+    let deltamillis = deltatime.as_millis();
+    
     for event in event_pump.poll_iter() {
       match event {
         Event::Quit { .. } => message_queue.post(Message::RequestShutdown),
@@ -488,6 +519,10 @@ fn main() -> Result<(), String> {
       Scenes::Playfield => {
         update_playfield(&mut message_queue, &mut playfield_state)?;
         print_playfield(&playfield_state);
+        
+        stars_animation_timer += deltamillis;
+        while stars_animation_timer > 1000 { stars_animation_timer -= 1000 }
+        let frame_index = stars_animation_timer * 24 / 1000 + 1;
 
           for index in 0..playfield_state.map.size.array_length() {
             let tile_coordinates = Coordinate::from_index(index, &playfield_state.map.size);
@@ -511,9 +546,131 @@ fn main() -> Result<(), String> {
               render_sprite(&snake_sprite, &camera, &quad_shader_program)?;
             }
 
+            
             if playfield_state.map.is_path[index] {
-              stars_sprite.mut_transform().translate_to(tile_transform.location);
-              render_sprite(&stars_sprite, &camera, &quad_shader_program)?;
+              match frame_index {
+                1 => {
+                  stars_1_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_1_sprite, &camera, &quad_shader_program)?
+                },
+  
+                2 => {
+                  stars_2_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_2_sprite, &camera, &quad_shader_program)?
+                },
+  
+                3 => {
+                  stars_3_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_3_sprite, &camera, &quad_shader_program)?
+                },
+  
+                4 => {
+                  stars_4_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_4_sprite, &camera, &quad_shader_program)?
+                },
+  
+                5 => {
+                  stars_5_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_5_sprite, &camera, &quad_shader_program)?
+                },
+  
+                6 => {
+                  stars_6_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_6_sprite, &camera, &quad_shader_program)?
+                },
+  
+                7 => {
+                  stars_7_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_7_sprite, &camera, &quad_shader_program)?
+                },
+  
+                8 => {
+                  stars_8_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_8_sprite, &camera, &quad_shader_program)?
+                },
+  
+                9 => {
+                  stars_9_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_9_sprite, &camera, &quad_shader_program)?
+                },
+  
+                10 => {
+                  stars_10_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_10_sprite, &camera, &quad_shader_program)?
+                },
+  
+                11 => {
+                  stars_11_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_11_sprite, &camera, &quad_shader_program)?
+                },
+  
+                12 => {
+                  stars_12_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_12_sprite, &camera, &quad_shader_program)?
+                },
+  
+                13 => {
+                  stars_13_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_13_sprite, &camera, &quad_shader_program)?
+                },
+  
+                14 => {
+                  stars_14_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_14_sprite, &camera, &quad_shader_program)?
+                },
+  
+                15 => {
+                  stars_15_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_15_sprite, &camera, &quad_shader_program)?
+                },
+  
+                16 => {
+                  stars_16_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_16_sprite, &camera, &quad_shader_program)?
+                },
+  
+                17 => {
+                  stars_17_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_17_sprite, &camera, &quad_shader_program)?
+                },
+  
+                18 => {
+                  stars_18_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_18_sprite, &camera, &quad_shader_program)?
+                },
+  
+                19 => {
+                  stars_19_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_19_sprite, &camera, &quad_shader_program)?
+                },
+  
+                20 => {
+                  stars_20_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_20_sprite, &camera, &quad_shader_program)?
+                },
+  
+                21 => {
+                  stars_21_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_21_sprite, &camera, &quad_shader_program)?
+                },
+  
+                22 => {
+                  stars_22_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_22_sprite, &camera, &quad_shader_program)?
+                },
+  
+                23 => {
+                  stars_23_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_23_sprite, &camera, &quad_shader_program)?
+                },
+  
+                24 => {
+                  stars_24_sprite.mut_transform().translate_to(tile_transform.location);
+                  render_sprite(&stars_24_sprite, &camera, &quad_shader_program)?
+                },
+  
+                _ => {}
+              }
             }
             
             if !playfield_state.map.is_explored[index] {
