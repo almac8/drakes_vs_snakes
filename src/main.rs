@@ -311,8 +311,8 @@ fn main() -> Result<(), String> {
   let mut high_scores_state = HighScoresState::new();
   let mut load_game_state = LoadGameState::new();
 
-  let tile_width = 32;
-  let tile_height = 32;
+  let tile_width = 64;
+  let tile_height = 64;
   let text_color = Color::RGBA(16, 32, 32, 255);
 
   let main_menu_sprites = MainMenuSprites::new(&font, &text_color)?;
