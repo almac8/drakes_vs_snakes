@@ -85,6 +85,16 @@ impl ShaderProgram {
     }
   }
 
+  pub fn set_uniform_uint(&self, uniform_name: String, value: &u32) -> Result<(), String> {
+    let uniform_location = self.get_uniform_location(uniform_name)?;
+    
+    unsafe {
+      gl::Uniform1uiv(uniform_location, 1, value);
+    }
+
+    Ok(())
+  }
+
   pub fn set_model_matrix(&self, model_matrix: &Matrix4) -> Result<(), String> {
     let model_matrix_location = self.get_uniform_location("model".to_string())?;
     self.set_uniform_matrix(model_matrix_location, model_matrix);
