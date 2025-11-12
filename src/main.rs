@@ -279,6 +279,7 @@ fn main() -> Result<(), String> {
 
   let window = video_subsystem
     .window("Drakes VS Snakes", resolution.width() as u32, resolution.height() as u32)
+    .fullscreen()
     .opengl()
     .build()
     .map_err(| error | error.to_string())?;
@@ -356,6 +357,7 @@ fn main() -> Result<(), String> {
   let mut last_frame = Instant::now();
 
   let mut stars_animation = Animation::load(Path::new("./res/textures/stars.png"), 24)?;
+  let mut water_animation = Animation::load(Path::new("./res/textures/water.png"), 16)?;
   
   while is_running {
     let frame_start = Instant::now();
@@ -501,6 +503,7 @@ fn main() -> Result<(), String> {
         print_playfield(&playfield_state);
 
         stars_animation.update(&deltatime);
+        water_animation.update(&deltatime);
         
           for index in 0..playfield_state.map.size.array_length() {
             let tile_coordinates = Coordinate::from_index(index, &playfield_state.map.size);
@@ -513,21 +516,25 @@ fn main() -> Result<(), String> {
 
             render_grass(playfield_state.map.hint[index], &mut grass_sprites, &camera, &quad_shader_program, tile_transform.location)?;
             
-            if playfield_state.map.player_location.array_index() == index {
-              camera.transform.translate_to(tile_transform.location);
-              drake_sprite.mut_transform().translate_to(tile_transform.location);
-              render_sprite(&drake_sprite, &camera, &quad_shader_program)?;
-            }
-
             if playfield_state.map.is_snake[index] {
               snake_sprite.mut_transform().translate_to(tile_transform.location);
               render_sprite(&snake_sprite, &camera, &quad_shader_program)?;
             }
-
             
             if playfield_state.map.is_path[index] {
               stars_animation.transform.translate_to(tile_transform.location);
               render_animation(&stars_animation, &camera, &animation_shader_program)?;
+            }
+
+            if playfield_state.map.is_water[tile_coordinates.array_index()] {
+              water_animation.transform.translate_to(tile_transform.location);
+              render_animation(&water_animation, &camera, &animation_shader_program)?;
+            }
+
+            if playfield_state.map.player_location.array_index() == index {
+              camera.transform.translate_to(tile_transform.location);
+              drake_sprite.mut_transform().translate_to(tile_transform.location);
+              render_sprite(&drake_sprite, &camera, &quad_shader_program)?;
             }
             
             if !playfield_state.map.is_explored[index] {

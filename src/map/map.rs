@@ -14,7 +14,8 @@ pub struct Map {
   pub is_snake: Vec<bool>,
   pub is_marked: Vec<bool>,
   pub is_explored: Vec<bool>,
-  pub is_path: Vec<bool>
+  pub is_path: Vec<bool>,
+  pub is_water: Vec<bool>
 }
 
 impl Map {
@@ -28,6 +29,7 @@ impl Map {
     let is_marked = Vec::new();
     let is_explored = Vec::new();
     let is_path = Vec::new();
+    let is_water = Vec::new();
     
     Self {
       size,
@@ -38,7 +40,8 @@ impl Map {
       is_snake,
       is_marked,
       is_explored,
-      is_path
+      is_path,
+      is_water
     }
   }
 }

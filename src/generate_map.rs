@@ -1,13 +1,7 @@
 use rand::Rng;
 
 use crate::{
-  MapSize,
-  Map,
-  Coordinate,
-  generate_snakes,
-  generate_hints,
-  calculate_max_score,
-  find_path
+  calculate_max_score, find_path, generate_hints, generate_snakes, get_neighbors::get_all_neighbors, Coordinate, Map, MapSize
 };
 
 pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdRng) -> Result<Map, String> {
@@ -50,6 +44,37 @@ pub fn generate_map(size: MapSize, num_snakes: usize, rng: &mut rand::rngs::StdR
     map.is_explored[player_index_buffer] = true;
     let goal_index_buffer = map.goal_location.array_index();
     map.is_explored[goal_index_buffer] = true;
+
+    map.is_water = vec![false; map.size.array_length()];
+    for (index, value) in map.hint.iter().enumerate() {
+      if *value == 0 {
+        map.is_water[index] = true;
+      }
+    }
+
+    let mut deflood_indices = Vec::new();
+    for (index, value) in map.is_water.iter().enumerate() {
+      if *value {
+        let water_coordinate = Coordinate::from_index(index, &map.size);
+
+        let mut water_neighbor_count = 0;
+        let neighbors = get_all_neighbors(&water_coordinate, &map.size);
+
+        for neighbor in neighbors {
+          if map.is_water[neighbor.array_index()] {
+            water_neighbor_count += 1;
+          }
+        }
+
+        if water_neighbor_count != 8 {
+          deflood_indices.push(index);
+        }
+      }
+    }
+
+    for index in deflood_indices {
+      map.is_water[index] = false;
+    }
   }
 
   Ok(map)
@@ -112,6 +137,13 @@ use crate::MapSize;
           true, false, false, false,
           false, false, false, false,
           false, false, true, false,
+          false, false, false, false
+        ]);
+
+        assert_eq!(map.is_water, vec![
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
           false, false, false, false
         ]);
       },
