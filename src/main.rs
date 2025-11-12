@@ -355,7 +355,7 @@ fn main() -> Result<(), String> {
 
   let mut last_frame = Instant::now();
 
-  let mut stars_animation = Animation::load(Path::new("./res/textures/stars/stars.png"), 24)?;
+  let mut stars_animation = Animation::load(Path::new("./res/textures/stars.png"), 24)?;
   
   while is_running {
     let frame_start = Instant::now();
@@ -828,7 +828,8 @@ struct Animation {
   vertex_array: VertexArray,
   texture: Texture,
   frame_index: u32,
-  transform: Transform
+  transform: Transform,
+  frame_count: u32
 }
 
 impl Animation {
@@ -857,7 +858,8 @@ impl Animation {
         vertex_array,
         texture,
         frame_index,
-        transform
+        transform,
+        frame_count
       }
     )
   }
@@ -869,7 +871,7 @@ impl Animation {
       self.played_duration -= self.total_duration;
     }
     
-    self.frame_index = (self.played_duration.as_millis() * 24 / self.total_duration.as_millis()) as u32;
+    self.frame_index = (self.played_duration.as_millis() * self.frame_count as u128 / self.total_duration.as_millis()) as u32;
   }
 }
 
@@ -879,6 +881,7 @@ fn render_animation(stars_animation: &Animation, camera: &Camera, shader_program
   shader_program.set_view_matrix(&camera.view_matrix())?;
   shader_program.set_projection_matrix(camera.projection_matrix())?;
   shader_program.set_uniform_uint("frameIndex".to_string(), &stars_animation.frame_index)?;
+  shader_program.set_uniform_uint("frameCount".to_string(), &stars_animation.frame_count)?;
         
   unsafe {
     gl::Uniform1ui(2, 0);

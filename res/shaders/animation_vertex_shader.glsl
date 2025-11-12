@@ -8,11 +8,12 @@ uniform mat4 view;
 uniform mat4 projection;
 
 uniform uint frameIndex;
+uniform uint frameCount;
 
 out vec2 textureCoordinates;
 
 void main() {
   gl_Position = projection * view * model * vec4(position, 0.0, 1.0);
   textureCoordinates = texturePosition;
-  textureCoordinates.x += (1.0 / 24.0) * frameIndex;
+  textureCoordinates.x += (1.0 / frameCount) * frameIndex;
 }
