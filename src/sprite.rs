@@ -47,7 +47,7 @@ impl Sprite {
 
   pub fn load(file_path: &Path) -> Result<Self, String> {
     let texture = Texture::load(file_path)?;
-    let vertex_data = generate_vertex_data(texture.width() * 2, texture.height() * 2);
+    let vertex_data = generate_vertex_data(texture.width(), texture.height());
 
     let element_data = vec![
       0, 1, 2,

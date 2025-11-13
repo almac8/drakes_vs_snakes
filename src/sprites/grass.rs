@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::Sprite;
 
-pub struct GrassSprites {
+pub struct Grass {
   zero: Sprite,
   one: Sprite,
   two: Sprite,
@@ -14,7 +14,7 @@ pub struct GrassSprites {
   eight: Sprite
 }
 
-impl GrassSprites {
+impl Grass {
   pub fn new() -> Result<Self, String> {
     let zero = Sprite::load(Path::new("res/textures/grass.png"))?;
     let one = Sprite::load(Path::new("res/textures/hints/grass_1.png"))?;

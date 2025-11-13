@@ -5,7 +5,7 @@ use sdl2::{
 
 use crate::Sprite;
 
-pub struct NumberSprites {
+pub struct Numbers {
   eight: Sprite,
   sixteen: Sprite,
   thirty_two: Sprite,
@@ -13,7 +13,7 @@ pub struct NumberSprites {
   one_two_eight: Sprite
 }
 
-impl NumberSprites {
+impl Numbers {
   pub fn new(font: &Font, color: &Color) -> Result<Self, String> {
     let mut eight = Sprite::print(&"8".to_string(), &font, &color)?;
     let mut sixteen = Sprite::print(&"16".to_string(), &font, &color)?;

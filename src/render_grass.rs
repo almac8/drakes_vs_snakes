@@ -1,12 +1,12 @@
 use crate::{
-  GrassSprites,
+  sprites::Grass,
   Camera,
   ShaderProgram,
   Vector2,
   render_sprite
 };
 
-pub fn render_grass(hint_value: usize, grass_sprites: &mut GrassSprites, camera: &Camera, quad_shader_program: &ShaderProgram, location: Vector2) -> Result<(), String> {
+pub fn render_grass(hint_value: usize, grass_sprites: &mut Grass, camera: &Camera, quad_shader_program: &ShaderProgram, location: Vector2) -> Result<(), String> {
   grass_sprites.mut_zero().mut_transform().translate_to(location);
   render_sprite(grass_sprites.zero(), camera, quad_shader_program)?;
   

@@ -5,7 +5,7 @@ use sdl2::{
 
 use crate::Sprite;
 
-pub struct MainMenuSprites {
+pub struct MainMenu {
   new_game: Sprite,
   load_game: Sprite,
   high_scores: Sprite,
@@ -13,7 +13,7 @@ pub struct MainMenuSprites {
   quit: Sprite
 }
 
-impl MainMenuSprites {
+impl MainMenu {
   pub fn new(font: &Font, color: &Color) -> Result<Self, String> {
     let new_game = Sprite::print(&"New Game".to_string(), font, color)?;
     let mut load_game = Sprite::print(&"Load Game".to_string(), font, color)?;

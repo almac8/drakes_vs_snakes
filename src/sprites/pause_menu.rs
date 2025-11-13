@@ -5,14 +5,14 @@ use sdl2::{
 
 use crate::Sprite;
 
-pub struct PauseMenuSprites {
+pub struct PauseMenu {
   paused: Sprite,
   resume: Sprite,
   save_game: Sprite,
   main_menu: Sprite
 }
 
-impl PauseMenuSprites {
+impl PauseMenu {
   pub fn new(font: &Font, color: &Color) -> Result<Self, String> {
     let mut paused = Sprite::print(&"Paused".to_string(), &font, &color)?;
     let mut resume = Sprite::print(&"Resume".to_string(), &font, &color)?;

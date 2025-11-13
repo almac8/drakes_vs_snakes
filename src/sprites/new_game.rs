@@ -5,13 +5,13 @@ use sdl2::{
 
 use crate::Sprite;
 
-pub struct NewGameSprites {
+pub struct NewGame {
   map_width: Sprite,
   map_height: Sprite,
   num_snakes: Sprite
 }
 
-impl NewGameSprites {
+impl NewGame {
   pub fn new(font: &Font, color: &Color) -> Result<Self, String> {
     let mut map_width = Sprite::print(&"Map Width".to_string(), &font, &color)?;
     let mut map_height = Sprite::print(&"Map Height".to_string(), &font, &color)?;

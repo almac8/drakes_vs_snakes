@@ -1,12 +1,12 @@
 use crate::{
-  ShadowSprites,
+  sprites::Shadows,
   Camera,
   ShaderProgram,
   render_sprite,
   Vector2
 };
 
-pub fn render_shadow(shadow_bits: &[bool; 4], shadow_sprites: &mut ShadowSprites, camera: &Camera, quad_shader_program: &ShaderProgram, location: Vector2) -> Result<(), String> {
+pub fn render_shadow(shadow_bits: &[bool; 4], shadow_sprites: &mut Shadows, camera: &Camera, quad_shader_program: &ShaderProgram, location: Vector2) -> Result<(), String> {
   match shadow_bits {
     [false, false, false, false] => {
       shadow_sprites.mut_zero().mut_transform().translate_to(location);

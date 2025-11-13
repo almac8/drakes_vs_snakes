@@ -231,26 +231,7 @@ use render_sprite::render_sprite;
 mod sprite;
 use sprite::Sprite;
 
-mod pause_menu_sprites;
-use pause_menu_sprites::PauseMenuSprites;
-
-mod shadow_sprites;
-use shadow_sprites::ShadowSprites;
-
-mod grass_sprites;
-use grass_sprites::GrassSprites;
-
-mod number_sprites;
-use number_sprites::NumberSprites;
-
-mod new_game_sprites;
-use new_game_sprites::NewGameSprites;
-
-mod emblem_sprites;
-use emblem_sprites::EmblemSprites;
-
-mod main_menu_sprites;
-use main_menu_sprites::MainMenuSprites;
+mod sprites;
 
 mod typing_status;
 use typing_status::TypingStatus;
@@ -314,17 +295,17 @@ fn main() -> Result<(), String> {
   let mut high_scores_state = HighScoresState::new();
   let mut load_game_state = LoadGameState::new();
 
-  let tile_width = 64;
-  let tile_height = 64;
+  let tile_width = 32;
+  let tile_height = 32;
   let text_color = Color::RGBA(16, 32, 32, 255);
 
-  let main_menu_sprites = MainMenuSprites::new(&font, &text_color)?;
-  let mut emblem_sprites = EmblemSprites::new()?;
-  let new_game_sprites = NewGameSprites::new(&font, &text_color)?;
-  let number_sprites = NumberSprites::new(&font, &text_color)?;
-  let mut grass_sprites = GrassSprites::new()?;
-  let mut shadow_sprites = ShadowSprites::new()?;
-  let pause_menu_sprites = PauseMenuSprites::new(&font, &text_color)?;
+  let main_menu_sprites = sprites::MainMenu::new(&font, &text_color)?;
+  let mut emblem_sprites = sprites::Emblems::new()?;
+  let new_game_sprites = sprites::NewGame::new(&font, &text_color)?;
+  let number_sprites = sprites::Numbers::new(&font, &text_color)?;
+  let mut grass_sprites = sprites::Grass::new()?;
+  let mut shadow_sprites = sprites::Shadows::new()?;
+  let pause_menu_sprites = sprites::PauseMenu::new(&font, &text_color)?;
   
   let mut drake_sprite = Sprite::load(Path::new("res/textures/drake.png"))?;
   let mut snake_sprite = Sprite::load(Path::new("res/textures/snake.png"))?;
@@ -848,7 +829,7 @@ impl Animation {
 
     let texture = Texture::load(file_path)?;
 
-    let vertex_data = generate_animation_vertex_data(texture.width() / frame_count * 2, texture.height() * 2, frame_count);
+    let vertex_data = generate_animation_vertex_data(texture.width() / frame_count, texture.height(), frame_count);
     
     let vertex_buffer = VertexBuffer::new(vertex_data);
     let element_buffer = ElementBuffer::new(vec![0, 1, 2, 0, 2, 3]);

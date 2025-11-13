@@ -2,12 +2,12 @@ use std::path::Path;
 
 use crate::Sprite;
 
-pub struct EmblemSprites {
+pub struct Emblems {
   drakes: Sprite,
   snakes: Sprite
 }
 
-impl EmblemSprites {
+impl Emblems {
   pub fn new() -> Result<Self, String> {
     let mut snakes = Sprite::load(Path::new("res/textures/emblem_0.png"))?;
     let mut drakes = Sprite::load(Path::new("res/textures/emblem_1.png"))?;

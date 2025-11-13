@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::Sprite;
 
-pub struct ShadowSprites {
+pub struct Shadows {
   zero: Sprite,
   one: Sprite,
   two: Sprite,
@@ -11,7 +11,7 @@ pub struct ShadowSprites {
   five: Sprite
 }
 
-impl ShadowSprites {
+impl Shadows {
   pub fn new() -> Result<Self, String> {
     let zero = Sprite::load(Path::new("res/textures/shadows/shadow_0.png"))?;
     let one = Sprite::load(Path::new("res/textures/shadows/shadow_1.png"))?;
