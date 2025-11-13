@@ -420,10 +420,22 @@ fn main() -> Result<(), String> {
         render_sprite(main_menu_sprites.high_scores(), &camera, &text_shader_program)?;
         render_sprite(main_menu_sprites.settings(), &camera, &text_shader_program)?;
         render_sprite(main_menu_sprites.quit(), &camera, &text_shader_program)?;
-          
-        emblem_sprites.mut_snakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
-        emblem_sprites.mut_drakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        
+        let offset = match main_menu_state.selected_menu_item_index {
+          0 => main_menu_sprites.new_game().texture().width() / 2 + 32,
+          1 => main_menu_sprites.load_game().texture().width() / 2 + 32,
+          2 => main_menu_sprites.high_scores().texture().width() / 2 + 32,
+          3 => main_menu_sprites.settings().texture().width() / 2 + 32,
+          4 => main_menu_sprites.quit().texture().width() / 2 + 32,
+          _ => 0
+        };
 
+        emblem_sprites.mut_snakes().mut_transform().translate_x_to(offset as f32);
+        emblem_sprites.mut_snakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        
+        emblem_sprites.mut_drakes().mut_transform().translate_x_to(-(offset as f32));
+        emblem_sprites.mut_drakes().mut_transform().translate_y_to(main_menu_state.selected_menu_item_index as f32 * 32.0);
+        
         render_sprite(emblem_sprites.snakes(), &camera, &text_shader_program)?;
         render_sprite(emblem_sprites.drakes(), &camera, &text_shader_program)?;
       },
