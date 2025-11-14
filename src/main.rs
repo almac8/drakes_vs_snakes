@@ -34,10 +34,7 @@ mod message_queue;
 use message_queue::MessageQueue;
 
 mod main_menu;
-use main_menu::{
-  update_main_menu,
-  print_main_menu
-};
+use main_menu::update_main_menu;
 
 mod main_menu_state;
 use main_menu_state::MainMenuState;
@@ -248,6 +245,9 @@ use render_shadow::render_shadow;
 mod render_grass;
 use render_grass::render_grass;
 
+mod render_main_menu;
+use render_main_menu::render_main_menu;
+
 fn main() -> Result<(), String> {
   let sdl_context = sdl2::init()?;
   let video_subsystem = sdl_context.video()?;
@@ -410,41 +410,8 @@ fn main() -> Result<(), String> {
 
     match current_scene {
       Scenes::MainMenu => {
-        update_main_menu(&mut message_queue, &mut main_menu_state);
-        print_main_menu(&main_menu_state);
-
-        camera.transform.translate_to(Vector2::new());
-        
-        render_sprite(main_menu_sprites.new_game(), &camera, &text_shader_program)?;
-        render_sprite(main_menu_sprites.load_game(), &camera, &text_shader_program)?;
-        render_sprite(main_menu_sprites.high_scores(), &camera, &text_shader_program)?;
-        render_sprite(main_menu_sprites.settings(), &camera, &text_shader_program)?;
-        render_sprite(main_menu_sprites.quit(), &camera, &text_shader_program)?;
-        
-        let x_offset = match main_menu_state.selected_menu_item {
-          MainMenuItem::NewGame => main_menu_sprites.new_game().texture().width() / 2 + 32,
-          MainMenuItem::LoadGame => main_menu_sprites.load_game().texture().width() / 2 + 32,
-          MainMenuItem::HighScores => main_menu_sprites.high_scores().texture().width() / 2 + 32,
-          MainMenuItem::Settings => main_menu_sprites.settings().texture().width() / 2 + 32,
-          MainMenuItem::Quit => main_menu_sprites.quit().texture().width() / 2 + 32,
-        };
-
-        let y_offset = match main_menu_state.selected_menu_item {
-          MainMenuItem::NewGame => 0,
-          MainMenuItem::LoadGame => 32,
-          MainMenuItem::HighScores => 64,
-          MainMenuItem::Settings => 96,
-          MainMenuItem::Quit => 128,
-        };
-
-        emblem_sprites.mut_snakes().mut_transform().translate_x_to(x_offset as f32);
-        emblem_sprites.mut_snakes().mut_transform().translate_y_to(y_offset as f32);
-        
-        emblem_sprites.mut_drakes().mut_transform().translate_x_to(-(x_offset as f32));
-        emblem_sprites.mut_drakes().mut_transform().translate_y_to(y_offset as f32);
-        
-        render_sprite(emblem_sprites.snakes(), &camera, &text_shader_program)?;
-        render_sprite(emblem_sprites.drakes(), &camera, &text_shader_program)?;
+        update_main_menu(&mut message_queue, &mut main_menu_state, &mut camera, &main_menu_sprites, &mut emblem_sprites);
+        render_main_menu(&main_menu_sprites, &emblem_sprites, &camera, &text_shader_program, &quad_shader_program)?;
       },
 
       Scenes::NewGame => {

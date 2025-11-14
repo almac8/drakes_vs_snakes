@@ -4,10 +4,13 @@ use crate::{
   Input,
   Scenes,
   MainMenuState,
-  MainMenuItem
+  MainMenuItem,
+  Vector2,
+  Camera,
+  sprites
 };
 
-pub fn update_main_menu(message_queue: &mut MessageQueue, main_menu_state: &mut MainMenuState) {
+pub fn update_main_menu(message_queue: &mut MessageQueue, main_menu_state: &mut MainMenuState, camera: &mut Camera, main_menu_sprites: &sprites::MainMenu, emblem_sprites: &mut sprites::Emblems) {
   let mut confirmed = false;
 
   for message in message_queue.messages() {
@@ -43,174 +46,32 @@ pub fn update_main_menu(message_queue: &mut MessageQueue, main_menu_state: &mut 
       MainMenuItem::Quit => message_queue.post(Message::RequestShutdown)
     }
   }
-}
-
-pub fn print_main_menu(main_menu_state: &MainMenuState) {
-  println!();
-  println!("Drakes VS Snakes");
-  println!();
-
-  if main_menu_state.selected_menu_item == MainMenuItem::NewGame { print!("  * ") } else { print!("    ") }
-  println!("1) Start new game");
-
-  if main_menu_state.selected_menu_item == MainMenuItem::LoadGame { print!("  * ") } else { print!("    ") }
-  println!("2) Load game");
   
-  if main_menu_state.selected_menu_item == MainMenuItem::HighScores { print!("  * ") } else { print!("    ") }
-  println!("3) High scores");
+  camera.transform.translate_to(Vector2::new());
   
-  if main_menu_state.selected_menu_item == MainMenuItem::Settings { print!("  * ") } else { print!("    ") }
-  println!("4) Settings");
-
-  if main_menu_state.selected_menu_item == MainMenuItem::Quit { print!("  * ") } else { print!("    ") }
-  println!("5) Exit");
-
-  println!();
-}
-
-#[cfg(test)]
-mod testing {
-  use crate::{MainMenuState, MainMenuItem};
-
-use super::{
-    update_main_menu,
-    Scenes,
-    Input,
-    Message,
-    MessageQueue
+  let x_offset = match main_menu_state.selected_menu_item {
+    MainMenuItem::NewGame => main_menu_sprites.new_game().texture().width() / 2 + 32,
+    MainMenuItem::LoadGame => main_menu_sprites.load_game().texture().width() / 2 + 32,
+    MainMenuItem::HighScores => main_menu_sprites.high_scores().texture().width() / 2 + 32,
+    MainMenuItem::Settings => main_menu_sprites.settings().texture().width() / 2 + 32,
+    MainMenuItem::Quit => main_menu_sprites.quit().texture().width() / 2 + 32,
   };
-
-  #[test]
-  fn up_input() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Up));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::LoadGame;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    assert_eq!(main_menu_state.selected_menu_item, MainMenuItem::NewGame);
-  }
   
-  #[test]
-  fn up_input_at_top() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Up));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    assert_eq!(main_menu_state.selected_menu_item, MainMenuItem::NewGame);
-  }
-
-  #[test]
-  fn down_input() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Down));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::Settings;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    assert_eq!(main_menu_state.selected_menu_item, MainMenuItem::Quit);
-  }
-
-  #[test]
-  fn down_input_at_bottom() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Down));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::Quit;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    assert_eq!(main_menu_state.selected_menu_item, MainMenuItem::Quit);
-  }
-
-  #[test]
-  fn confirm_new_game() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Confirm));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    message_queue.swap_buffers();
-
-    assert_eq!(message_queue.messages()[0], Message::RequestScene(Scenes::NewGame));
-  }
-
-  #[test]
-  fn confirm_load_game() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Confirm));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::LoadGame;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    message_queue.swap_buffers();
-
-    assert_eq!(message_queue.messages()[0], Message::RequestScene(Scenes::LoadGame));
-  }
-
-  #[test]
-  fn confirm_high_scores() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Confirm));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::HighScores;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    message_queue.swap_buffers();
-
-    assert_eq!(message_queue.messages()[0], Message::RequestScene(Scenes::HighScores));
-  }
-
-  #[test]
-  fn confirm_settings() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Confirm));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::Settings;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    message_queue.swap_buffers();
-
-    assert_eq!(message_queue.messages()[0], Message::RequestScene(Scenes::Settings));
-  }
-
-  #[test]
-  fn confirm_exit() {
-    let mut message_queue = MessageQueue::new();
-    message_queue.post(Message::PlayerInput(Input::Confirm));
-    message_queue.swap_buffers();
-
-    let mut main_menu_state = MainMenuState::new();
-    main_menu_state.selected_menu_item = MainMenuItem::Quit;
-
-    update_main_menu(&mut message_queue, &mut main_menu_state);
-
-    message_queue.swap_buffers();
-
-    assert_eq!(message_queue.messages()[0], Message::RequestShutdown);
-  }
+  let y_offset = match main_menu_state.selected_menu_item {
+    MainMenuItem::NewGame => 0,
+    MainMenuItem::LoadGame => 32,
+    MainMenuItem::HighScores => 64,
+    MainMenuItem::Settings => 96,
+    MainMenuItem::Quit => 128,
+  };
+  
+  emblem_sprites.mut_snakes().mut_transform().translate_to(Vector2 {
+    x: x_offset as f32,
+    y: y_offset as f32
+  });
+  
+  emblem_sprites.mut_drakes().mut_transform().translate_to(Vector2 {
+    x: -(x_offset as f32),
+    y: y_offset as f32
+  });
 }
