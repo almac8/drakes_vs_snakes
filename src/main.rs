@@ -22,7 +22,7 @@ use map::{
   Direction
 };
 
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color, ttf::Font};
 
 mod input;
 use input::Input;
@@ -113,9 +113,6 @@ use map_validation::MapValidation;
 
 mod print_playfield;
 use print_playfield::print_playfield;
-
-mod print_add_high_score;
-use print_add_high_score::print_add_high_score;
 
 mod high_scores_listing;
 use high_scores_listing::HighScoresListing;
@@ -627,23 +624,8 @@ fn main() -> Result<(), String> {
       },
 
       Scenes::AddHighScore => {
-        update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"), &mut typing_status, &typing_buffer)?;
-        print_add_high_score();
-
-        camera.transform.translate_to(Vector2::new());
-
-        if displayed_text != typing_buffer {
-          displayed_text = typing_buffer.clone();
-
-          if displayed_text.is_empty() {
-            displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
-          } else {
-            displayed_text_sprite = Sprite::print(&displayed_text, &font, &text_color)?;
-          }
-        }
-
-        render_sprite(&enter_name_sprite, &camera, &text_shader_program)?;
-        render_sprite(&displayed_text_sprite, &camera, &text_shader_program)?;
+        update_add_high_score(&mut message_queue, &playfield_state, Path::new("./high_scores.txt"), &mut typing_status, &typing_buffer, &mut camera, &mut displayed_text, &mut displayed_text_sprite, &font, &text_color)?;
+        render_add_high_score(&enter_name_sprite, &displayed_text_sprite, &camera, &text_shader_program)?;
       },
 
       Scenes::Settings => {
@@ -664,7 +646,7 @@ fn main() -> Result<(), String> {
   Ok(())
 }
 
-fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path, typing_status: &mut TypingStatus, typing_buffer: &String) -> Result<(), String> {
+fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &PlayfieldState, high_scores_file_path: &Path, typing_status: &mut TypingStatus, typing_buffer: &String, camera: &mut Camera, displayed_text: &mut String, displayed_text_sprite: &mut Sprite, font: &Font, text_color: &Color) -> Result<(), String> {
   match typing_status {
     TypingStatus::NotTyping => { *typing_status = TypingStatus::TypingStarted },
     TypingStatus::TypingStarted => *typing_status = TypingStatus::Typing,
@@ -675,6 +657,18 @@ fn update_add_high_score(message_queue: &mut MessageQueue, playfield_state: &Pla
       save_high_score(high_scores_file_path, &new_score)?;
       *typing_status = TypingStatus::NotTyping;
       message_queue.post(Message::RequestScene(Scenes::MainMenu));
+    }
+  }
+  
+  camera.transform.translate_to(Vector2::new());
+  
+  if displayed_text != typing_buffer {
+    *displayed_text = typing_buffer.clone();
+    
+    if displayed_text.is_empty() {
+      *displayed_text_sprite = Sprite::print(&" ".to_string(), &font, &text_color)?;
+    } else {
+      *displayed_text_sprite = Sprite::print(&displayed_text, &font, &text_color)?;
     }
   }
 
@@ -875,4 +869,11 @@ enum MainMenuItem {
   HighScores,
   Settings,
   Quit
+}
+
+fn render_add_high_score(enter_name_sprite: &Sprite, displayed_text_sprite: &Sprite, camera: &Camera, shader_program: &ShaderProgram) -> Result<(), String> {
+  render_sprite(enter_name_sprite, camera, shader_program)?;
+  render_sprite(displayed_text_sprite, camera, shader_program)?;
+
+  Ok(())
 }
